@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
-  Menu, LogOut, Home, CalendarDays, Users2, PhoneCall, Receipt,
-  Coins, Upload, KeyRound, ChevronsUpDown, ChevronRight, CalendarClock,
+  Menu, LogOut, Home, CalendarDays, Users2, PhoneCall,
+  Upload, KeyRound, ChevronsUpDown, ChevronRight, CalendarClock, IndianRupee, Trophy,
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
@@ -23,8 +23,8 @@ const NAV_MAIN = [
 ]
 
 const NAV_ADMIN = [
-  { to: '/expenses', label: 'Expenses', icon: Receipt },
-  { to: '/incentives', label: 'Incentives', icon: Coins },
+  { to: '/expenses', label: 'Expenses', icon: IndianRupee },
+  { to: '/incentives', label: 'Incentives', icon: Trophy },
   { to: '/import', label: 'Import', icon: Upload },
   { to: '/users', label: 'Users', icon: KeyRound },
 ]
