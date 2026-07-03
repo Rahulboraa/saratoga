@@ -152,7 +152,7 @@ export default function Users() {
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader><DialogTitle>Add User</DialogTitle></DialogHeader>
-          <form onSubmit={onCreate} className="space-y-3">
+          <form onSubmit={onCreate} className="space-y-3 mt-2">
             <div className="space-y-1.5">
               <Label>Name</Label>
               <Input name="name" required autoFocus />
