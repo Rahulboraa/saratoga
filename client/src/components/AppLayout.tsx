@@ -126,7 +126,7 @@ function TopBar() {
   const { pathname } = useLocation()
   const key = pathname.split('/').filter(Boolean)[0] ?? ''
   return (
-    <div className="sticky top-0 z-30 hidden h-16 items-center gap-2 border-b border-border/60 bg-background/80 px-6 backdrop-blur md:flex">
+    <div className="sticky top-0 z-30 hidden h-16 items-center gap-2 border-b border-border/60 bg-background px-6 md:flex">
       <nav className="flex items-center gap-2 text-[13px]">
         <NavLink to="/" className="text-muted-foreground transition-colors hover:text-foreground">Saratoga Villa</NavLink>
         <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40" />
@@ -189,7 +189,7 @@ export default function AppLayout() {
         <UserFooter />
       </aside>
 
-      <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-white/95 px-4 backdrop-blur md:hidden">
+      <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-white px-4 md:hidden">
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon"><Menu className="size-5" /></Button>

@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { LogOut } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { fmtDate } from '@/lib/format'
 import type { CalendarBooking } from '@/types'
@@ -21,7 +20,7 @@ export default function Caretaker() {
           <div className="text-xs text-muted-foreground">Caretaker · {user?.name}</div>
         </div>
         <Button variant="ghost" size="sm" onClick={() => logout()}>
-          <LogOut className="size-4" /> Log out
+          Log out
         </Button>
       </header>
 

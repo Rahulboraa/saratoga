@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { cn } from '@/lib/utils'
 import { fmtLakh, fmtMoney } from '@/lib/format'
 
@@ -40,7 +41,7 @@ function Ticks({ max, fmt }: { max: number; fmt: (n: number) => string }) {
           <span className="w-10 text-right text-[10px] tabular-nums text-muted-foreground">
             {fmt(Math.round(max * (1 - i / (ticks - 1))))}
           </span>
-          <div className="flex-1 border-t border-dashed border-border/60" />
+          <div className="flex-1 border-t border-dashed border-border/40" />
         </div>
       ))}
     </div>
@@ -101,14 +102,14 @@ function Bars({ data, series, height = 220, stacked = false, line, fmt = fmtLakh
                 }))}
               />
               {stacked ? (
-                <div className="flex h-full w-full max-w-[40px] flex-col-reverse overflow-hidden rounded-t-md">
+                <div className="chart-bar flex h-full w-full max-w-[32px] flex-col-reverse overflow-hidden rounded-t-[5px]" style={{ animationDelay: `${i * 45}ms` }}>
                   {series.map((sr) => {
                     const v = Number(d[sr.key]) || 0
                     return (
                       <div
                         key={sr.key}
-                        className="w-full origin-bottom cursor-help transition-all group-hover:opacity-80"
-                        style={{ height: `${(v / max) * 100}%`, background: sr.color }}
+                        className="w-full cursor-help transition-all group-hover:brightness-105 group-hover:saturate-125"
+                        style={{ height: `${(v / max) * 100}%`, background: `linear-gradient(to top, ${sr.color}, color-mix(in oklch, ${sr.color}, white 12%))` }}
                       />
                     )
                   })}
@@ -119,8 +120,8 @@ function Bars({ data, series, height = 220, stacked = false, line, fmt = fmtLakh
                   return (
                     <div
                       key={sr.key}
-                      className="w-full max-w-[26px] origin-bottom cursor-help rounded-t-md transition-all group-hover:scale-x-105 group-hover:opacity-80"
-                      style={{ height: v > 0 ? `${Math.max((v / max) * 100, 2)}%` : '0%', background: sr.color }}
+                      className="chart-bar w-full max-w-[26px] cursor-help rounded-t-[5px] transition-all group-hover:brightness-105 group-hover:saturate-125"
+                      style={barStyle(sr.color, v > 0 ? Math.max((v / max) * 100, 2) : 0, i)}
                     />
                   )
                 })
@@ -129,7 +130,7 @@ function Bars({ data, series, height = 220, stacked = false, line, fmt = fmtLakh
           ))}
         </div>
         {line && (
-          <div className="pointer-events-none absolute inset-0 pl-12">
+          <div className="chart-line pointer-events-none absolute inset-0 pl-12">
             <div className="relative h-full">
               <svg className="absolute inset-0 h-full w-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
                 <polyline
@@ -171,12 +172,20 @@ function Bars({ data, series, height = 220, stacked = false, line, fmt = fmtLakh
 }
 
 const C = {
-  bookedLight: 'hsl(217 91% 82%)',
-  blue: 'hsl(221.2 83.2% 53.3%)',
-  coral: 'hsl(6 78% 71%)',
-  green: 'hsl(142 65% 40%)',
-  purple: 'hsl(270 75% 60%)',
-  pendingPink: 'hsl(0 72% 87%)',
+  bookedLight: 'hsl(217 91% 78%)',
+  blue: 'hsl(221 83% 56%)',
+  coral: 'hsl(11 84% 66%)',
+  green: 'hsl(158 64% 42%)',
+  purple: 'hsl(262 83% 58%)',
+  pendingPink: 'hsl(350 85% 88%)',
+}
+
+function barStyle(color: string, heightPct: number, index: number): CSSProperties {
+  return {
+    height: `${heightPct}%`,
+    background: `linear-gradient(to top, ${color}, color-mix(in oklch, ${color}, white 18%))`,
+    animationDelay: `${index * 45}ms`,
+  }
 }
 
 export function RevenueChart({ data }: { data: MoneyPoint[] }) {
@@ -243,8 +252,8 @@ export function CountChart({ data }: { data: { label: string; count: number }[] 
                 {d.count}
               </span>
               <div
-                className="w-full max-w-[40px] origin-bottom cursor-help rounded-t-md transition-all group-hover:scale-x-105 group-hover:opacity-80"
-                style={{ height: d.count > 0 ? `${Math.max((d.count / max) * 100, 2)}%` : '0%', background: C.purple }}
+                className="chart-bar w-full max-w-[34px] cursor-help rounded-t-[5px] transition-all group-hover:brightness-105 group-hover:saturate-125"
+                style={barStyle(C.purple, d.count > 0 ? Math.max((d.count / max) * 100, 2) : 0, i)}
               />
             </div>
           ))}
@@ -280,6 +289,7 @@ export function DonutChart({ data, size = 190, thickness = 18, centerLabel, cent
       <circle cx={c} cy={c} r={radius} fill="none" stroke="var(--muted)" strokeWidth={thickness} />
       {data.map((d, i) => {
         const dash = (d.value / total) * circumference
+        const gap = data.length > 1 ? Math.min(4, dash * 0.15) : 0
         const node = (
           <circle
             key={i}
@@ -287,9 +297,11 @@ export function DonutChart({ data, size = 190, thickness = 18, centerLabel, cent
             fill="none"
             stroke={d.color}
             strokeWidth={thickness}
-            strokeDasharray={`${dash} ${circumference - dash}`}
-            strokeDashoffset={-offset}
+            strokeLinecap={data.length > 1 ? 'round' : 'butt'}
+            strokeDasharray={`${Math.max(dash - gap, 0.5)} ${circumference - Math.max(dash - gap, 0.5)}`}
+            strokeDashoffset={-offset - gap / 2}
             transform={`rotate(-90 ${c} ${c})`}
+            className="transition-all hover:brightness-105"
             style={{ transition: 'stroke-dasharray 0.4s ease' }}
           >
             <title>{`${d.label}: ${d.value}`}</title>

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
-import { Pencil, Trash2, LogOut, Users2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Pencil, Trash2, Users2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
@@ -152,7 +152,7 @@ export default function VisitorLog({ embedded = false }: { embedded?: boolean })
                     <div className="flex shrink-0 gap-1">
                       {!v.outTime && (
                         <Button variant="outline" size="sm" onClick={() => markOut.mutate(v.id)}>
-                          <LogOut className="size-3.5" /> Mark out
+                          Mark out
                         </Button>
                       )}
                       <Button variant="ghost" size="icon" className="size-8" onClick={() => { setEditing(v); setDialogOpen(true) }}>

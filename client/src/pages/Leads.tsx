@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
-import { Pencil, Trash2, Download, CheckCircle2, PhoneCall, CalendarClock, AlertCircle, UserX } from 'lucide-react'
+import { Pencil, Trash2, CheckCircle2, PhoneCall, CalendarClock, AlertCircle, UserX } from 'lucide-react'
 import { toast } from 'sonner'
 import type { ColumnDef } from '@tanstack/react-table'
 import { api } from '@/lib/api'
@@ -263,7 +263,7 @@ export default function Leads() {
         <Card className="mb-6">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-[15px]">Sales Executive Performance</CardTitle>
-            <Button variant="outline" size="sm" onClick={exportReportCsv}><Download className="size-4" /> CSV</Button>
+            <Button variant="outline" size="sm" onClick={exportReportCsv}>CSV</Button>
           </CardHeader>
           <CardContent className="overflow-x-auto px-0">
             <Table>

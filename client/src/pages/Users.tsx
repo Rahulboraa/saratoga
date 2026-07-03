@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Trash2, KeyRound } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
@@ -132,7 +132,7 @@ export default function Users() {
                   <span className="text-xs text-muted-foreground">active</span>
                 </div>
                 <Button variant="outline" size="sm" onClick={() => setResetFor(u)}>
-                  <KeyRound className="size-3.5" /> Reset
+                  Reset
                 </Button>
                 <div className="flex w-8 justify-center">
                   {u.id !== me?.id ? (

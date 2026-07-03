@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Download, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface BeforeInstallPromptEvent extends Event {
@@ -40,7 +40,7 @@ export default function InstallPrompt() {
           setDeferred(null)
         }}
       >
-        <Download className="size-3.5" /> Install
+        Install
       </Button>
       <button
         type="button"
