@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { Download } from 'lucide-react'
 import { api } from '@/lib/api'
 import type { ImportPreview, ImportResult } from '@/types'
 import { Button } from '@/components/ui/button'
@@ -21,6 +22,14 @@ const TYPES = [
   { value: 'visitors', label: 'Visitors' },
   { value: 'leads', label: 'Leads' },
 ]
+
+const TEMPLATE_COLS: Record<string, string[]> = {
+  bookings: ['Guest', 'Phone', 'Check-in Date', 'Check-out Date', 'Check-in Time', 'Check-out Time', 'Pax', 'Purpose', 'Source', 'Venue', 'Catering', 'Decor', 'Music', 'Cleaning', 'License', 'Security', 'Notes'],
+  payments: ['Guest', 'Date', 'Amount', 'Method', 'Destination', 'Paid By', 'Notes'],
+  expenses: ['Date', 'Category', 'Description', 'Amount', 'Vendor', 'Notes'],
+  visitors: ['Date', 'Name', 'Phone', 'Purpose', 'In Time', 'Out Time', 'Remarks'],
+  leads: ['Name', 'phone_number', 'email', 'state', 'Family_gathering_/party', 'Date', 'Remark 1', 'Assign'],
+}
 
 const PREVIEW_COLS: Record<string, string[]> = {
   bookings: ['guest', 'phone', 'checkinDate', 'checkoutDate', 'purpose'],
@@ -98,6 +107,19 @@ export default function ImportPage() {
           </div>
           <Button onClick={() => doPreview.mutate()} disabled={!file || doPreview.isPending}>
             {doPreview.isPending ? 'Parsing…' : 'Preview'}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              const blob = new Blob([TEMPLATE_COLS[type].join(',') + '\n'], { type: 'text/csv' })
+              const a = document.createElement('a')
+              a.href = URL.createObjectURL(blob)
+              a.download = `${type}-template.csv`
+              a.click()
+              URL.revokeObjectURL(a.href)
+            }}
+          >
+            <Download className="size-4" /> Template
           </Button>
         </CardContent>
       </Card>

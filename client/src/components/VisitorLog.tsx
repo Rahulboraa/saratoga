@@ -31,6 +31,7 @@ export default function VisitorLog({ embedded = false }: { embedded?: boolean })
   const queryClient = useQueryClient()
   const [q, setQ] = useState('')
   const [date, setDate] = useState('all')
+  const [type, setType] = useState('all')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Visitor | null>(null)
 
@@ -40,6 +41,7 @@ export default function VisitorLog({ embedded = false }: { embedded?: boolean })
   const params = new URLSearchParams({ page: String(page), limit: String(limit) })
   if (q) params.set('q', q)
   if (date !== 'all') params.set('date', date)
+  if (type !== 'all') params.set('type', type)
 
   const { data, isLoading } = useQuery({
     queryKey: ['visitors', params.toString()],
@@ -95,10 +97,17 @@ export default function VisitorLog({ embedded = false }: { embedded?: boolean })
       <div className="mb-4 flex flex-wrap gap-2">
         <Input placeholder="Search name, phone, purpose…" value={q} onChange={(e) => { setQ(e.target.value); setPage(1) }} className="w-full sm:w-64" />
         <Select value={date} onValueChange={(v) => { setDate(v); setPage(1) }}>
-          <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[calc(50%-4px)] sm:w-40"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All dates</SelectItem>
             {dates.map((d) => <SelectItem key={d} value={d}>{fmtDate(d)}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={type} onValueChange={(v) => { setType(v); setPage(1) }}>
+          <SelectTrigger className="w-[calc(50%-4px)] sm:w-36"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All types</SelectItem>
+            {['Guest', 'Vendor', 'Delivery', 'Staff', 'Other'].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>

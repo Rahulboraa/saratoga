@@ -167,11 +167,22 @@ export interface MonthlyPoint {
   profit: number
 }
 
+export interface ConflictBooking {
+  id: string
+  guest: string
+  checkinDate: string
+  checkoutDate: string
+  checkinTime: string
+  checkoutTime: string
+  purpose: Purpose
+}
+
 export interface DashboardStats {
   totalBookings: number
   upcomingCount: number
   uniqueDates: number
   overlapCount: number
+  conflicts: ConflictBooking[]
   bookingsPerMonth: { month: string; count: number }[]
   purposeBreakdown: { purpose: Purpose; count: number; booked?: number; collected?: number }[]
   upcoming: Booking[]

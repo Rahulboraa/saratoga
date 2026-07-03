@@ -7,10 +7,16 @@ import { todayYmd } from '../lib/dates.js'
 
 export const visitorsRouter = Router()
 
+const VISITOR_TYPES = ['Guest', 'Vendor', 'Delivery', 'Staff'] as const
+
 visitorsRouter.get('/', async (req, res) => {
-  const { date, q } = req.query as Record<string, string | undefined>
+  const { date, q, type } = req.query as Record<string, string | undefined>
   const filter: Record<string, unknown> = {}
   if (date) filter.date = date
+  if (type) {
+    if (type === 'Other') filter.purpose = { $not: new RegExp(VISITOR_TYPES.join('|'), 'i') }
+    else if ((VISITOR_TYPES as readonly string[]).includes(type)) filter.purpose = new RegExp(type, 'i')
+  }
   if (q) {
     const rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
     filter.$or = [{ name: rx }, { phone: rx }, { purpose: rx }]

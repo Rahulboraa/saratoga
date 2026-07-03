@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { CalendarDays, IndianRupee, Wallet, AlertCircle, CalendarClock, Layers } from 'lucide-react'
+import { CalendarDays, IndianRupee, Wallet, AlertCircle, CalendarClock, Layers, TriangleAlert } from 'lucide-react'
 import { RevenueChart, PLChart, CountChart, TrendChart } from '@/components/charts'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
@@ -83,6 +83,27 @@ export default function Dashboard() {
           </>
         )}
       </div>
+
+      {data.conflicts.length > 0 && (
+        <Card className="mb-8 border-destructive/25 bg-destructive/5 py-4">
+          <CardContent className="px-5">
+            <div className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-destructive">
+              <TriangleAlert className="size-4" />
+              {data.overlapCount} overlapping booking{data.overlapCount > 1 ? 's' : ''}: same dates clash
+            </div>
+            <div className="space-y-1">
+              {data.conflicts.map((c) => (
+                <div key={c.id} className="flex flex-wrap items-center gap-x-2 text-[13px]">
+                  <span className="font-medium">{c.guest}</span>
+                  <span className="text-muted-foreground">
+                    {fmtDate(c.checkinDate)} {c.checkinTime} → {c.checkoutDate !== c.checkinDate ? `${fmtDate(c.checkoutDate)} ` : ''}{c.checkoutTime} · {c.purpose}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-5">
         {data.purposeBreakdown.map((p) => (

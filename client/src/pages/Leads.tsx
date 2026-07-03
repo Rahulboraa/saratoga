@@ -79,6 +79,11 @@ export default function Leads() {
     queryFn: () => api<LeadSummary>('/leads/summary'),
   })
 
+  const { data: overdueLeads = [] } = useQuery({
+    queryKey: ['leads', 'overdue'],
+    queryFn: () => api<Lead[]>('/leads/overdue'),
+  })
+
   const { data: unassignedLeads = [] } = useQuery({
     queryKey: ['leads', 'unassigned'],
     queryFn: () => api<UnassignedLead[]>('/leads/unassigned'),
@@ -276,6 +281,27 @@ export default function Leads() {
                 ))}
               </TableBody>
             </Table>
+          </CardContent>
+        </Card>
+      )}
+
+      {overdueLeads.length > 0 && (
+        <Card className="mb-6 border-destructive/25 bg-destructive/5 py-3">
+          <CardContent className="px-4">
+            <div className="mb-2 text-[13px] font-semibold text-destructive">
+              {overdueLeads.length} overdue follow-up{overdueLeads.length > 1 ? 's' : ''}: call back today
+            </div>
+            <div className="space-y-1">
+              {overdueLeads.map((l) => (
+                <div key={l.id} className="flex flex-wrap items-center justify-between gap-2 text-[13px]">
+                  <span>
+                    <span className="font-medium">{l.name}</span>
+                    <span className="text-muted-foreground"> · {l.phone} · was due {fmtDate(l.followup)}</span>
+                  </span>
+                  <Button variant="outline" size="xs" onClick={() => { setEditing(l); setSheetOpen(true) }}>Update</Button>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}

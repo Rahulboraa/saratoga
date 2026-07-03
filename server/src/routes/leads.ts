@@ -59,6 +59,17 @@ leadsRouter.get('/unassigned', requireRole('admin', 'manager'), async (_req, res
   res.json(leads.map((l) => ({ id: l.id, name: l.name, phone: l.phone, eventType: l.eventType })))
 })
 
+leadsRouter.get('/overdue', async (req, res) => {
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
+  const filter: Record<string, unknown> = {
+    followup: { $gt: '', $lt: today },
+    outcome: { $nin: ['Converted', 'Not Interested'] },
+  }
+  if (req.user.role === 'sales') filter.exec = req.user.username
+  const leads = await Lead.find(filter).sort({ followup: 1 }).limit(8)
+  res.json(leads.map((l) => serializeLead(l.toObject(), req.user.role)))
+})
+
 leadsRouter.get('/report', requireRole('admin', 'manager'), async (req, res) => {
   const month = String(req.query.month || '')
   const filter = month ? { date: { $regex: `^${month.replace(/[^\d-]/g, '')}` } } : {}

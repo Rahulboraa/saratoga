@@ -69,11 +69,20 @@ export async function dashboardStats(role: Role) {
       role,
     ))
 
+  const conflicts = rows
+    .filter((b) => overlapIds.has(b.id))
+    .sort((a, b) => a.checkinDate.localeCompare(b.checkinDate))
+    .map((b) => ({
+      id: b.id, guest: b.guest, checkinDate: b.checkinDate, checkoutDate: b.checkoutDate,
+      checkinTime: b.checkinTime, checkoutTime: b.checkoutTime, purpose: b.purpose,
+    }))
+
   const common = {
     totalBookings: rows.length,
     upcomingCount,
     uniqueDates: uniqueDates.size,
     overlapCount: overlapIds.size,
+    conflicts,
     bookingsPerMonth: [...bookingsPerMonth.entries()].sort().map(([month, count]) => ({ month, count })),
     purposeBreakdown: [...purposeBreakdown.values()].map((p) =>
       role === 'admin' ? p : { purpose: p.purpose, count: p.count },
