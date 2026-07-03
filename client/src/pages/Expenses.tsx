@@ -186,26 +186,6 @@ function ExpensePayPanel({ expense, onClose }: { expense: Expense; onClose: () =
             <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
           </div>
 
-          {payments.length === 0 ? (
-            <EmptyState icon={Wallet} message="No payments yet" />
-          ) : (
-            <div className="space-y-2">
-              {payments.map((p) => (
-                <div key={p.id} className="flex items-center justify-between rounded-lg border border-border/60 p-2.5 text-[13px] shadow-sm">
-                  <div>
-                    <span className="font-semibold tabular-nums">{fmtMoney(p.amount)}</span>
-                    <span className="text-muted-foreground"> · {fmtDate(p.date)}{p.method && ` · ${p.method}`}{p.to && ` · to ${p.to}`}</span>
-                  </div>
-                  <ConfirmDelete
-                    title="Delete this payment?"
-                    onConfirm={() => remove.mutate(p.id)}
-                    trigger={<Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-destructive"><Trash2 className="size-4" /></Button>}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-
           {showForm ? (
             <form onSubmit={onSubmit} className="space-y-3 rounded-lg border border-border/60 p-3 shadow-sm">
               <div className="grid grid-cols-2 gap-x-4 gap-y-5">
@@ -241,6 +221,28 @@ function ExpensePayPanel({ expense, onClose }: { expense: Expense; onClose: () =
             </form>
           ) : (
             <Button onClick={() => { setPayDate(todayYmd()); setShowForm(true) }}>+ Record payment</Button>
+          )}
+
+          {payments.length === 0 ? (
+            <div className="flex items-center gap-2 rounded-lg border border-dashed px-4 py-3 text-[13px] text-muted-foreground">
+              <Wallet className="size-4" /> No payments yet
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {payments.map((p) => (
+                <div key={p.id} className="flex items-center justify-between rounded-lg border border-border/60 p-2.5 text-[13px] shadow-sm">
+                  <div>
+                    <span className="font-semibold tabular-nums">{fmtMoney(p.amount)}</span>
+                    <span className="text-muted-foreground"> · {fmtDate(p.date)}{p.method && ` · ${p.method}`}{p.to && ` · to ${p.to}`}</span>
+                  </div>
+                  <ConfirmDelete
+                    title="Delete this payment?"
+                    onConfirm={() => remove.mutate(p.id)}
+                    trigger={<Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-destructive"><Trash2 className="size-4" /></Button>}
+                  />
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </SheetContent>
