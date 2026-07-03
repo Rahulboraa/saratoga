@@ -64,7 +64,7 @@ function ExpenseSheet({ open, onClose, expense }: { open: boolean; onClose: () =
 
   return (
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-2xl">
+      <SheetContent side="right" size="md" className="flex w-full flex-col gap-0 p-0">
         <SheetHeader className="border-b px-6 py-5">
           <SheetTitle>{expense ? 'Edit expense' : 'Add expense'}</SheetTitle>
           <SheetDescription>Record partial payments against it after saving.</SheetDescription>
@@ -162,7 +162,7 @@ function ExpensePayPanel({ expense, onClose }: { expense: Expense; onClose: () =
 
   return (
     <Sheet open onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-2xl">
+      <SheetContent side="right" size="md" className="flex w-full flex-col gap-0 p-0">
         <SheetHeader className="border-b px-6 py-5">
           <SheetTitle>Payments · {expense.desc}</SheetTitle>
           <SheetDescription>{fmtDate(expense.date)} · {expense.cat}</SheetDescription>

@@ -93,7 +93,7 @@ export default function LeadSheet({ open, onClose, lead }: { open: boolean; onCl
 
   return (
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-2xl">
+      <SheetContent side="right" size="md" className="flex w-full flex-col gap-0 p-0">
         <SheetHeader className="border-b px-6 py-5">
           <SheetTitle>{lead ? 'Edit lead' : 'Log call'}</SheetTitle>
           <SheetDescription>{lead ? `Editing ${lead.name}` : 'Record a lead or call outcome'}</SheetDescription>

@@ -79,7 +79,7 @@ export default function VisitorSheet({ open, onClose, visitor }: { open: boolean
 
   return (
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-2xl">
+      <SheetContent side="right" size="md" className="flex w-full flex-col gap-0 p-0">
         <SheetHeader className="border-b px-6 py-5">
           <SheetTitle>{visitor ? 'Edit entry' : 'Log visitor'}</SheetTitle>
           <SheetDescription>{visitor ? `Editing ${visitor.name}` : "Record a visitor's arrival"}</SheetDescription>
