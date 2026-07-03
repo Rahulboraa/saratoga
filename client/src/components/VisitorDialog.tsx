@@ -1,0 +1,138 @@
+import { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import { api } from '@/lib/api'
+import { useAuth } from '@/lib/auth'
+import { nowHm } from '@/lib/format'
+import { FU_STATUSES, type Visitor } from '@/types'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+
+interface FormValues {
+  name: string
+  phone: string
+  purpose: string
+  inTime: string
+  outTime: string
+  remarks: string
+  fuStatus: string
+  fuRemark: string
+}
+
+function toForm(v?: Visitor | null): FormValues {
+  return {
+    name: v?.name ?? '',
+    phone: v?.phone ?? '',
+    purpose: v?.purpose ?? '',
+    inTime: v?.inTime ?? nowHm(),
+    outTime: v?.outTime ?? '',
+    remarks: v?.remarks ?? '',
+    fuStatus: v?.fuStatus || 'none',
+    fuRemark: v?.fuRemark ?? '',
+  }
+}
+
+export default function VisitorDialog({ open, onClose, visitor }: { open: boolean; onClose: () => void; visitor?: Visitor | null }) {
+  const { user } = useAuth()
+  const isCaretaker = user?.role === 'caretaker'
+  const queryClient = useQueryClient()
+  const { register, handleSubmit, reset, watch, setValue, formState: { errors, isSubmitting } } = useForm<FormValues>({
+    defaultValues: toForm(visitor),
+  })
+
+  useEffect(() => {
+    if (open) reset(toForm(visitor))
+  }, [open, visitor, reset])
+
+  const save = useMutation({
+    mutationFn: (body: Record<string, unknown>) =>
+      visitor
+        ? api<Visitor>(`/visitors/${visitor.id}`, { method: 'PATCH', body })
+        : api<Visitor>('/visitors', { body }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['visitors'] })
+      toast.success(visitor ? 'Entry updated' : 'Visitor logged')
+      onClose()
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : 'Save failed'),
+  })
+
+  const onSubmit = handleSubmit((v) => {
+    const body: Record<string, unknown> = {
+      name: v.name, phone: v.phone, purpose: v.purpose,
+      inTime: v.inTime, outTime: v.outTime, remarks: v.remarks,
+    }
+    if (!isCaretaker) {
+      body.fuStatus = v.fuStatus === 'none' ? '' : v.fuStatus
+      body.fuRemark = v.fuRemark
+    }
+    save.mutate(body)
+  })
+
+  const fuStatus = watch('fuStatus')
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{visitor ? '✏️ Edit Entry' : '📋 Log Visitor'}</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={onSubmit} className="space-y-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label>Visitor Name *</Label>
+              <Input {...register('name', { required: true })} aria-invalid={!!errors.name} autoFocus />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Mobile Number *</Label>
+              <Input {...register('phone', { required: true })} inputMode="tel" aria-invalid={!!errors.phone} />
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>Purpose of Visit</Label>
+              <Input {...register('purpose')} placeholder="Delivery, Meeting, Event…" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>In Time</Label>
+              <Input type="time" {...register('inTime')} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Out Time</Label>
+              <Input type="time" {...register('outTime')} />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Remarks</Label>
+            <Textarea rows={2} {...register('remarks')} />
+          </div>
+          {!isCaretaker && (
+            <div className="grid grid-cols-1 gap-3 rounded-lg border bg-accent/30 p-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>Follow-up Status</Label>
+                <Select value={fuStatus} onValueChange={(v) => setValue('fuStatus', v)}>
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {FU_STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Follow-up Remark</Label>
+                <Input {...register('fuRemark')} placeholder="Sales team note" />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
+            <Button type="submit" disabled={isSubmitting}>Save Entry</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
