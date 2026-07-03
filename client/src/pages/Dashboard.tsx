@@ -1,18 +1,18 @@
 import { useQuery } from '@tanstack/react-query'
-import { CalendarDays, IndianRupee, Wallet, AlertCircle, CalendarClock, Layers, TriangleAlert } from 'lucide-react'
+import { CalendarDays, IndianRupee, Wallet, AlertCircle, CalendarClock, Layers, TriangleAlert, Download } from 'lucide-react'
+import { useState } from 'react'
+import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
+import { todayYmd } from '@/lib/format'
 import { RevenueChart, PLChart, CountChart, TrendChart, DonutChart } from '@/components/charts'
-import { api } from '@/lib/api'
+import { api, apiDownload } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
-import { fmtMoney, fmtLakh, fmtDate, fmtMonth, PURPOSE_COLORS, STATUS_VARIANT } from '@/lib/format'
+import { fmtMoney, fmtLakh, fmtDate, fmtMonth, PURPOSE_COLORS } from '@/lib/format'
 import StatCard from '@/components/StatCard'
 import { PageHeader } from '@/components/PageHeader'
 import MonthCalendar from '@/components/MonthCalendar'
-import EmptyState from '@/components/EmptyState'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { cn } from '@/lib/utils'
 import type { DashboardStats } from '@/types'
 
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
@@ -27,6 +27,7 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
 export default function Dashboard() {
   const { user } = useAuth()
   const isAdmin = user?.role === 'admin'
+  const [exporting, setExporting] = useState(false)
   const { data, isLoading } = useQuery({
     queryKey: ['stats', 'dashboard'],
     queryFn: () => api<DashboardStats>('/stats/dashboard'),
@@ -45,7 +46,29 @@ export default function Dashboard() {
 
   return (
     <div>
-      <PageHeader title="Dashboard" description="Bookings, collections and activity at a glance" />
+      <PageHeader
+        title="Dashboard"
+        description="Bookings, collections and activity at a glance"
+        actions={isAdmin && (
+          <Button
+            variant="outline"
+            disabled={exporting}
+            onClick={async () => {
+              setExporting(true)
+              try {
+                await apiDownload('/export', `saratoga-export-${todayYmd()}.xlsx`)
+                toast.success('Excel downloaded')
+              } catch {
+                toast.error('Export failed')
+              } finally {
+                setExporting(false)
+              }
+            }}
+          >
+            <Download className="size-4" /> {exporting ? 'Exporting…' : 'Download Excel'}
+          </Button>
+        )}
+      />
       <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-5">
         {isAdmin ? (
           <>
@@ -157,49 +180,6 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader><CardTitle className="text-[15px]">Upcoming Bookings</CardTitle></CardHeader>
-        <CardContent className="px-0">
-          {data.upcoming.length === 0 ? (
-            <EmptyState icon={CalendarDays} message="No upcoming bookings" />
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Guest</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Pax</TableHead>
-                    {isAdmin && <TableHead className="text-right">Amount</TableHead>}
-                    {isAdmin && <TableHead>Status</TableHead>}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.upcoming.map((b) => (
-                    <TableRow key={b.id} className={cn(b.overlap && 'border-l-2 border-l-red-500')}>
-                      <TableCell className="whitespace-nowrap">{fmtDate(b.checkinDate)}</TableCell>
-                      <TableCell className="font-medium">{b.guest}</TableCell>
-                      <TableCell>
-                        <span className="rounded-full px-2 py-0.5 text-xs" style={{ background: `${PURPOSE_COLORS[b.purpose]}22`, color: PURPOSE_COLORS[b.purpose] }}>
-                          {b.purpose}
-                        </span>
-                      </TableCell>
-                      <TableCell className="max-w-32 truncate">{b.pax || '—'}</TableCell>
-                      {isAdmin && <TableCell className="text-right">{fmtMoney(b.amount)}</TableCell>}
-                      {isAdmin && (
-                        <TableCell>
-                          <Badge variant={STATUS_VARIANT[b.status ?? 'pending']} withDot>{b.status}</Badge>
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   )
 }

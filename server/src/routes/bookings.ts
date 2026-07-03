@@ -53,6 +53,15 @@ bookingsRouter.get('/', requireRole('admin', 'manager', 'sales'), async (req, re
   res.json({ rows: rows.map((r) => serializeBooking(r, req.user.role)), total, page, limit, months })
 })
 
+bookingsRouter.get('/upcoming', requireRole('admin', 'manager', 'sales'), async (_req, res) => {
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
+  const bookings = await Booking.find({ checkinDate: { $gte: today } })
+    .select('guest checkinDate checkoutDate checkinTime checkoutTime pax purpose')
+    .sort({ checkinDate: 1 })
+    .limit(6)
+  res.json(bookings.map((b) => serializeCalendarBooking({ ...b.toObject(), id: b.id })))
+})
+
 bookingsRouter.get('/calendar', async (req, res) => {
   const month = String(req.query.month || '')
   if (!/^\d{4}-\d{2}$/.test(month)) return res.status(400).json({ error: 'month required (YYYY-MM)' })

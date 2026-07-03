@@ -55,3 +55,19 @@ export async function api<T>(path: string, opts: Options = {}): Promise<T> {
   }
   return data as T
 }
+
+export async function apiDownload(path: string, filename: string) {
+  const token = getToken()
+  const res = await fetch(`/api${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  })
+  if (!res.ok) throw new ApiError(res.status, 'Download failed', null)
+  const fresh = res.headers.get('x-refresh-token')
+  if (fresh) setToken(fresh)
+  const blob = await res.blob()
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(a.href)
+}

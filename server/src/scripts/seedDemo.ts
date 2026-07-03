@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import { connectDb } from '../db.js'
 import { env } from '../env.js'
-import { Booking } from '../models/Booking.js'
+import { Booking, PURPOSES, SOURCES } from '../models/Booking.js'
 import { Payment } from '../models/Payment.js'
 import { Expense } from '../models/Expense.js'
 import { ExpensePayment } from '../models/ExpensePayment.js'
@@ -22,7 +22,7 @@ await Promise.all([
   ExpensePayment.deleteMany({}), Visitor.deleteMany({}), Lead.deleteMany({}),
 ])
 
-const bk = (guest: string, phone: string, checkin: string, checkout: string, purpose: string, source: string, breakdown: Record<string, number>, notes = '', times: [string, string] = ['15:00', '10:00']) => ({
+const bk = (guest: string, phone: string, checkin: string, checkout: string, purpose: (typeof PURPOSES)[number], source: (typeof SOURCES)[number], breakdown: Record<string, number>, notes = '', times: [string, string] = ['15:00', '10:00']) => ({
   guest, phone, checkinDate: checkin, checkoutDate: checkout, purpose, source,
   checkinTime: times[0], checkoutTime: times[1],
   pax: `${20 + Math.floor(Math.random() * 60)} guests`,
