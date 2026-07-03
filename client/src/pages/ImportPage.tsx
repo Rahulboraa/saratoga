@@ -167,7 +167,7 @@ export default function ImportPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>#</TableHead>
+                    <TableHead className="w-14">S.No</TableHead>
                     {cols.map((c) => <TableHead key={c} className="capitalize">{c}</TableHead>)}
                     <TableHead>Status</TableHead>
                   </TableRow>

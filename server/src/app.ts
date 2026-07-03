@@ -12,6 +12,7 @@ import { leadsRouter } from './routes/leads.js'
 import { statsRouter } from './routes/stats.js'
 import { importsRouter } from './routes/imports.js'
 import { exportRouter } from './routes/exportData.js'
+import { searchRouter } from './routes/search.js'
 import { requireAuth } from './middleware/auth.js'
 import { errorHandler } from './middleware/error.js'
 
@@ -35,6 +36,7 @@ export function createApp() {
   app.use('/api/stats', requireAuth, statsRouter)
   app.use('/api/import', requireAuth, importsRouter)
   app.use('/api/export', requireAuth, exportRouter)
+  app.use('/api/search', requireAuth, searchRouter)
   app.use('/api', (_req, res) => res.status(404).json({ error: 'Not found' }))
 
   app.use(express.static(clientDist))

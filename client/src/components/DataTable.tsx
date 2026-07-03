@@ -32,9 +32,16 @@ export function DataTable<T>({
   columns, data, total, page, limit, onPageChange, onLimitChange,
   isLoading, rowClassName, renderCard, empty,
 }: DataTableProps<T>) {
+  const snoColumn: ColumnDef<T> = {
+    id: 'sno',
+    header: 'S.No',
+    meta: { headClass: 'w-14', cellClass: 'text-muted-foreground tabular-nums' },
+    cell: ({ row }) => (page - 1) * limit + row.index + 1,
+  }
+
   const table = useReactTable({
     data: data ?? [],
-    columns,
+    columns: [snoColumn, ...columns],
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
   })

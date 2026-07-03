@@ -40,6 +40,7 @@ export default function Upcoming() {
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
+                  <TableHead className="w-14">S.No</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Guest</TableHead>
                   <TableHead>Times</TableHead>
@@ -51,8 +52,9 @@ export default function Upcoming() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {bookings.map((b) => (
+                {bookings.map((b, i) => (
                   <TableRow key={b.id} className={cn(b.overlap && 'border-l-2 border-l-destructive')}>
+                    <TableCell className="tabular-nums text-muted-foreground">{i + 1}</TableCell>
                     <TableCell className="whitespace-nowrap font-medium">
                       {fmtDate(b.checkinDate)}
                       {b.checkoutDate !== b.checkinDate && <div className="text-[11px] font-normal text-muted-foreground">→ {fmtDate(b.checkoutDate)}</div>}

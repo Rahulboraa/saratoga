@@ -13,6 +13,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import InstallPrompt from '@/components/InstallPrompt'
+import SearchPalette, { openSearchPalette } from '@/components/SearchPalette'
+import { Search } from 'lucide-react'
 
 const NAV_MAIN = [
   { to: '/', label: 'Dashboard', icon: Home },
@@ -132,6 +134,19 @@ function TopBar() {
         <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40" />
         <span className="font-medium text-foreground">{PAGE_LABELS[key] ?? 'Dashboard'}</span>
       </nav>
+      <div className="flex flex-1 items-center justify-end">
+        <button
+          type="button"
+          onClick={openSearchPalette}
+          className="relative inline-flex h-9 w-full max-w-[300px] items-center justify-start rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        >
+          <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+          <span>Search…</span>
+          <kbd className="pointer-events-none absolute right-1.5 top-1.5 hidden h-6 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium sm:flex">
+            <span className="text-xs">⌘</span>K
+          </kbd>
+        </button>
+      </div>
     </div>
   )
 }
@@ -205,13 +220,14 @@ export default function AppLayout() {
 
       <main className="min-h-screen bg-slate-50/50 md:pl-[260px]">
         <TopBar />
-        <div className="mx-auto px-4 py-5 pb-24 sm:px-5 sm:py-6 md:px-6 md:py-6 md:pb-6">
+        <div className="animate-fade-in mx-auto px-4 py-5 pb-24 sm:px-5 sm:py-6 md:px-6 md:py-6 md:pb-6">
           <Outlet />
         </div>
       </main>
 
       <BottomNav onMore={() => setOpen(true)} />
       <InstallPrompt />
+      <SearchPalette />
     </div>
   )
 }
