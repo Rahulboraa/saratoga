@@ -66,7 +66,7 @@ export default function PaymentPanel({ booking, onClose }: { booking: Booking | 
 
   return (
     <Sheet open onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-xl">
+      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-2xl">
         <SheetHeader className="border-b px-6 py-5">
           <SheetTitle>Payments · {booking.guest}</SheetTitle>
           <SheetDescription>{fmtDate(booking.checkinDate)} · {booking.purpose}</SheetDescription>
