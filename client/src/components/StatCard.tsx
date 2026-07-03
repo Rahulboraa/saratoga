@@ -23,7 +23,7 @@ export default function StatCard({ icon: Icon, tint = 'foreground', label, value
       <div className="flex items-center gap-2.5">
         {Icon && (
           <span className={cn('flex h-8 w-8 items-center justify-center rounded-lg', tintBg[tint])}>
-            <Icon className="h-[18px] w-[18px]" strokeWidth={2} />
+            <Icon className="size-5" strokeWidth={2} />
           </span>
         )}
         <span className="text-[13px] font-medium text-foreground">{label}</span>

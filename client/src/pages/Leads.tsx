@@ -47,9 +47,9 @@ function FlagChip({ flag }: { flag?: string }) {
   const meta = LEAD_FLAGS.find((f) => f.value === flag)
   if (!meta) return null
   const icon =
-    flag === 'good' ? <CheckCircle2 className="size-3.5 text-success" /> :
-    flag === 'escalate' ? <CircleAlert className="size-3.5 text-destructive" /> :
-    <TriangleAlert className="size-3.5 text-warning" />
+    flag === 'good' ? <CheckCircle2 className="size-5 text-success" /> :
+    flag === 'escalate' ? <CircleAlert className="size-5 text-destructive" /> :
+    <TriangleAlert className="size-5 text-warning" />
   return <span className="inline-flex items-center gap-1 whitespace-nowrap text-[12px]">{icon}{meta.label}</span>
 }
 
@@ -157,17 +157,17 @@ export default function Leads() {
     <div className="flex justify-end gap-1">
       {l.outcome !== 'Converted' && (
         <Button variant="ghost" size="icon-sm" className="text-success" title="Mark converted" onClick={() => markConverted.mutate(l.id)}>
-          <CheckCircle2 className="size-4" />
+          <CheckCircle2 className="size-5" />
         </Button>
       )}
       <Button variant="ghost" size="icon-sm" title="Edit" onClick={() => { setEditing(l); setSheetOpen(true) }}>
-        <Pencil className="size-4" />
+        <Pencil className="size-5" />
       </Button>
       {isAdmin && (
         <ConfirmDelete
           title={`Delete lead ${l.name}?`}
           onConfirm={() => deleteLead.mutate(l.id)}
-          trigger={<Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-destructive"><Trash2 className="size-4" /></Button>}
+          trigger={<Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-destructive"><Trash2 className="size-5" /></Button>}
         />
       )}
     </div>

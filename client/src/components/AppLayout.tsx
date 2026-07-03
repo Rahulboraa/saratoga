@@ -48,7 +48,7 @@ function NavItem({ to, label, icon: Icon, onNavigate }: { to: string; label: str
     >
       {({ isActive }) => (
         <>
-          <Icon className={cn('h-[18px] w-[18px] shrink-0', isActive ? 'text-[#2563eb]' : 'text-slate-400')} strokeWidth={isActive ? 2.5 : 2} />
+          <Icon className={cn('size-5 shrink-0', isActive ? 'text-[#2563eb]' : 'text-slate-400')} strokeWidth={isActive ? 2.5 : 2} />
           <span className="flex-1">{label}</span>
         </>
       )}
@@ -107,7 +107,7 @@ function UserFooter() {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" onSelect={() => logout()}>
-            <LogOut className="mr-2 h-4 w-4" />
+            <LogOut className="mr-2 size-5" />
             Sign out
           </DropdownMenuItem>
         </DropdownMenuContent>

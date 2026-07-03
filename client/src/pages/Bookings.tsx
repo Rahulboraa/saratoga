@@ -68,12 +68,12 @@ export default function Bookings() {
     <div className="flex justify-end gap-1">
       {isAdmin && (
         <Button variant="ghost" size="icon-sm" title="Payments" onClick={() => setPayFor(b.id)}>
-          <Wallet className="size-4" />
+          <Wallet className="size-5" />
         </Button>
       )}
       {canEdit && (
         <Button variant="ghost" size="icon-sm" title="Edit" onClick={() => { setEditing(b); setSheetOpen(true) }}>
-          <Pencil className="size-4" />
+          <Pencil className="size-5" />
         </Button>
       )}
       {isAdmin && (
@@ -81,7 +81,7 @@ export default function Bookings() {
           title={`Delete booking for ${b.guest}?`}
           description="All payment records for this booking will also be deleted."
           onConfirm={() => deleteBooking.mutate(b.id)}
-          trigger={<Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-destructive"><Trash2 className="size-4" /></Button>}
+          trigger={<Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-destructive"><Trash2 className="size-5" /></Button>}
         />
       )}
     </div>

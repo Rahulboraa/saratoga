@@ -27,8 +27,8 @@ export default function Caretaker() {
 
       <Tabs defaultValue="bookings">
         <TabsList className="w-full">
-          <TabsTrigger value="bookings" className="flex-1"><CalendarDays className="size-4" /> Bookings</TabsTrigger>
-          <TabsTrigger value="visitors" className="flex-1"><ClipboardList className="size-4" /> Visitor Log</TabsTrigger>
+          <TabsTrigger value="bookings" className="flex-1"><CalendarDays className="size-5" /> Bookings</TabsTrigger>
+          <TabsTrigger value="visitors" className="flex-1"><ClipboardList className="size-5" /> Visitor Log</TabsTrigger>
         </TabsList>
         <TabsContent value="bookings" className="mt-4 space-y-3">
           <MonthCalendar onSelectDate={(date, bookings) => setSelected({ date, bookings })} />

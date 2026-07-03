@@ -95,7 +95,7 @@ export default function ImportPage() {
           </div>
           <div className="flex flex-wrap gap-3">
             <Button size="lg" onClick={() => run.mutate()} disabled={!file || run.isPending}>
-              <Upload className="size-4" /> {run.isPending ? 'Importing…' : 'Import'}
+              <Upload className="size-5" /> {run.isPending ? 'Importing…' : 'Import'}
             </Button>
             <Button
               variant="outline"
@@ -109,7 +109,7 @@ export default function ImportPage() {
                 URL.revokeObjectURL(a.href)
               }}
             >
-              <Download className="size-4" /> Template
+              <Download className="size-5" /> Template
             </Button>
           </div>
           <p className="text-[12px] text-muted-foreground">
@@ -122,7 +122,7 @@ export default function ImportPage() {
         <Card className="mt-6 border-success/25 bg-success/5">
           <CardContent className="px-6 py-5">
             <div className="flex items-center gap-2 text-[13px] font-semibold text-success">
-              <CheckCircle2 className="size-4" /> Import complete
+              <CheckCircle2 className="size-5" /> Import complete
             </div>
             <div className="mt-2 text-[13px]">
               {result.total} rows processed: <b>{result.inserted}</b> added, <b>{result.updated}</b> updated,{' '}

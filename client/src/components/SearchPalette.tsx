@@ -168,7 +168,7 @@ function Row({ icon: Icon, label, subLabel, onClick }: {
       className="group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors hover:bg-slate-100"
     >
       <div className="flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-slate-100 bg-slate-50 transition-colors group-hover:bg-white">
-        <Icon className="h-[17px] w-[17px] text-slate-600" />
+        <Icon className="size-5 text-slate-600" />
       </div>
       <div className="min-w-0 flex-1">
         <div className="truncate text-[13px] font-semibold text-slate-900">{label}</div>

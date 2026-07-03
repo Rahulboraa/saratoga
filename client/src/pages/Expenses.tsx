@@ -225,7 +225,7 @@ function ExpensePayPanel({ expense, onClose }: { expense: Expense; onClose: () =
 
           {payments.length === 0 ? (
             <div className="flex items-center gap-2 rounded-lg border border-dashed px-4 py-3 text-[13px] text-muted-foreground">
-              <Wallet className="size-4" /> No payments yet
+              <Wallet className="size-5" /> No payments yet
             </div>
           ) : (
             <div className="space-y-2">
@@ -238,7 +238,7 @@ function ExpensePayPanel({ expense, onClose }: { expense: Expense; onClose: () =
                   <ConfirmDelete
                     title="Delete this payment?"
                     onConfirm={() => remove.mutate(p.id)}
-                    trigger={<Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-destructive"><Trash2 className="size-4" /></Button>}
+                    trigger={<Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-destructive"><Trash2 className="size-5" /></Button>}
                   />
                 </div>
               ))}
@@ -292,16 +292,16 @@ export default function Expenses() {
   const actions = (e: Expense) => (
     <div className="flex justify-end gap-1">
       <Button variant="ghost" size="icon-sm" title="Payments" onClick={() => setPayFor(e.id)}>
-        <Wallet className="size-4" />
+        <Wallet className="size-5" />
       </Button>
       <Button variant="ghost" size="icon-sm" title="Edit" onClick={() => { setEditing(e); setSheetOpen(true) }}>
-        <Pencil className="size-4" />
+        <Pencil className="size-5" />
       </Button>
       <ConfirmDelete
         title={`Delete expense "${e.desc}"?`}
         description="Its payment records will also be deleted."
         onConfirm={() => deleteExpense.mutate(e.id)}
-        trigger={<Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-destructive"><Trash2 className="size-4" /></Button>}
+        trigger={<Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-destructive"><Trash2 className="size-5" /></Button>}
       />
     </div>
   )

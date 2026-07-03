@@ -107,16 +107,16 @@ export function DataTable<T>({
           <div className="text-[13px] font-medium">Page {page} of {pageCount}</div>
           <div className="flex items-center gap-1">
             <Button variant="outline" size="icon-sm" disabled={page <= 1} onClick={() => onPageChange(1)}>
-              <ChevronsLeft className="size-4" />
+              <ChevronsLeft className="size-5" />
             </Button>
             <Button variant="outline" size="icon-sm" disabled={page <= 1} onClick={() => onPageChange(page - 1)}>
-              <ChevronLeft className="size-4" />
+              <ChevronLeft className="size-5" />
             </Button>
             <Button variant="outline" size="icon-sm" disabled={page >= pageCount} onClick={() => onPageChange(page + 1)}>
-              <ChevronRight className="size-4" />
+              <ChevronRight className="size-5" />
             </Button>
             <Button variant="outline" size="icon-sm" disabled={page >= pageCount} onClick={() => onPageChange(pageCount)}>
-              <ChevronsRight className="size-4" />
+              <ChevronsRight className="size-5" />
             </Button>
           </div>
         </div>

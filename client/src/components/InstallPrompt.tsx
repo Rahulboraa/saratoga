@@ -49,7 +49,7 @@ export default function InstallPrompt() {
           setDeferred(null)
         }}
       >
-        <X className="size-4" />
+        <X className="size-5" />
       </button>
     </div>
   )

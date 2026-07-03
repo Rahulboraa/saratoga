@@ -139,7 +139,7 @@ export default function Users() {
                     <ConfirmDelete
                       title={`Remove user ${u.name}?`}
                       onConfirm={() => deleteUser.mutate(u.id)}
-                      trigger={<Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-destructive"><Trash2 className="size-4" /></Button>}
+                      trigger={<Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-destructive"><Trash2 className="size-5" /></Button>}
                     />
                   ) : null}
                 </div>

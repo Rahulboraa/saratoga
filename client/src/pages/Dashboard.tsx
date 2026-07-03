@@ -65,7 +65,7 @@ export default function Dashboard() {
               }
             }}
           >
-            <Download className="size-4" /> {exporting ? 'Exporting…' : 'Download Excel'}
+            <Download className="size-5" /> {exporting ? 'Exporting…' : 'Download Excel'}
           </Button>
         )}
       />
@@ -111,7 +111,7 @@ export default function Dashboard() {
         <Card className="mb-8 border-destructive/25 bg-destructive/5 py-4">
           <CardContent className="px-5">
             <div className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-destructive">
-              <TriangleAlert className="size-4" />
+              <TriangleAlert className="size-5" />
               {data.overlapCount} overlapping booking{data.overlapCount > 1 ? 's' : ''}
             </div>
             <div className="space-y-1">

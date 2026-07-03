@@ -156,13 +156,13 @@ export default function VisitorLog({ embedded = false }: { embedded?: boolean })
                         </Button>
                       )}
                       <Button variant="ghost" size="icon" className="size-8" onClick={() => { setEditing(v); setDialogOpen(true) }}>
-                        <Pencil className="size-4" />
+                        <Pencil className="size-5" />
                       </Button>
                       {isAdmin && (
                         <ConfirmDelete
                           title={`Delete entry for ${v.name}?`}
                           onConfirm={() => deleteVisitor.mutate(v.id)}
-                          trigger={<Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-destructive"><Trash2 className="size-4" /></Button>}
+                          trigger={<Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-destructive"><Trash2 className="size-5" /></Button>}
                         />
                       )}
                     </div>
@@ -181,10 +181,10 @@ export default function VisitorLog({ embedded = false }: { embedded?: boolean })
           </div>
           <div className="flex gap-1">
             <Button variant="outline" size="icon-sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
-              <ChevronLeft className="size-4" />
+              <ChevronLeft className="size-5" />
             </Button>
             <Button variant="outline" size="icon-sm" disabled={page >= pageCount} onClick={() => setPage(page + 1)}>
-              <ChevronRight className="size-4" />
+              <ChevronRight className="size-5" />
             </Button>
           </div>
         </div>

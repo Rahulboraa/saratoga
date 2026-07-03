@@ -55,11 +55,11 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
         </div>
         <div className="flex items-center gap-1">
           <Button variant="outline" size="icon-sm" onClick={() => setMonth(shiftMonth(month, -1))} aria-label="Previous month">
-            <ChevronLeft className="size-4" />
+            <ChevronLeft className="size-5" />
           </Button>
           <Button variant="outline" size="sm" className="h-7" onClick={() => setMonth(currentMonth())}>Today</Button>
           <Button variant="outline" size="icon-sm" onClick={() => setMonth(shiftMonth(month, 1))} aria-label="Next month">
-            <ChevronRight className="size-4" />
+            <ChevronRight className="size-5" />
           </Button>
         </div>
       </CardHeader>

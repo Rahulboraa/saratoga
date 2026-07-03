@@ -24,7 +24,7 @@ export default function ExportButton({ path, name, params }: { path: string; nam
         }
       }}
     >
-      <Download className="size-4" /> {busy ? 'Exporting…' : 'Export'}
+      <Download className="size-5" /> {busy ? 'Exporting…' : 'Export'}
     </Button>
   )
 }

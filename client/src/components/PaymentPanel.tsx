@@ -130,7 +130,7 @@ export default function PaymentPanel({ booking, onClose }: { booking: Booking | 
 
           {payments.length === 0 ? (
             <div className="flex items-center gap-2 rounded-lg border border-dashed px-4 py-3 text-[13px] text-muted-foreground">
-              <Wallet className="size-4" /> No payments recorded yet
+              <Wallet className="size-5" /> No payments recorded yet
             </div>
           ) : (
             <div className="space-y-2">
@@ -144,7 +144,7 @@ export default function PaymentPanel({ booking, onClose }: { booking: Booking | 
                   <ConfirmDelete
                     title="Delete this payment?"
                     onConfirm={() => deletePayment.mutate(p.id)}
-                    trigger={<Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-destructive"><Trash2 className="size-4" /></Button>}
+                    trigger={<Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-destructive"><Trash2 className="size-5" /></Button>}
                   />
                 </div>
               ))}
