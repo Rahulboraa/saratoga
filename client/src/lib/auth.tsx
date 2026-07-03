@@ -13,8 +13,6 @@ interface AuthState {
 
 const AuthContext = createContext<AuthState>(null as never)
 
-const IDLE_MS = 10 * 60 * 1000
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(!!getToken())
@@ -51,22 +49,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .catch(() => setToken(null))
       .finally(() => setLoading(false))
   }, [])
-
-  useEffect(() => {
-    if (!user) return
-    let timer: ReturnType<typeof setTimeout>
-    const reset = () => {
-      clearTimeout(timer)
-      timer = setTimeout(() => logout('You were signed out after 10 minutes of inactivity.'), IDLE_MS)
-    }
-    const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'] as const
-    events.forEach((e) => document.addEventListener(e, reset, { passive: true }))
-    reset()
-    return () => {
-      clearTimeout(timer)
-      events.forEach((e) => document.removeEventListener(e, reset))
-    }
-  }, [user, logout])
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout, logoutMessage }}>

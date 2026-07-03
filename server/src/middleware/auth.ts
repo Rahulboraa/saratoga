@@ -17,7 +17,7 @@ declare module 'express-serve-static-core' {
 }
 
 export function signToken(user: AuthUser) {
-  return jwt.sign(user, env.JWT_SECRET, { expiresIn: '10m' })
+  return jwt.sign(user, env.JWT_SECRET, { expiresIn: '30d' })
 }
 
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
