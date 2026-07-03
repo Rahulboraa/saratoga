@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Download } from 'lucide-react'
+import { Download, CheckCircle2 } from 'lucide-react'
 import { api } from '@/lib/api'
 import type { ImportPreview, ImportResult } from '@/types'
 import { Button } from '@/components/ui/button'
@@ -208,7 +208,7 @@ export default function ImportPage() {
       {result && (
         <Card className="border-emerald-300 bg-emerald-50">
           <CardContent className="px-5 py-4 text-sm">
-            ✅ Import complete — <b>{result.inserted}</b> inserted, <b>{result.updated}</b> updated,{' '}
+            <CheckCircle2 className="mr-1 inline size-4 text-success" /> Import complete: <b>{result.inserted}</b> inserted, <b>{result.updated}</b> updated,{' '}
             <b>{result.skipped}</b> skipped{result.invalid > 0 && <>, <b className="text-red-600">{result.invalid}</b> invalid</>}.
           </CardContent>
         </Card>

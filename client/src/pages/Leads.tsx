@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
-import { Pencil, Trash2, CheckCircle2, PhoneCall, CalendarClock, AlertCircle, UserX } from 'lucide-react'
+import { Pencil, Trash2, CheckCircle2, PhoneCall, CalendarClock, AlertCircle, UserX, Lock, TriangleAlert, CircleAlert } from 'lucide-react'
 import { toast } from 'sonner'
 import type { ColumnDef } from '@tanstack/react-table'
 import { api } from '@/lib/api'
@@ -43,8 +43,14 @@ interface UnassignedLead {
   eventType: string
 }
 
-function flagLabel(flag?: string) {
-  return LEAD_FLAGS.find((f) => f.value === flag)?.label ?? ''
+function FlagChip({ flag }: { flag?: string }) {
+  const meta = LEAD_FLAGS.find((f) => f.value === flag)
+  if (!meta) return null
+  const icon =
+    flag === 'good' ? <CheckCircle2 className="size-3.5 text-success" /> :
+    flag === 'escalate' ? <CircleAlert className="size-3.5 text-destructive" /> :
+    <TriangleAlert className="size-3.5 text-warning" />
+  return <span className="inline-flex items-center gap-1 whitespace-nowrap text-[12px]">{icon}{meta.label}</span>
 }
 
 export default function Leads() {
@@ -215,7 +221,7 @@ export default function Leads() {
           {
             id: 'flag',
             header: 'Flag',
-            cell: ({ row: { original: l } }) => (l.flag ? <span className="whitespace-nowrap text-[12px]">{flagLabel(l.flag)}</span> : null),
+            cell: ({ row: { original: l } }) => <FlagChip flag={l.flag} />,
           },
         ] satisfies ColumnDef<Lead>[])
       : []),
@@ -382,7 +388,7 @@ export default function Leads() {
                 <span className="text-[13px] font-semibold">{l.name}</span>
                 <span className="text-[12px] text-muted-foreground">{l.phone}</span>
                 {l.outcome && <Badge variant={OUTCOME_VARIANT[l.outcome] ?? 'muted'} withDot>{l.outcome}</Badge>}
-                {isManager && l.flag && <span className="text-[12px]">{flagLabel(l.flag)}</span>}
+                {isManager && <FlagChip flag={l.flag} />}
               </div>
               <div className="text-[12px] text-muted-foreground">
                 {fmtDate(l.date)}{l.time && ` ${l.time}`} · {l.eventType}
@@ -392,7 +398,7 @@ export default function Leads() {
                 )}
               </div>
               {l.notes && <div className="line-clamp-2 text-[13px]">{l.notes}</div>}
-              {isManager && l.adminComment && <div className="text-[12px] text-warning">🔒 {l.adminComment}</div>}
+              {isManager && l.adminComment && <div className="flex items-center gap-1 text-[12px] text-warning"><Lock className="size-3" /> {l.adminComment}</div>}
               <div className="flex justify-end gap-1 border-t pt-2">{actions(l)}</div>
             </CardContent>
           </Card>

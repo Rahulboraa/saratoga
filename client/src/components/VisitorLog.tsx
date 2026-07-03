@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
-import { Pencil, Trash2, Users2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Pencil, Trash2, Users2, ChevronLeft, ChevronRight, CornerDownRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
@@ -147,7 +147,7 @@ export default function VisitorLog({ embedded = false }: { embedded?: boolean })
                         {v.loggedBy && <span> · by {v.loggedBy}</span>}
                       </div>
                       {v.remarks && <div className="mt-1 text-sm">{v.remarks}</div>}
-                      {v.fuRemark && <div className="mt-1 text-sm text-info">↪ {v.fuRemark}</div>}
+                      {v.fuRemark && <div className="mt-1 flex items-center gap-1 text-sm text-info"><CornerDownRight className="size-3.5" /> {v.fuRemark}</div>}
                     </div>
                     <div className="flex shrink-0 gap-1">
                       {!v.outTime && (

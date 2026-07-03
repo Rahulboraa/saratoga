@@ -57,6 +57,10 @@ App-level components (`client/src/components/`):
 
 Minimal by principle ("fast over fancy"): shadcn/radix built-in dialog/sheet transitions, `transition-colors`/`transition-all` on nav and progress bars. No entrance animations on data. Any future motion: ease-out, sub-200ms, with `prefers-reduced-motion` fallback.
 
+## Iconography
+
+Lucide icons only, 16-18px, strokeWidth 2 (2.5 active nav). Never emojis anywhere in UI text, labels, tabs, or toasts.
+
 ## Voice
 
 Labels verb+object ("Record Payment", "Log Visitor", "Mark out"). Terse business language, no marketing tone. Money always `₹` en-IN formatted (`fmtMoney`/`fmtLakh`).

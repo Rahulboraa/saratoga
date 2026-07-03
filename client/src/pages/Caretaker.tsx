@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAuth } from '@/lib/auth'
 import { fmtDate } from '@/lib/format'
 import type { CalendarBooking } from '@/types'
+import { CalendarDays, ClipboardList } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent } from '@/components/ui/card'
@@ -16,7 +17,10 @@ export default function Caretaker() {
     <div className="mx-auto min-h-screen max-w-3xl p-4">
       <header className="mb-4 flex items-center justify-between">
         <div>
-          <div className="text-lg font-bold">🏡 Saratoga Villa</div>
+          <div className="flex items-center gap-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded bg-[#2563eb] text-[12px] font-bold text-white shadow-sm">SV</div>
+            <span className="text-lg font-bold tracking-tight">Saratoga Villa</span>
+          </div>
           <div className="text-xs text-muted-foreground">Caretaker · {user?.name}</div>
         </div>
         <Button variant="ghost" size="sm" onClick={() => logout()}>
@@ -26,8 +30,8 @@ export default function Caretaker() {
 
       <Tabs defaultValue="bookings">
         <TabsList className="w-full">
-          <TabsTrigger value="bookings" className="flex-1">📅 Bookings</TabsTrigger>
-          <TabsTrigger value="visitors" className="flex-1">📋 Visitor Log</TabsTrigger>
+          <TabsTrigger value="bookings" className="flex-1"><CalendarDays className="size-4" /> Bookings</TabsTrigger>
+          <TabsTrigger value="visitors" className="flex-1"><ClipboardList className="size-4" /> Visitor Log</TabsTrigger>
         </TabsList>
         <TabsContent value="bookings" className="mt-4 space-y-3">
           <MonthCalendar onSelectDate={(date, bookings) => setSelected({ date, bookings })} />
