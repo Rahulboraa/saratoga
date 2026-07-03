@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { CalendarDays, IndianRupee, Wallet, AlertCircle, CalendarClock, Layers, TriangleAlert } from 'lucide-react'
-import { RevenueChart, PLChart, CountChart, TrendChart } from '@/components/charts'
+import { RevenueChart, PLChart, CountChart, TrendChart, DonutChart } from '@/components/charts'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { fmtMoney, fmtLakh, fmtDate, fmtMonth, PURPOSE_COLORS, STATUS_VARIANT } from '@/lib/format'
@@ -136,6 +136,25 @@ export default function Dashboard() {
           <ChartCard title="Payment Trend — Collected vs Pending"><TrendChart data={series} /></ChartCard>
         )}
         <MonthCalendar />
+        <Card>
+          <CardHeader><CardTitle className="text-[15px]">Bookings by Type</CardTitle></CardHeader>
+          <CardContent className="flex flex-wrap items-center justify-center gap-8">
+            <DonutChart
+              data={data.purposeBreakdown.map((p) => ({ label: p.purpose, value: p.count, color: PURPOSE_COLORS[p.purpose] }))}
+              centerLabel={String(data.totalBookings)}
+              centerSubLabel="events"
+            />
+            <div className="space-y-2">
+              {data.purposeBreakdown.map((p) => (
+                <div key={p.purpose} className="flex items-center gap-2 text-[12px]">
+                  <span className="h-2 w-2 rounded-[3px]" style={{ background: PURPOSE_COLORS[p.purpose] }} />
+                  <span className="text-muted-foreground">{p.purpose}</span>
+                  <span className="ml-auto pl-4 font-semibold tabular-nums">{p.count}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <Card>
