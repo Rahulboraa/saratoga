@@ -79,42 +79,42 @@ export default function VisitorSheet({ open, onClose, visitor }: { open: boolean
 
   return (
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-lg">
-        <SheetHeader className="border-b px-6 py-4">
+      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-xl">
+        <SheetHeader className="border-b px-6 py-5">
           <SheetTitle>{visitor ? 'Edit entry' : 'Log visitor'}</SheetTitle>
           <SheetDescription>{visitor ? `Editing ${visitor.name}` : "Record a visitor's arrival"}</SheetDescription>
         </SheetHeader>
         <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
-          <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
+          <div className="flex-1 space-y-6 overflow-y-auto px-6 py-6">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>Visitor Name *</Label>
               <Input {...register('name', { required: true })} aria-invalid={!!errors.name} autoFocus />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>Mobile Number *</Label>
               <Input {...register('phone', { required: true })} inputMode="tel" aria-invalid={!!errors.phone} />
             </div>
-            <div className="space-y-1.5 sm:col-span-2">
+            <div className="space-y-2 sm:col-span-2">
               <Label>Purpose of Visit</Label>
               <Input {...register('purpose')} placeholder="Delivery, Meeting, Event…" />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>In time</Label>
               <TimeSelect value={watch('inTime')} onChange={(v) => setValue('inTime', v)} allowEmpty />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>Out time</Label>
               <TimeSelect value={watch('outTime')} onChange={(v) => setValue('outTime', v)} allowEmpty />
             </div>
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label>Remarks</Label>
             <Textarea rows={2} {...register('remarks')} />
           </div>
           {!isCaretaker && (
             <div className="grid grid-cols-1 gap-3 rounded-lg border bg-accent/30 p-3 sm:grid-cols-2">
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Follow-up Status</Label>
                 <Select value={fuStatus} onValueChange={(v) => setValue('fuStatus', v)}>
                   <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
@@ -124,7 +124,7 @@ export default function VisitorSheet({ open, onClose, visitor }: { open: boolean
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Follow-up Remark</Label>
                 <Input {...register('fuRemark')} placeholder="Sales team note" />
               </div>

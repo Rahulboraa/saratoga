@@ -127,43 +127,43 @@ export default function BookingSheet({ open, onClose, booking }: { open: boolean
 
   return (
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-xl">
-        <SheetHeader className="border-b px-6 py-4">
+      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-2xl">
+        <SheetHeader className="border-b px-6 py-5">
           <SheetTitle>{booking ? 'Edit booking' : 'New booking'}</SheetTitle>
           <SheetDescription>{booking ? `Editing ${booking.guest}` : 'Add an event booking'}</SheetDescription>
         </SheetHeader>
         <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
-          <div className="flex-1 space-y-5 overflow-y-auto px-6 py-5">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
+          <div className="flex-1 space-y-6 overflow-y-auto px-6 py-6">
+            <div className="grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2">
+              <div className="space-y-2">
                 <Label>Guest name *</Label>
                 <Input {...register('guest', { required: true })} aria-invalid={!!errors.guest} />
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Phone</Label>
                 <Input {...register('phone')} inputMode="tel" />
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Check-in date *</Label>
                 <DatePicker value={checkinDate} onChange={(v) => setValue('checkinDate', v)} />
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Check-out date</Label>
                 <DatePicker value={checkoutDate} onChange={(v) => setValue('checkoutDate', v)} clearable placeholder="Same day" />
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Check-in time</Label>
                 <TimeSelect value={checkinTime} onChange={(v) => setValue('checkinTime', v)} />
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Check-out time</Label>
                 <TimeSelect value={checkoutTime} onChange={(v) => setValue('checkoutTime', v)} />
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Pax / location</Label>
                 <Input {...register('pax')} placeholder="30 / Sector 150 Noida" />
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Purpose</Label>
                 <Select value={purpose} onValueChange={(v) => setValue('purpose', v)}>
                   <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
@@ -172,7 +172,7 @@ export default function BookingSheet({ open, onClose, booking }: { open: boolean
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Source</Label>
                 <Select value={source} onValueChange={(v) => setValue('source', v)}>
                   <SelectTrigger className="w-full"><SelectValue placeholder="—" /></SelectTrigger>
@@ -183,7 +183,7 @@ export default function BookingSheet({ open, onClose, booking }: { open: boolean
                 </Select>
               </div>
               {isAdmin && (
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label>Payment destination</Label>
                   <Input {...register('dest')} placeholder="HDFC / Paytm ID" />
                 </div>
@@ -194,27 +194,27 @@ export default function BookingSheet({ open, onClose, booking }: { open: boolean
               <>
                 <Separator />
                 <div>
-                  <div className="mb-3 text-[13px] font-semibold">Amount breakdown</div>
-                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                  <div className="mb-4 text-[13px] font-semibold">Amount breakdown</div>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-5 sm:grid-cols-3">
                     {MONEY_FIELDS.map((f) => (
-                      <div key={f} className="space-y-1.5">
+                      <div key={f} className="space-y-2">
                         <Label className="capitalize">{f === 'venue' ? 'Venue rental' : f}</Label>
                         <Input type="number" min="0" {...register(f)} />
                       </div>
                     ))}
-                    <div className="space-y-1.5">
+                    <div className="space-y-2">
                       <Label>Total</Label>
                       <div className="flex h-9 items-center rounded-md border bg-muted/40 px-3 text-[13px] font-semibold tabular-nums text-primary">
                         {fmtMoney(total)}
                       </div>
                     </div>
                   </div>
-                  <div className="mt-4 grid grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
+                  <div className="mt-5 grid grid-cols-2 gap-x-4 gap-y-5">
+                    <div className="space-y-2">
                       <Label>License</Label>
                       <Input type="number" min="0" {...register('license')} />
                     </div>
-                    <div className="space-y-1.5">
+                    <div className="space-y-2">
                       <Label>Security deposit</Label>
                       <Input type="number" min="0" {...register('security')} />
                     </div>
@@ -223,7 +223,7 @@ export default function BookingSheet({ open, onClose, booking }: { open: boolean
               </>
             )}
 
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>Notes / inclusions</Label>
               <Textarea rows={3} {...register('notes')} />
             </div>

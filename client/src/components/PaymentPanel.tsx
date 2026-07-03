@@ -67,13 +67,13 @@ export default function PaymentPanel({ booking, onClose }: { booking: Booking | 
 
   return (
     <Sheet open onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-lg">
-        <SheetHeader className="border-b px-6 py-4">
+      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-xl">
+        <SheetHeader className="border-b px-6 py-5">
           <SheetTitle>Payments — {booking.guest}</SheetTitle>
           <SheetDescription>{fmtDate(booking.checkinDate)} · {booking.purpose}</SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
+        <div className="flex-1 space-y-6 overflow-y-auto px-6 py-6">
           <div className="grid grid-cols-3 gap-2 text-center">
             <div className="rounded-lg border border-border/60 p-2 shadow-sm">
               <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Bill</div>
@@ -115,28 +115,28 @@ export default function PaymentPanel({ booking, onClose }: { booking: Booking | 
 
           {showForm ? (
             <form onSubmit={onSubmit} className="space-y-3 rounded-lg border border-border/60 p-3 shadow-sm">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-5">
+                <div className="space-y-2">
                   <Label>Date</Label>
                   <DatePicker value={payDate} onChange={setPayDate} />
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label>Amount *</Label>
                   <Input name="amount" type="number" min="1" required autoFocus />
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label>Method</Label>
                   <Input name="method" placeholder="UPI / Cash / Bank" />
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label>Destination</Label>
                   <Input name="dest" placeholder="Account / Paytm" />
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label>Paid by</Label>
                   <Input name="by" />
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label>Notes</Label>
                   <Input name="notes" />
                 </div>

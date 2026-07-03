@@ -93,31 +93,31 @@ export default function LeadSheet({ open, onClose, lead }: { open: boolean; onCl
 
   return (
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-lg">
-        <SheetHeader className="border-b px-6 py-4">
+      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-xl">
+        <SheetHeader className="border-b px-6 py-5">
           <SheetTitle>{lead ? 'Edit lead' : 'Log call'}</SheetTitle>
           <SheetDescription>{lead ? `Editing ${lead.name}` : 'Record a lead or call outcome'}</SheetDescription>
         </SheetHeader>
         <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
-          <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
+          <div className="flex-1 space-y-6 overflow-y-auto px-6 py-6">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-5">
+            <div className="space-y-2">
               <Label>Date *</Label>
               <DatePicker value={watch('date')} onChange={(v) => setValue('date', v)} />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>Time</Label>
               <TimeSelect value={watch('time')} onChange={(v) => setValue('time', v)} allowEmpty />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>Lead Name *</Label>
               <Input {...register('name', { required: true })} aria-invalid={!!errors.name} />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>Phone *</Label>
               <Input {...register('phone', { required: true })} inputMode="tel" aria-invalid={!!errors.phone} />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>Event Type</Label>
               <Select value={eventType} onValueChange={(v) => setValue('eventType', v)}>
                 <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
@@ -126,7 +126,7 @@ export default function LeadSheet({ open, onClose, lead }: { open: boolean; onCl
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>Call Outcome</Label>
               <Select value={outcome} onValueChange={(v) => setValue('outcome', v)}>
                 <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
@@ -136,18 +136,18 @@ export default function LeadSheet({ open, onClose, lead }: { open: boolean; onCl
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1.5 col-span-2">
+            <div className="space-y-2 col-span-2">
               <Label>Next follow-up date</Label>
               <DatePicker value={watch('followup')} onChange={(v) => setValue('followup', v)} clearable placeholder="No follow-up" />
             </div>
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label>Notes / Remarks</Label>
             <Textarea rows={2} {...register('notes')} />
           </div>
           {isManager && (
             <div className="grid grid-cols-1 gap-3 rounded-lg border bg-accent/30 p-3 sm:grid-cols-2">
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Assign To</Label>
                 <Select value={exec} onValueChange={(v) => setValue('exec', v)}>
                   <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
@@ -157,7 +157,7 @@ export default function LeadSheet({ open, onClose, lead }: { open: boolean; onCl
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Flag</Label>
                 <Select value={flag} onValueChange={(v) => setValue('flag', v)}>
                   <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
@@ -167,7 +167,7 @@ export default function LeadSheet({ open, onClose, lead }: { open: boolean; onCl
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1.5 sm:col-span-2">
+              <div className="space-y-2 sm:col-span-2">
                 <Label>Internal Comment <span className="text-muted-foreground">(not visible to exec)</span></Label>
                 <Textarea rows={2} {...register('adminComment')} />
               </div>

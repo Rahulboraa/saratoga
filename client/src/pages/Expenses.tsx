@@ -63,19 +63,19 @@ function ExpenseSheet({ open, onClose, expense }: { open: boolean; onClose: () =
 
   return (
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-lg">
-        <SheetHeader className="border-b px-6 py-4">
+      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-xl">
+        <SheetHeader className="border-b px-6 py-5">
           <SheetTitle>{expense ? 'Edit expense' : 'Add expense'}</SheetTitle>
           <SheetDescription>Record partial payments against it after saving.</SheetDescription>
         </SheetHeader>
         <form onSubmit={handleSubmit((v) => save.mutate({ ...v, amount: +v.amount }))} className="flex min-h-0 flex-1 flex-col">
-          <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
+          <div className="flex-1 space-y-6 overflow-y-auto px-6 py-6">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-5">
+              <div className="space-y-2">
                 <Label>Date *</Label>
                 <DatePicker value={watch('date')} onChange={(v) => setValue('date', v)} />
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Category *</Label>
                 <Select value={watch('cat')} onValueChange={(v) => setValue('cat', v)}>
                   <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
@@ -84,20 +84,20 @@ function ExpenseSheet({ open, onClose, expense }: { open: boolean; onClose: () =
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1.5 col-span-2">
+              <div className="space-y-2 col-span-2">
                 <Label>Description *</Label>
                 <Input {...register('desc', { required: true })} aria-invalid={!!errors.desc} />
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Total bill amount *</Label>
                 <Input type="number" min="0" {...register('amount', { required: true, min: 0 })} />
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>To / vendor</Label>
                 <Input {...register('vendor')} />
               </div>
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>Notes</Label>
               <Textarea rows={2} {...register('notes')} />
             </div>
@@ -161,12 +161,12 @@ function ExpensePayPanel({ expense, onClose }: { expense: Expense; onClose: () =
 
   return (
     <Sheet open onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-lg">
-        <SheetHeader className="border-b px-6 py-4">
+      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-xl">
+        <SheetHeader className="border-b px-6 py-5">
           <SheetTitle>Payments — {expense.desc}</SheetTitle>
           <SheetDescription>{fmtDate(expense.date)} · {expense.cat}</SheetDescription>
         </SheetHeader>
-        <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
+        <div className="flex-1 space-y-6 overflow-y-auto px-6 py-6">
           <div className="grid grid-cols-3 gap-2 text-center">
             <div className="rounded-lg border border-border/60 p-2 shadow-sm">
               <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Bill</div>
@@ -207,28 +207,28 @@ function ExpensePayPanel({ expense, onClose }: { expense: Expense; onClose: () =
 
           {showForm ? (
             <form onSubmit={onSubmit} className="space-y-3 rounded-lg border border-border/60 p-3 shadow-sm">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-5">
+                <div className="space-y-2">
                   <Label>Date</Label>
                   <DatePicker value={payDate} onChange={setPayDate} />
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label>Amount *</Label>
                   <Input name="amount" type="number" min="1" required autoFocus />
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label>Method</Label>
                   <Input name="method" placeholder="UPI / Cash" />
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label>To</Label>
                   <Input name="to" />
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label>By</Label>
                   <Input name="by" />
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label>Notes</Label>
                   <Input name="notes" />
                 </div>
@@ -353,7 +353,7 @@ export default function Expenses() {
         <StatCard icon={Layers} tint="purple" label="Categories" value={summary?.categories.length ?? 0} />
       </div>
 
-      <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-5">
+      <div className="mb-8 grid grid-cols-2 gap-x-4 gap-y-5 lg:grid-cols-5">
         {(summary?.categories ?? []).map((c) => (
           <Card key={c.cat} className="py-3">
             <CardContent className="px-4">

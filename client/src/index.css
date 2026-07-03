@@ -152,6 +152,7 @@
     @apply bg-background text-foreground antialiased;
     font-size: 14px;
     letter-spacing: -0.005em;
+    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1, "cv11" 1;
     }
   h1, h2, h3 {
     letter-spacing: -0.02em;

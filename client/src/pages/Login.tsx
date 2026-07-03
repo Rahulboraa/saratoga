@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import loginBg from '@/assets/login-bg.jpg'
 
 export default function Login() {
   const { login, logoutMessage } = useAuth()
@@ -30,12 +31,12 @@ export default function Login() {
 
   return (
     <div className="flex min-h-screen w-full">
-      <div className="relative hidden items-center justify-center overflow-hidden bg-slate-950 lg:flex lg:w-[60%]">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(37,99,235,0.35),transparent_55%),radial-gradient(ellipse_at_bottom_right,rgba(147,51,234,0.25),transparent_55%)]" />
-        <div className="relative z-10 px-16 text-center">
-          <div className="text-7xl">🏡</div>
-          <h2 className="mt-6 text-4xl font-bold tracking-tight text-white">Saratoga Villa</h2>
-          <p className="mt-3 text-lg text-slate-400">Bookings, payments, visitors & CRM — one place.</p>
+      <div className="relative hidden items-end overflow-hidden bg-slate-950 lg:flex lg:w-[60%]">
+        <img src={loginBg} alt="Saratoga Villa at dusk" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+        <div className="relative z-10 p-12">
+          <h2 className="text-4xl font-bold tracking-tight text-white">Saratoga Villa</h2>
+          <p className="mt-2 text-lg text-white/80">Bookings, payments, visitors and CRM in one place.</p>
         </div>
       </div>
 
