@@ -33,7 +33,7 @@ leadsRouter.get('/', async (req, res) => {
     filter.$or = [{ name: rx }, { phone: rx }]
   }
   const page = Math.max(parseInt(String(req.query.page)) || 1, 1)
-  const limit = Math.min(Math.max(parseInt(String(req.query.limit)) || 10, 1), 100)
+  const limit = Math.min(Math.max(parseInt(String(req.query.limit)) || 20, 1), 100)
   const [leads, total] = await Promise.all([
     Lead.find(filter).sort({ date: -1, time: -1 }).skip((page - 1) * limit).limit(limit),
     Lead.countDocuments(filter),

@@ -23,7 +23,7 @@ bookingsRouter.get('/', requireRole('admin', 'manager', 'sales'), async (req, re
   const { month, status, purpose, q } = req.query as Record<string, string | undefined>
   if (status && req.user.role !== 'admin') return res.status(400).json({ error: 'Invalid filter' })
   const page = Math.max(parseInt(String(req.query.page)) || 1, 1)
-  const limit = Math.min(Math.max(parseInt(String(req.query.limit)) || 10, 1), 100)
+  const limit = Math.min(Math.max(parseInt(String(req.query.limit)) || 20, 1), 100)
 
   const filter: Record<string, unknown> = {}
   if (month) filter.checkinDate = { $regex: `^${escapeRegex(month)}` }
