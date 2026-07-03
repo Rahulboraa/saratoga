@@ -22,6 +22,8 @@ async function findConflicts(candidate: { checkinDate: string; checkoutDate?: st
 bookingsRouter.get('/', requireRole('admin', 'manager', 'sales'), async (req, res) => {
   const { month, status, purpose, q } = req.query as Record<string, string | undefined>
   if (status && req.user.role !== 'admin') return res.status(400).json({ error: 'Invalid filter' })
+  const page = Math.max(parseInt(String(req.query.page)) || 1, 1)
+  const limit = Math.min(Math.max(parseInt(String(req.query.limit)) || 10, 1), 100)
 
   const filter: Record<string, unknown> = {}
   if (month) filter.checkinDate = { $regex: `^${escapeRegex(month)}` }
@@ -38,6 +40,7 @@ bookingsRouter.get('/', requireRole('admin', 'manager', 'sales'), async (req, re
 
   const allSpans = await Booking.find().select('checkinDate checkoutDate checkinTime checkoutTime')
   const overlapIds = overlapIdSet(allSpans.map((b) => ({ ...b.toObject(), id: b.id })))
+  const months = [...new Set(allSpans.map((b) => b.checkinDate.slice(0, 7)))].sort().reverse()
 
   let rows = bookings.map((b) => ({ ...b.toObject(), id: b.id, overlap: overlapIds.has(b.id) }))
   if (isAdmin) {
@@ -45,7 +48,9 @@ bookingsRouter.get('/', requireRole('admin', 'manager', 'sales'), async (req, re
     rows = rows.map((r) => ({ ...r, ...withFinance(r as never, sums) }))
     if (status) rows = rows.filter((r) => (r as { status?: string }).status === status)
   }
-  res.json(rows.map((r) => serializeBooking(r, req.user.role)))
+  const total = rows.length
+  rows = rows.slice((page - 1) * limit, page * limit)
+  res.json({ rows: rows.map((r) => serializeBooking(r, req.user.role)), total, page, limit, months })
 })
 
 bookingsRouter.get('/calendar', async (req, res) => {

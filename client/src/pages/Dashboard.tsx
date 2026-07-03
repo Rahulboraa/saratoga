@@ -1,8 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import {
-  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ComposedChart, Line, CartesianGrid,
-} from 'recharts'
 import { CalendarDays, IndianRupee, Wallet, AlertCircle, CalendarClock, Layers } from 'lucide-react'
+import { RevenueChart, PLChart, CountChart, TrendChart } from '@/components/charts'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { fmtMoney, fmtLakh, fmtDate, fmtMonth, PURPOSE_COLORS, STATUS_VARIANT } from '@/lib/format'
@@ -17,13 +15,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { cn } from '@/lib/utils'
 import type { DashboardStats } from '@/types'
 
-const tooltipStyle = { background: '#fff', border: '1px solid hsl(240 6% 90%)', borderRadius: 8, fontSize: 12, color: 'hsl(240 8% 12%)' }
-
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Card>
-      <CardHeader><CardTitle className="text-base">{title}</CardTitle></CardHeader>
-      <CardContent className="h-64">{children}</CardContent>
+      <CardHeader><CardTitle className="text-[15px]">{title}</CardTitle></CardHeader>
+      <CardContent>{children}</CardContent>
     </Card>
   )
 }
@@ -109,61 +105,14 @@ export default function Dashboard() {
 
       <div className="mb-8 grid gap-6 lg:grid-cols-2">
         {isAdmin && (
-          <ChartCard title="Monthly Revenue — Booked vs Collected">
-            <ResponsiveContainer>
-              <BarChart data={series}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" />
-                <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-                <YAxis tickFormatter={fmtLakh} tick={{ fontSize: 11 }} width={52} />
-                <Tooltip formatter={(v) => fmtMoney(Number(v))} contentStyle={tooltipStyle} />
-                <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Bar dataKey="booked" name="Booked" fill="#B5D4F4" radius={[3, 3, 0, 0]} />
-                <Bar dataKey="collected" name="Collected" fill="#3266ad" radius={[3, 3, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartCard>
+          <ChartCard title="Monthly Revenue — Booked vs Collected"><RevenueChart data={series} /></ChartCard>
         )}
         {isAdmin && (
-          <ChartCard title="Monthly P&L">
-            <ResponsiveContainer>
-              <ComposedChart data={series}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" />
-                <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-                <YAxis tickFormatter={fmtLakh} tick={{ fontSize: 11 }} width={52} />
-                <Tooltip formatter={(v) => fmtMoney(Number(v))} contentStyle={tooltipStyle} />
-                <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Bar dataKey="collected" name="Revenue" fill="#3266ad" radius={[3, 3, 0, 0]} />
-                <Bar dataKey="expenses" name="Expenses" fill="#E8877A" radius={[3, 3, 0, 0]} />
-                <Line dataKey="profit" name="Profit" stroke="#1D9E75" strokeWidth={2} dot={{ r: 3 }} />
-              </ComposedChart>
-            </ResponsiveContainer>
-          </ChartCard>
+          <ChartCard title="Monthly P&L"><PLChart data={series} /></ChartCard>
         )}
-        <ChartCard title="Bookings Per Month">
-          <ResponsiveContainer>
-            <BarChart data={countSeries}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" />
-              <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} width={32} />
-              <Tooltip contentStyle={tooltipStyle} />
-              <Bar dataKey="count" name="Bookings" fill="#7B6EF6" radius={[3, 3, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartCard>
+        <ChartCard title="Bookings Per Month"><CountChart data={countSeries} /></ChartCard>
         {isAdmin && (
-          <ChartCard title="Payment Trend — Collected vs Pending">
-            <ResponsiveContainer>
-              <BarChart data={series}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" />
-                <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-                <YAxis tickFormatter={fmtLakh} tick={{ fontSize: 11 }} width={52} />
-                <Tooltip formatter={(v) => fmtMoney(Number(v))} contentStyle={tooltipStyle} />
-                <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Bar dataKey="collected" name="Collected" stackId="a" fill="#3266ad" />
-                <Bar dataKey="pending" name="Pending" stackId="a" fill="#F7C1C1" radius={[3, 3, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartCard>
+          <ChartCard title="Payment Trend — Collected vs Pending"><TrendChart data={series} /></ChartCard>
         )}
         <MonthCalendar />
       </div>

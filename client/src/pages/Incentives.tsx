@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Coins } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts'
 import { api } from '@/lib/api'
-import { fmtMoney, fmtLakh, fmtMonth } from '@/lib/format'
+import { IncentiveTrendChart } from '@/components/charts'
+import { fmtMoney, fmtMonth } from '@/lib/format'
 import type { IncentiveStats } from '@/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -11,8 +11,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton'
 import EmptyState from '@/components/EmptyState'
 import { PageHeader } from '@/components/PageHeader'
-
-const tooltipStyle = { background: '#fff', border: '1px solid hsl(240 6% 90%)', borderRadius: 8, fontSize: 12, color: 'hsl(240 8% 12%)' }
 
 export default function Incentives() {
   const [month, setMonth] = useState('all')
@@ -85,21 +83,11 @@ export default function Incentives() {
 
       <Card>
         <CardHeader><CardTitle className="text-[15px]">Monthly Incentive Trend</CardTitle></CardHeader>
-        <CardContent className="h-64">
+        <CardContent>
           {trend.length === 0 ? (
             <EmptyState icon={Coins} message="No incentive data yet" description="Incentives apply from April 2026 onward." />
           ) : (
-            <ResponsiveContainer>
-              <BarChart data={trend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" />
-                <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-                <YAxis tickFormatter={fmtLakh} tick={{ fontSize: 11 }} width={52} />
-                <Tooltip formatter={(v) => fmtMoney(Number(v))} contentStyle={tooltipStyle} />
-                <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Bar dataKey="deepak" name="Deepak" fill="#3266ad" radius={[3, 3, 0, 0]} />
-                <Bar dataKey="akhil" name="Akhil" fill="#1D9E75" radius={[3, 3, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <IncentiveTrendChart data={trend} />
           )}
         </CardContent>
       </Card>

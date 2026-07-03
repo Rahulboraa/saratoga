@@ -1,18 +1,26 @@
 import { useMemo, useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Pencil, Trash2, LogOut, Users2 } from 'lucide-react'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
+import { Pencil, Trash2, LogOut, Users2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { fmtDate, nowHm } from '@/lib/format'
 import type { Visitor } from '@/types'
+
+interface VisitorsResponse {
+  rows: Visitor[]
+  total: number
+  page: number
+  limit: number
+  dates: string[]
+}
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
-import VisitorDialog from '@/components/VisitorDialog'
+import VisitorSheet from '@/components/VisitorSheet'
 import ConfirmDelete from '@/components/ConfirmDelete'
 import EmptyState from '@/components/EmptyState'
 import { PageHeader, SectionHeader } from '@/components/PageHeader'
@@ -26,30 +34,30 @@ export default function VisitorLog({ embedded = false }: { embedded?: boolean })
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Visitor | null>(null)
 
-  const params = new URLSearchParams()
+  const [page, setPage] = useState(1)
+  const limit = 20
+
+  const params = new URLSearchParams({ page: String(page), limit: String(limit) })
   if (q) params.set('q', q)
   if (date !== 'all') params.set('date', date)
 
-  const { data: visitors, isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['visitors', params.toString()],
-    queryFn: () => api<Visitor[]>(`/visitors?${params}`),
+    queryFn: () => api<VisitorsResponse>(`/visitors?${params}`),
+    placeholderData: keepPreviousData,
   })
 
-  const { data: allVisitors } = useQuery({
-    queryKey: ['visitors', ''],
-    queryFn: () => api<Visitor[]>('/visitors'),
-  })
-
-  const dates = useMemo(() => [...new Set((allVisitors ?? []).map((v) => v.date))].sort().reverse(), [allVisitors])
+  const dates = data?.dates ?? []
+  const pageCount = Math.max(Math.ceil((data?.total ?? 0) / limit), 1)
 
   const grouped = useMemo(() => {
     const map = new Map<string, Visitor[]>()
-    for (const v of visitors ?? []) {
+    for (const v of data?.rows ?? []) {
       if (!map.has(v.date)) map.set(v.date, [])
       map.get(v.date)!.push(v)
     }
     return [...map.entries()]
-  }, [visitors])
+  }, [data])
 
   const markOut = useMutation({
     mutationFn: (id: string) => api(`/visitors/${id}`, { method: 'PATCH', body: { outTime: nowHm() } }),
@@ -85,8 +93,8 @@ export default function VisitorLog({ embedded = false }: { embedded?: boolean })
       )}
 
       <div className="mb-4 flex flex-wrap gap-2">
-        <Input placeholder="Search name, phone, purpose…" value={q} onChange={(e) => setQ(e.target.value)} className="w-full sm:w-64" />
-        <Select value={date} onValueChange={setDate}>
+        <Input placeholder="Search name, phone, purpose…" value={q} onChange={(e) => { setQ(e.target.value); setPage(1) }} className="w-full sm:w-64" />
+        <Select value={date} onValueChange={(v) => { setDate(v); setPage(1) }}>
           <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All dates</SelectItem>
@@ -119,7 +127,7 @@ export default function VisitorLog({ embedded = false }: { embedded?: boolean })
                         {v.loggedBy && <span> · by {v.loggedBy}</span>}
                       </div>
                       {v.remarks && <div className="mt-1 text-sm">{v.remarks}</div>}
-                      {v.fuRemark && <div className="mt-1 text-sm text-sky-700">↪ {v.fuRemark}</div>}
+                      {v.fuRemark && <div className="mt-1 text-sm text-info">↪ {v.fuRemark}</div>}
                     </div>
                     <div className="flex shrink-0 gap-1">
                       {!v.outTime && (
@@ -134,7 +142,7 @@ export default function VisitorLog({ embedded = false }: { embedded?: boolean })
                         <ConfirmDelete
                           title={`Delete entry for ${v.name}?`}
                           onConfirm={() => deleteVisitor.mutate(v.id)}
-                          trigger={<Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-red-600"><Trash2 className="size-4" /></Button>}
+                          trigger={<Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-destructive"><Trash2 className="size-4" /></Button>}
                         />
                       )}
                     </div>
@@ -146,7 +154,23 @@ export default function VisitorLog({ embedded = false }: { embedded?: boolean })
         ))
       )}
 
-      <VisitorDialog open={dialogOpen} onClose={() => setDialogOpen(false)} visitor={editing} />
+      {(data?.total ?? 0) > limit && (
+        <div className="flex items-center justify-between">
+          <div className="text-[13px] text-muted-foreground">
+            Page <span className="font-medium text-foreground">{page}</span> of {pageCount} · {data?.total} entries
+          </div>
+          <div className="flex gap-1">
+            <Button variant="outline" size="icon-sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+              <ChevronLeft className="size-4" />
+            </Button>
+            <Button variant="outline" size="icon-sm" disabled={page >= pageCount} onClick={() => setPage(page + 1)}>
+              <ChevronRight className="size-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <VisitorSheet open={dialogOpen} onClose={() => setDialogOpen(false)} visitor={editing} />
     </div>
   )
 }

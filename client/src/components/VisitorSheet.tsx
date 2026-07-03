@@ -10,7 +10,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { TimeSelect } from '@/components/DatePicker'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface FormValues {
@@ -37,7 +38,7 @@ function toForm(v?: Visitor | null): FormValues {
   }
 }
 
-export default function VisitorDialog({ open, onClose, visitor }: { open: boolean; onClose: () => void; visitor?: Visitor | null }) {
+export default function VisitorSheet({ open, onClose, visitor }: { open: boolean; onClose: () => void; visitor?: Visitor | null }) {
   const { user } = useAuth()
   const isCaretaker = user?.role === 'caretaker'
   const queryClient = useQueryClient()
@@ -77,12 +78,14 @@ export default function VisitorDialog({ open, onClose, visitor }: { open: boolea
   const fuStatus = watch('fuStatus')
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{visitor ? '✏️ Edit Entry' : '📋 Log Visitor'}</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={onSubmit} className="space-y-3">
+    <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
+      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-lg">
+        <SheetHeader className="border-b px-6 py-4">
+          <SheetTitle>{visitor ? 'Edit entry' : 'Log visitor'}</SheetTitle>
+          <SheetDescription>{visitor ? `Editing ${visitor.name}` : "Record a visitor's arrival"}</SheetDescription>
+        </SheetHeader>
+        <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
+          <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label>Visitor Name *</Label>
@@ -97,12 +100,12 @@ export default function VisitorDialog({ open, onClose, visitor }: { open: boolea
               <Input {...register('purpose')} placeholder="Delivery, Meeting, Event…" />
             </div>
             <div className="space-y-1.5">
-              <Label>In Time</Label>
-              <Input type="time" {...register('inTime')} />
+              <Label>In time</Label>
+              <TimeSelect value={watch('inTime')} onChange={(v) => setValue('inTime', v)} allowEmpty />
             </div>
             <div className="space-y-1.5">
-              <Label>Out Time</Label>
-              <Input type="time" {...register('outTime')} />
+              <Label>Out time</Label>
+              <TimeSelect value={watch('outTime')} onChange={(v) => setValue('outTime', v)} allowEmpty />
             </div>
           </div>
           <div className="space-y-1.5">
@@ -127,12 +130,13 @@ export default function VisitorDialog({ open, onClose, visitor }: { open: boolea
               </div>
             </div>
           )}
-          <DialogFooter>
-            <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
-            <Button type="submit" disabled={isSubmitting}>Save Entry</Button>
-          </DialogFooter>
+          </div>
+          <SheetFooter className="flex-row justify-end gap-2 border-t px-6 py-4">
+            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+            <Button type="submit" disabled={isSubmitting}>Save entry</Button>
+          </SheetFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   )
 }

@@ -15,8 +15,18 @@ visitorsRouter.get('/', async (req, res) => {
     const rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
     filter.$or = [{ name: rx }, { phone: rx }, { purpose: rx }]
   }
-  const visitors = await Visitor.find(filter).sort({ date: -1, loggedAt: -1 })
-  res.json(visitors.map((v) => serializeVisitor(v.toObject({ virtuals: true }), req.user.role)))
+  const page = Math.max(parseInt(String(req.query.page)) || 1, 1)
+  const limit = Math.min(Math.max(parseInt(String(req.query.limit)) || 20, 1), 100)
+  const [visitors, total, dates] = await Promise.all([
+    Visitor.find(filter).sort({ date: -1, loggedAt: -1 }).skip((page - 1) * limit).limit(limit),
+    Visitor.countDocuments(filter),
+    Visitor.distinct('date'),
+  ])
+  res.json({
+    rows: visitors.map((v) => serializeVisitor(v.toObject({ virtuals: true }), req.user.role)),
+    total, page, limit,
+    dates: (dates as string[]).sort().reverse(),
+  })
 })
 
 visitorsRouter.post('/', async (req, res) => {

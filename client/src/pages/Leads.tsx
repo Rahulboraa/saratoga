@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { Pencil, Trash2, Download, CheckCircle2, PhoneCall, CalendarClock, AlertCircle, UserX } from 'lucide-react'
 import { toast } from 'sonner'
+import type { ColumnDef } from '@tanstack/react-table'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { fmtDate, todayYmd } from '@/lib/format'
@@ -12,18 +13,33 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Skeleton } from '@/components/ui/skeleton'
 import StatCard from '@/components/StatCard'
-import { PageHeader } from '@/components/PageHeader'
-import LeadDialog from '@/components/LeadDialog'
+import LeadSheet from '@/components/LeadSheet'
 import ConfirmDelete from '@/components/ConfirmDelete'
 import EmptyState from '@/components/EmptyState'
+import { DataTable, type Paged } from '@/components/DataTable'
+import { PageHeader } from '@/components/PageHeader'
 
 const OUTCOME_VARIANT: Record<string, 'success' | 'warning' | 'destructive' | 'info' | 'purple'> = {
   'Interested': 'success',
   'Not Interested': 'destructive',
   'Callback': 'warning',
   'Converted': 'purple',
+}
+
+interface LeadSummary {
+  total: number
+  converted: number
+  callbacks: number
+  overdue: number
+  unassigned: number
+}
+
+interface UnassignedLead {
+  id: string
+  name: string
+  phone: string
+  eventType: string
 }
 
 function flagLabel(flag?: string) {
@@ -40,24 +56,33 @@ export default function Leads() {
   const [outcome, setOutcome] = useState('all')
   const [exec, setExec] = useState('all')
   const [eventType, setEventType] = useState('all')
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(10)
   const [showReport, setShowReport] = useState(false)
-  const [dialogOpen, setDialogOpen] = useState(false)
+  const [sheetOpen, setSheetOpen] = useState(false)
   const [editing, setEditing] = useState<Lead | null>(null)
 
-  const params = new URLSearchParams()
+  const params = new URLSearchParams({ page: String(page), limit: String(limit) })
   if (q) params.set('q', q)
   if (outcome !== 'all') params.set('outcome', outcome === 'none' ? '' : outcome)
   if (exec !== 'all') params.set('exec', exec)
   if (eventType !== 'all') params.set('eventType', eventType)
 
-  const { data: leads, isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['leads', params.toString()],
-    queryFn: () => api<Lead[]>(`/leads?${params}`),
+    queryFn: () => api<Paged<Lead>>(`/leads?${params}`),
+    placeholderData: keepPreviousData,
   })
 
-  const { data: allLeads = [] } = useQuery({
-    queryKey: ['leads', ''],
-    queryFn: () => api<Lead[]>('/leads'),
+  const { data: summary } = useQuery({
+    queryKey: ['leads', 'summary'],
+    queryFn: () => api<LeadSummary>('/leads/summary'),
+  })
+
+  const { data: unassignedLeads = [] } = useQuery({
+    queryKey: ['leads', 'unassigned'],
+    queryFn: () => api<UnassignedLead[]>('/leads/unassigned'),
+    enabled: isManager,
   })
 
   const { data: execs = [] } = useQuery({
@@ -73,16 +98,7 @@ export default function Leads() {
   })
 
   const today = todayYmd()
-  const summary = useMemo(() => ({
-    total: allLeads.length,
-    converted: allLeads.filter((l) => l.outcome === 'Converted').length,
-    callbacks: allLeads.filter((l) => l.outcome === 'Callback' && (!l.followup || l.followup >= today)).length,
-    overdue: allLeads.filter((l) => l.followup && l.followup < today && l.outcome !== 'Converted' && l.outcome !== 'Not Interested').length,
-    unassigned: allLeads.filter((l) => !l.exec).length,
-  }), [allLeads, today])
-
-  const unassignedLeads = useMemo(() => allLeads.filter((l) => !l.exec), [allLeads])
-
+  const resetPage = () => setPage(1)
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['leads'] })
 
   const assign = useMutation({
@@ -98,7 +114,7 @@ export default function Leads() {
     mutationFn: (id: string) => api(`/leads/${id}`, { method: 'PATCH', body: { outcome: 'Converted' } }),
     onSuccess: () => {
       invalidate()
-      toast.success('Marked converted 🎉')
+      toast.success('Marked converted')
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : 'Failed'),
   })
@@ -123,6 +139,83 @@ export default function Leads() {
     URL.revokeObjectURL(a.href)
   }
 
+  const isOverdue = (l: Lead) => !!l.followup && l.followup < today && l.outcome !== 'Converted' && l.outcome !== 'Not Interested'
+
+  const actions = (l: Lead) => (
+    <div className="flex justify-end gap-1">
+      {l.outcome !== 'Converted' && (
+        <Button variant="ghost" size="icon-sm" className="text-success" title="Mark converted" onClick={() => markConverted.mutate(l.id)}>
+          <CheckCircle2 className="size-4" />
+        </Button>
+      )}
+      <Button variant="ghost" size="icon-sm" title="Edit" onClick={() => { setEditing(l); setSheetOpen(true) }}>
+        <Pencil className="size-4" />
+      </Button>
+      {isAdmin && (
+        <ConfirmDelete
+          title={`Delete lead ${l.name}?`}
+          onConfirm={() => deleteLead.mutate(l.id)}
+          trigger={<Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-destructive"><Trash2 className="size-4" /></Button>}
+        />
+      )}
+    </div>
+  )
+
+  const columns: ColumnDef<Lead>[] = [
+    {
+      id: 'date',
+      header: 'Date',
+      cell: ({ row: { original: l } }) => (
+        <div className="whitespace-nowrap">
+          {fmtDate(l.date)}
+          {l.time && <div className="text-[11px] text-muted-foreground">{l.time}</div>}
+        </div>
+      ),
+    },
+    {
+      id: 'lead',
+      header: 'Lead',
+      cell: ({ row: { original: l } }) => (
+        <div>
+          <div className="font-medium">{l.name}</div>
+          <div className="text-[11px] text-muted-foreground">{l.phone}</div>
+        </div>
+      ),
+    },
+    { id: 'event', header: 'Event', cell: ({ row: { original: l } }) => <span className="block max-w-40 truncate">{l.eventType}</span> },
+    {
+      id: 'outcome',
+      header: 'Outcome',
+      cell: ({ row: { original: l } }) =>
+        l.outcome ? <Badge variant={OUTCOME_VARIANT[l.outcome] ?? 'muted'} withDot>{l.outcome}</Badge> : <Badge variant="muted">not called</Badge>,
+    },
+    {
+      id: 'followup',
+      header: 'Follow-up',
+      cell: ({ row: { original: l } }) =>
+        l.followup ? (
+          <span className={isOverdue(l) ? 'font-medium text-destructive' : ''}>{fmtDate(l.followup)}</span>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        ),
+    },
+    ...(isManager
+      ? ([
+          {
+            id: 'exec',
+            header: 'Assigned',
+            cell: ({ row: { original: l } }) => l.execLabel || <span className="text-muted-foreground">—</span>,
+          },
+          {
+            id: 'flag',
+            header: 'Flag',
+            cell: ({ row: { original: l } }) => (l.flag ? <span className="whitespace-nowrap text-[12px]">{flagLabel(l.flag)}</span> : null),
+          },
+        ] satisfies ColumnDef<Lead>[])
+      : []),
+    { id: 'actions', header: '', cell: ({ row: { original: l } }) => actions(l) },
+  ]
+
   return (
     <div>
       <PageHeader
@@ -133,29 +226,29 @@ export default function Leads() {
             {isManager && (
               <Button variant="outline" onClick={() => setShowReport((s) => !s)}>Exec report</Button>
             )}
-            <Button onClick={() => { setEditing(null); setDialogOpen(true) }}>+ Log call</Button>
+            <Button onClick={() => { setEditing(null); setSheetOpen(true) }}>+ Log call</Button>
           </>
         }
       />
 
       <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <StatCard icon={PhoneCall} tint="info" label="Total Leads" value={summary.total} />
-        <StatCard icon={CheckCircle2} tint="success" label="Converted" value={summary.converted} />
-        <StatCard icon={CalendarClock} tint="warning" label="Callbacks" value={summary.callbacks} hint="pending" />
+        <StatCard icon={PhoneCall} tint="info" label="Total Leads" value={summary?.total ?? 0} />
+        <StatCard icon={CheckCircle2} tint="success" label="Converted" value={summary?.converted ?? 0} />
+        <StatCard icon={CalendarClock} tint="warning" label="Callbacks" value={summary?.callbacks ?? 0} hint="pending" />
         <StatCard
           icon={AlertCircle}
-          tint={summary.overdue > 0 ? 'destructive' : 'foreground'}
+          tint={(summary?.overdue ?? 0) > 0 ? 'destructive' : 'foreground'}
           label="Overdue"
-          value={summary.overdue}
-          hint={summary.overdue > 0 ? <span className="font-medium text-destructive">follow-ups missed</span> : 'all on track'}
+          value={summary?.overdue ?? 0}
+          hint={(summary?.overdue ?? 0) > 0 ? <span className="font-medium text-destructive">follow-ups missed</span> : 'all on track'}
         />
-        {isManager && <StatCard icon={UserX} tint="purple" label="Unassigned" value={summary.unassigned} />}
+        {isManager && <StatCard icon={UserX} tint="purple" label="Unassigned" value={summary?.unassigned ?? 0} />}
       </div>
 
       {isManager && showReport && (
-        <Card>
+        <Card className="mb-6">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-base">📈 Sales Executive Performance</CardTitle>
+            <CardTitle className="text-[15px]">Sales Executive Performance</CardTitle>
             <Button variant="outline" size="sm" onClick={exportReportCsv}><Download className="size-4" /> CSV</Button>
           </CardHeader>
           <CardContent className="overflow-x-auto">
@@ -174,11 +267,11 @@ export default function Leads() {
                 {report.map((r) => (
                   <TableRow key={r.exec}>
                     <TableCell className="font-medium">{r.execLabel}</TableCell>
-                    <TableCell className="text-right">{r.calls}</TableCell>
-                    <TableCell className="text-right">{r.interested}</TableCell>
-                    <TableCell className="text-right">{r.callbacks}</TableCell>
-                    <TableCell className="text-right">{r.converted}</TableCell>
-                    <TableCell className="text-right">{r.conversionRate}%</TableCell>
+                    <TableCell className="text-right tabular-nums">{r.calls}</TableCell>
+                    <TableCell className="text-right tabular-nums">{r.interested}</TableCell>
+                    <TableCell className="text-right tabular-nums">{r.callbacks}</TableCell>
+                    <TableCell className="text-right tabular-nums">{r.converted}</TableCell>
+                    <TableCell className="text-right tabular-nums">{r.conversionRate}%</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -188,15 +281,15 @@ export default function Leads() {
       )}
 
       {isManager && unassignedLeads.length > 0 && (
-        <Card className="border-amber-300 bg-amber-50 py-3">
+        <Card className="mb-6 border-warning/25 bg-warning/5 py-3">
           <CardContent className="px-4">
-            <div className="mb-2 text-sm font-semibold text-amber-700">⚠️ {unassignedLeads.length} unassigned lead{unassignedLeads.length > 1 ? 's' : ''}</div>
+            <div className="mb-2 text-[13px] font-semibold text-warning">{unassignedLeads.length} unassigned lead{unassignedLeads.length > 1 ? 's' : ''}</div>
             <div className="space-y-1.5">
               {unassignedLeads.slice(0, 5).map((l) => (
-                <div key={l.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                <div key={l.id} className="flex flex-wrap items-center justify-between gap-2 text-[13px]">
                   <span>{l.name} · {l.phone}</span>
                   <Select onValueChange={(v) => assign.mutate({ ids: [l.id], exec: v })}>
-                    <SelectTrigger className="h-7 w-32 text-xs"><SelectValue placeholder="Assign to…" /></SelectTrigger>
+                    <SelectTrigger className="h-7 w-36 text-[12px]"><SelectValue placeholder="Assign to…" /></SelectTrigger>
                     <SelectContent>
                       {execs.map((u) => <SelectItem key={u.username} value={u.username}>{u.name}</SelectItem>)}
                     </SelectContent>
@@ -209,8 +302,8 @@ export default function Leads() {
       )}
 
       <div className="mb-4 flex flex-wrap gap-2">
-        <Input placeholder="Search name or phone…" value={q} onChange={(e) => setQ(e.target.value)} className="w-full sm:w-56" />
-        <Select value={outcome} onValueChange={setOutcome}>
+        <Input placeholder="Search name or phone…" value={q} onChange={(e) => { setQ(e.target.value); resetPage() }} className="w-full sm:w-56" />
+        <Select value={outcome} onValueChange={(v) => { setOutcome(v); resetPage() }}>
           <SelectTrigger className="w-[calc(50%-4px)] sm:w-40"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All outcomes</SelectItem>
@@ -219,7 +312,7 @@ export default function Leads() {
           </SelectContent>
         </Select>
         {isManager && (
-          <Select value={exec} onValueChange={setExec}>
+          <Select value={exec} onValueChange={(v) => { setExec(v); resetPage() }}>
             <SelectTrigger className="w-[calc(50%-4px)] sm:w-36"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All execs</SelectItem>
@@ -228,7 +321,7 @@ export default function Leads() {
             </SelectContent>
           </Select>
         )}
-        <Select value={eventType} onValueChange={setEventType}>
+        <Select value={eventType} onValueChange={(v) => { setEventType(v); resetPage() }}>
           <SelectTrigger className="w-[calc(50%-4px)] sm:w-52"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All event types</SelectItem>
@@ -237,71 +330,41 @@ export default function Leads() {
         </Select>
       </div>
 
-      {isLoading ? (
-        <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-14" />)}</div>
-      ) : !leads?.length ? (
-        <EmptyState icon={PhoneCall} message="No leads yet" description="Import from Excel or log your first call." />
-      ) : (
-        <div className="space-y-2">
-          {leads.map((l) => {
-            const overdue = l.followup && l.followup < today && l.outcome !== 'Converted' && l.outcome !== 'Not Interested'
-            return (
-              <Card key={l.id} className="py-3">
-                <CardContent className="px-4">
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-semibold">{l.name}</span>
-                        <span className="text-sm text-muted-foreground">{l.phone}</span>
-                        {l.outcome && <Badge variant={OUTCOME_VARIANT[l.outcome] ?? 'muted'} withDot>{l.outcome}</Badge>}
-                        {isManager && l.flag && <span className="text-sm">{flagLabel(l.flag)}</span>}
-                      </div>
-                      <div className="mt-0.5 text-sm text-muted-foreground">
-                        {fmtDate(l.date)}{l.time && ` ${l.time}`} · {l.eventType}
-                        {l.execLabel && <span> · 👤 {l.execLabel}</span>}
-                        {l.followup && (
-                          <span className={overdue ? 'font-medium text-red-600' : ''}>
-                            {' '}· follow-up {fmtDate(l.followup)}{overdue && ' ⚠️'}
-                          </span>
-                        )}
-                      </div>
-                      {l.notes && <div className="mt-1 line-clamp-2 text-sm">{l.notes}</div>}
-                      {isManager && l.adminComment && (
-                        <div className="mt-1 text-sm text-amber-700">🔒 {l.adminComment}</div>
-                      )}
-                    </div>
-                    <div className="flex shrink-0 gap-1">
-                      {l.outcome !== 'Converted' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-emerald-600"
-                          onClick={() => markConverted.mutate(l.id)}
-                          title="Mark converted"
-                        >
-                          <CheckCircle2 className="size-3.5" />
-                        </Button>
-                      )}
-                      <Button variant="ghost" size="icon" className="size-8" onClick={() => { setEditing(l); setDialogOpen(true) }}>
-                        <Pencil className="size-4" />
-                      </Button>
-                      {isAdmin && (
-                        <ConfirmDelete
-                          title={`Delete lead ${l.name}?`}
-                          onConfirm={() => deleteLead.mutate(l.id)}
-                          trigger={<Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-red-600"><Trash2 className="size-4" /></Button>}
-                        />
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          })}
-        </div>
-      )}
+      <DataTable
+        columns={columns}
+        data={data?.rows}
+        total={data?.total ?? 0}
+        page={data?.page ?? page}
+        limit={data?.limit ?? limit}
+        onPageChange={setPage}
+        onLimitChange={(l) => { setLimit(l); resetPage() }}
+        isLoading={isLoading}
+        empty={<EmptyState icon={PhoneCall} message="No leads yet" description="Import from Excel or log your first call." />}
+        renderCard={(l) => (
+          <Card className="py-3">
+            <CardContent className="space-y-2 px-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[13px] font-semibold">{l.name}</span>
+                <span className="text-[12px] text-muted-foreground">{l.phone}</span>
+                {l.outcome && <Badge variant={OUTCOME_VARIANT[l.outcome] ?? 'muted'} withDot>{l.outcome}</Badge>}
+                {isManager && l.flag && <span className="text-[12px]">{flagLabel(l.flag)}</span>}
+              </div>
+              <div className="text-[12px] text-muted-foreground">
+                {fmtDate(l.date)}{l.time && ` ${l.time}`} · {l.eventType}
+                {l.execLabel && ` · ${l.execLabel}`}
+                {l.followup && (
+                  <span className={isOverdue(l) ? 'font-medium text-destructive' : ''}> · follow-up {fmtDate(l.followup)}</span>
+                )}
+              </div>
+              {l.notes && <div className="line-clamp-2 text-[13px]">{l.notes}</div>}
+              {isManager && l.adminComment && <div className="text-[12px] text-warning">🔒 {l.adminComment}</div>}
+              <div className="flex justify-end gap-1 border-t pt-2">{actions(l)}</div>
+            </CardContent>
+          </Card>
+        )}
+      />
 
-      <LeadDialog open={dialogOpen} onClose={() => setDialogOpen(false)} lead={editing} />
+      <LeadSheet open={sheetOpen} onClose={() => setSheetOpen(false)} lead={editing} />
     </div>
   )
 }

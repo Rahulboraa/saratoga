@@ -1,11 +1,11 @@
-import { useMemo, useState, type FormEvent } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ResponsiveContainer, ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts'
+import { useState, type FormEvent } from 'react'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { Pencil, Trash2, Wallet, Receipt, IndianRupee, Layers } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
+import type { ColumnDef } from '@tanstack/react-table'
 import { api } from '@/lib/api'
-import { fmtMoney, fmtLakh, fmtDate, fmtMonth, todayYmd, STATUS_VARIANT } from '@/lib/format'
+import { fmtMoney, fmtDate, fmtMonth, todayYmd, STATUS_VARIANT } from '@/lib/format'
 import { EXPENSE_CATS, type Expense, type ExpensePayment, type ExpenseSummary } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,16 +13,18 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Skeleton } from '@/components/ui/skeleton'
 import StatCard from '@/components/StatCard'
-import { PageHeader } from '@/components/PageHeader'
 import ConfirmDelete from '@/components/ConfirmDelete'
 import EmptyState from '@/components/EmptyState'
+import { DataTable, type Paged } from '@/components/DataTable'
+import { PageHeader } from '@/components/PageHeader'
+import { DatePicker } from '@/components/DatePicker'
+import { PLChart } from '@/components/charts'
 
-const tooltipStyle = { background: '#fff', border: '1px solid hsl(240 6% 90%)', borderRadius: 8, fontSize: 12, color: 'hsl(240 8% 12%)' }
+type ExpensesResponse = Paged<Expense> & { months: string[] }
 
 interface ExpenseForm {
   date: string
@@ -33,7 +35,7 @@ interface ExpenseForm {
   notes: string
 }
 
-function ExpenseDialog({ open, onClose, expense }: { open: boolean; onClose: () => void; expense?: Expense | null }) {
+function ExpenseSheet({ open, onClose, expense }: { open: boolean; onClose: () => void; expense?: Expense | null }) {
   const queryClient = useQueryClient()
   const { register, handleSubmit, reset, watch, setValue, formState: { errors, isSubmitting } } = useForm<ExpenseForm>({
     values: {
@@ -59,58 +61,61 @@ function ExpenseDialog({ open, onClose, expense }: { open: boolean; onClose: () 
     onError: (e) => toast.error(e instanceof Error ? e.message : 'Save failed'),
   })
 
-  const cat = watch('cat')
-
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader><DialogTitle>{expense ? 'Edit Expense' : 'Add Expense'}</DialogTitle></DialogHeader>
-        <form onSubmit={handleSubmit((v) => save.mutate({ ...v, amount: +v.amount }))} className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Date *</Label>
-              <Input type="date" {...register('date', { required: true })} aria-invalid={!!errors.date} />
+    <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
+      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-lg">
+        <SheetHeader className="border-b px-6 py-4">
+          <SheetTitle>{expense ? 'Edit expense' : 'Add expense'}</SheetTitle>
+          <SheetDescription>Record partial payments against it after saving.</SheetDescription>
+        </SheetHeader>
+        <form onSubmit={handleSubmit((v) => save.mutate({ ...v, amount: +v.amount }))} className="flex min-h-0 flex-1 flex-col">
+          <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>Date *</Label>
+                <DatePicker value={watch('date')} onChange={(v) => setValue('date', v)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Category *</Label>
+                <Select value={watch('cat')} onValueChange={(v) => setValue('cat', v)}>
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {EXPENSE_CATS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5 col-span-2">
+                <Label>Description *</Label>
+                <Input {...register('desc', { required: true })} aria-invalid={!!errors.desc} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Total bill amount *</Label>
+                <Input type="number" min="0" {...register('amount', { required: true, min: 0 })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>To / vendor</Label>
+                <Input {...register('vendor')} />
+              </div>
             </div>
             <div className="space-y-1.5">
-              <Label>Category *</Label>
-              <Select value={cat} onValueChange={(v) => setValue('cat', v)}>
-                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {EXPENSE_CATS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5 col-span-2">
-              <Label>Description *</Label>
-              <Input {...register('desc', { required: true })} aria-invalid={!!errors.desc} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Total Bill Amount *</Label>
-              <Input type="number" min="0" {...register('amount', { required: true, min: 0 })} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>To / Vendor</Label>
-              <Input {...register('vendor')} />
+              <Label>Notes</Label>
+              <Textarea rows={2} {...register('notes')} />
             </div>
           </div>
-          <div className="space-y-1.5">
-            <Label>Notes</Label>
-            <Textarea rows={2} {...register('notes')} />
-          </div>
-          <p className="text-xs text-muted-foreground">You can record partial payments against this expense after saving.</p>
-          <DialogFooter>
-            <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
-            <Button type="submit" disabled={isSubmitting}>Save Expense</Button>
-          </DialogFooter>
+          <SheetFooter className="flex-row justify-end gap-2 border-t px-6 py-4">
+            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+            <Button type="submit" disabled={isSubmitting}>Save expense</Button>
+          </SheetFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   )
 }
 
 function ExpensePayPanel({ expense, onClose }: { expense: Expense; onClose: () => void }) {
   const queryClient = useQueryClient()
   const [showForm, setShowForm] = useState(false)
+  const [payDate, setPayDate] = useState(todayYmd())
 
   const { data: payments = [] } = useQuery({
     queryKey: ['expense-payments', expense.id],
@@ -149,94 +154,96 @@ function ExpensePayPanel({ expense, onClose }: { expense: Expense; onClose: () =
     e.preventDefault()
     const fd = new FormData(e.currentTarget)
     add.mutate({
-      date: fd.get('date'), amount: Number(fd.get('amount')), method: fd.get('method'),
+      date: payDate, amount: Number(fd.get('amount')), method: fd.get('method'),
       to: fd.get('to'), by: fd.get('by'), notes: fd.get('notes'),
     })
   }
 
   return (
-    <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>🧾 {expense.desc}</DialogTitle>
-          <p className="text-sm text-muted-foreground">{fmtDate(expense.date)} · {expense.cat}</p>
-        </DialogHeader>
-        <div className="grid grid-cols-3 gap-2 text-center">
-          <div className="rounded-lg border p-2">
-            <div className="text-xs text-muted-foreground">Bill</div>
-            <div className="font-bold">{fmtMoney(expense.amount)}</div>
+    <Sheet open onOpenChange={(o) => !o && onClose()}>
+      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-lg">
+        <SheetHeader className="border-b px-6 py-4">
+          <SheetTitle>Payments — {expense.desc}</SheetTitle>
+          <SheetDescription>{fmtDate(expense.date)} · {expense.cat}</SheetDescription>
+        </SheetHeader>
+        <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="rounded-lg border border-border/60 p-2 shadow-sm">
+              <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Bill</div>
+              <div className="text-[15px] font-semibold tabular-nums">{fmtMoney(expense.amount)}</div>
+            </div>
+            <div className="rounded-lg border border-border/60 p-2 shadow-sm">
+              <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Paid</div>
+              <div className="text-[15px] font-semibold tabular-nums text-success">{fmtMoney(paid)}</div>
+            </div>
+            <div className="rounded-lg border border-border/60 p-2 shadow-sm">
+              <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Due</div>
+              <div className={`text-[15px] font-semibold tabular-nums ${due > 0 ? 'text-destructive' : 'text-success'}`}>{fmtMoney(due)}</div>
+            </div>
           </div>
-          <div className="rounded-lg border p-2">
-            <div className="text-xs text-muted-foreground">Paid</div>
-            <div className="font-bold text-emerald-600">{fmtMoney(paid)}</div>
+          <div className="h-2 overflow-hidden rounded-full bg-muted">
+            <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
           </div>
-          <div className="rounded-lg border p-2">
-            <div className="text-xs text-muted-foreground">Due</div>
-            <div className={`font-bold ${due > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{fmtMoney(due)}</div>
-          </div>
-        </div>
-        <div className="h-2 overflow-hidden rounded-full bg-accent">
-          <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
-        </div>
 
-        {payments.length === 0 ? (
-          <EmptyState icon={Wallet} message="No payments yet" />
-        ) : (
-          <div className="space-y-2">
-            {payments.map((p) => (
-              <div key={p.id} className="flex items-center justify-between rounded-lg border p-2 text-sm">
-                <div>
-                  <span className="font-semibold">{fmtMoney(p.amount)}</span>
-                  <span className="text-muted-foreground"> · {fmtDate(p.date)}{p.method && ` · ${p.method}`}{p.to && ` · to ${p.to}`}</span>
+          {payments.length === 0 ? (
+            <EmptyState icon={Wallet} message="No payments yet" />
+          ) : (
+            <div className="space-y-2">
+              {payments.map((p) => (
+                <div key={p.id} className="flex items-center justify-between rounded-lg border border-border/60 p-2.5 text-[13px] shadow-sm">
+                  <div>
+                    <span className="font-semibold tabular-nums">{fmtMoney(p.amount)}</span>
+                    <span className="text-muted-foreground"> · {fmtDate(p.date)}{p.method && ` · ${p.method}`}{p.to && ` · to ${p.to}`}</span>
+                  </div>
+                  <ConfirmDelete
+                    title="Delete this payment?"
+                    onConfirm={() => remove.mutate(p.id)}
+                    trigger={<Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-destructive"><Trash2 className="size-4" /></Button>}
+                  />
                 </div>
-                <ConfirmDelete
-                  title="Delete this payment?"
-                  onConfirm={() => remove.mutate(p.id)}
-                  trigger={<Button variant="ghost" size="icon" className="size-7 text-muted-foreground hover:text-red-600"><Trash2 className="size-4" /></Button>}
-                />
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
 
-        {showForm ? (
-          <form onSubmit={onSubmit} className="space-y-3 rounded-lg border p-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label>Date</Label>
-                <Input name="date" type="date" defaultValue={todayYmd()} required />
+          {showForm ? (
+            <form onSubmit={onSubmit} className="space-y-3 rounded-lg border border-border/60 p-3 shadow-sm">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Date</Label>
+                  <DatePicker value={payDate} onChange={setPayDate} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Amount *</Label>
+                  <Input name="amount" type="number" min="1" required autoFocus />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Method</Label>
+                  <Input name="method" placeholder="UPI / Cash" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>To</Label>
+                  <Input name="to" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>By</Label>
+                  <Input name="by" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Notes</Label>
+                  <Input name="notes" />
+                </div>
               </div>
-              <div className="space-y-1.5">
-                <Label>Amount *</Label>
-                <Input name="amount" type="number" min="1" required autoFocus />
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={() => setShowForm(false)}>Cancel</Button>
+                <Button type="submit" size="sm" disabled={add.isPending}>Add payment</Button>
               </div>
-              <div className="space-y-1.5">
-                <Label>Method</Label>
-                <Input name="method" placeholder="UPI / Cash" />
-              </div>
-              <div className="space-y-1.5">
-                <Label>To</Label>
-                <Input name="to" />
-              </div>
-              <div className="space-y-1.5">
-                <Label>By</Label>
-                <Input name="by" />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Notes</Label>
-                <Input name="notes" />
-              </div>
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="ghost" size="sm" onClick={() => setShowForm(false)}>Cancel</Button>
-              <Button type="submit" size="sm" disabled={add.isPending}>Add Payment</Button>
-            </div>
-          </form>
-        ) : (
-          <Button onClick={() => setShowForm(true)}>+ Record Payment</Button>
-        )}
-      </DialogContent>
-    </Dialog>
+            </form>
+          ) : (
+            <Button onClick={() => { setPayDate(todayYmd()); setShowForm(true) }}>+ Record payment</Button>
+          )}
+        </div>
+      </SheetContent>
+    </Sheet>
   )
 }
 
@@ -244,30 +251,26 @@ export default function Expenses() {
   const queryClient = useQueryClient()
   const [month, setMonth] = useState('all')
   const [cat, setCat] = useState('all')
-  const [dialogOpen, setDialogOpen] = useState(false)
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(10)
+  const [sheetOpen, setSheetOpen] = useState(false)
   const [editing, setEditing] = useState<Expense | null>(null)
   const [payFor, setPayFor] = useState<string | null>(null)
 
-  const params = new URLSearchParams()
+  const params = new URLSearchParams({ page: String(page), limit: String(limit) })
   if (month !== 'all') params.set('month', month)
   if (cat !== 'all') params.set('cat', cat)
 
-  const { data: expenses, isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['expenses', params.toString()],
-    queryFn: () => api<Expense[]>(`/expenses?${params}`),
+    queryFn: () => api<ExpensesResponse>(`/expenses?${params}`),
+    placeholderData: keepPreviousData,
   })
 
   const { data: summary } = useQuery({
     queryKey: ['expenses', 'summary', month],
     queryFn: () => api<ExpenseSummary>(`/expenses/summary${month !== 'all' ? `?month=${month}` : ''}`),
   })
-
-  const { data: allExpenses } = useQuery({
-    queryKey: ['expenses', ''],
-    queryFn: () => api<Expense[]>('/expenses'),
-  })
-
-  const months = useMemo(() => [...new Set((allExpenses ?? []).map((e) => e.date.slice(0, 7)))].sort().reverse(), [allExpenses])
 
   const deleteExpense = useMutation({
     mutationFn: (id: string) => api(`/expenses/${id}`, { method: 'DELETE' }),
@@ -279,15 +282,68 @@ export default function Expenses() {
     onError: (e) => toast.error(e instanceof Error ? e.message : 'Failed'),
   })
 
+  const resetPage = () => setPage(1)
   const plSeries = (summary?.plSeries ?? []).map((p) => ({ ...p, label: fmtMonth(p.month) }))
-  const payExpense = payFor ? (expenses ?? []).find((e) => e.id === payFor) ?? null : null
+  const payExpense = payFor ? (data?.rows ?? []).find((e) => e.id === payFor) ?? null : null
+
+  const actions = (e: Expense) => (
+    <div className="flex justify-end gap-1">
+      <Button variant="ghost" size="icon-sm" title="Payments" onClick={() => setPayFor(e.id)}>
+        <Wallet className="size-4" />
+      </Button>
+      <Button variant="ghost" size="icon-sm" title="Edit" onClick={() => { setEditing(e); setSheetOpen(true) }}>
+        <Pencil className="size-4" />
+      </Button>
+      <ConfirmDelete
+        title={`Delete expense "${e.desc}"?`}
+        description="Its payment records will also be deleted."
+        onConfirm={() => deleteExpense.mutate(e.id)}
+        trigger={<Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-destructive"><Trash2 className="size-4" /></Button>}
+      />
+    </div>
+  )
+
+  const columns: ColumnDef<Expense>[] = [
+    { id: 'date', header: 'Date', cell: ({ row: { original: e } }) => <span className="whitespace-nowrap">{fmtDate(e.date)}</span> },
+    { id: 'cat', header: 'Category', cell: ({ row: { original: e } }) => <Badge variant="secondary">{e.cat}</Badge> },
+    {
+      id: 'desc',
+      header: 'Description',
+      cell: ({ row: { original: e } }) => (
+        <div className="max-w-48">
+          <div className="truncate font-medium">{e.desc}</div>
+          {e.vendor && <div className="truncate text-[11px] text-muted-foreground">{e.vendor}</div>}
+        </div>
+      ),
+    },
+    {
+      id: 'amount',
+      header: 'Bill',
+      meta: { headClass: 'text-right', cellClass: 'text-right tabular-nums' },
+      cell: ({ row: { original: e } }) => fmtMoney(e.amount),
+    },
+    {
+      id: 'paid',
+      header: 'Paid',
+      meta: { headClass: 'text-right', cellClass: 'text-right tabular-nums text-success' },
+      cell: ({ row: { original: e } }) => fmtMoney(e.paid),
+    },
+    {
+      id: 'due',
+      header: 'Due',
+      meta: { headClass: 'text-right', cellClass: 'text-right tabular-nums' },
+      cell: ({ row: { original: e } }) => <span className={e.due > 0 ? 'text-destructive' : 'text-success'}>{fmtMoney(e.due)}</span>,
+    },
+    { id: 'status', header: 'Status', cell: ({ row: { original: e } }) => <Badge variant={STATUS_VARIANT[e.status]} withDot>{e.status}</Badge> },
+    { id: 'actions', header: '', cell: ({ row: { original: e } }) => actions(e) },
+  ]
 
   return (
     <div>
       <PageHeader
         title="Expenses & P&L"
         description="Bills, payments and monthly profit"
-        actions={<Button onClick={() => { setEditing(null); setDialogOpen(true) }}>+ Add expense</Button>}
+        actions={<Button onClick={() => { setEditing(null); setSheetOpen(true) }}>+ Add expense</Button>}
       />
 
       <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -311,19 +367,8 @@ export default function Expenses() {
 
       <Card className="mb-6">
         <CardHeader><CardTitle className="text-[15px]">Monthly P&L</CardTitle></CardHeader>
-        <CardContent className="h-64">
-          <ResponsiveContainer>
-            <ComposedChart data={plSeries}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" />
-              <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-              <YAxis tickFormatter={fmtLakh} tick={{ fontSize: 11 }} width={52} />
-              <Tooltip formatter={(v) => fmtMoney(Number(v))} contentStyle={tooltipStyle} />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Bar dataKey="revenue" name="Revenue" fill="#3266ad" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="expenses" name="Expenses" fill="#E8877A" radius={[3, 3, 0, 0]} />
-              <Line dataKey="profit" name="Profit" stroke="#1D9E75" strokeWidth={2} dot={{ r: 3 }} />
-            </ComposedChart>
-          </ResponsiveContainer>
+        <CardContent>
+          <PLChart data={plSeries} />
         </CardContent>
       </Card>
 
@@ -344,10 +389,10 @@ export default function Expenses() {
               {plSeries.map((p) => (
                 <TableRow key={p.month}>
                   <TableCell>{p.label}</TableCell>
-                  <TableCell className="text-right">{fmtMoney(p.revenue)}</TableCell>
-                  <TableCell className="text-right">{fmtMoney(p.expenses)}</TableCell>
-                  <TableCell className={`text-right font-medium ${p.profit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{fmtMoney(p.profit)}</TableCell>
-                  <TableCell className="text-right">{p.margin}%</TableCell>
+                  <TableCell className="text-right tabular-nums">{fmtMoney(p.revenue)}</TableCell>
+                  <TableCell className="text-right tabular-nums">{fmtMoney(p.expenses)}</TableCell>
+                  <TableCell className={`text-right font-medium tabular-nums ${p.profit >= 0 ? 'text-success' : 'text-destructive'}`}>{fmtMoney(p.profit)}</TableCell>
+                  <TableCell className="text-right tabular-nums">{p.margin}%</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -356,14 +401,14 @@ export default function Expenses() {
       </Card>
 
       <div className="mb-4 mt-8 flex flex-wrap gap-2">
-        <Select value={month} onValueChange={setMonth}>
+        <Select value={month} onValueChange={(v) => { setMonth(v); resetPage() }}>
           <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All months</SelectItem>
-            {months.map((m) => <SelectItem key={m} value={m}>{fmtMonth(m)}</SelectItem>)}
+            {(data?.months ?? []).map((m) => <SelectItem key={m} value={m}>{fmtMonth(m)}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={cat} onValueChange={setCat}>
+        <Select value={cat} onValueChange={(v) => { setCat(v); resetPage() }}>
           <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All categories</SelectItem>
@@ -372,62 +417,40 @@ export default function Expenses() {
         </Select>
       </div>
 
-      {isLoading ? (
-        <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12" />)}</div>
-      ) : !expenses?.length ? (
-        <EmptyState icon={Receipt} message="No expenses recorded" />
-      ) : (
-        <div className="overflow-x-auto rounded-xl border border-border/60 bg-card shadow-sm scrollbar-thin">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead className="text-right">Bill</TableHead>
-                <TableHead className="text-right">Paid</TableHead>
-                <TableHead className="text-right">Due</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-28" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {expenses.map((e) => (
-                <TableRow key={e.id}>
-                  <TableCell className="whitespace-nowrap">{fmtDate(e.date)}</TableCell>
-                  <TableCell><Badge variant="outline">{e.cat}</Badge></TableCell>
-                  <TableCell className="max-w-48">
-                    <div className="truncate font-medium">{e.desc}</div>
-                    {e.vendor && <div className="truncate text-xs text-muted-foreground">{e.vendor}</div>}
-                  </TableCell>
-                  <TableCell className="text-right">{fmtMoney(e.amount)}</TableCell>
-                  <TableCell className="text-right text-emerald-600">{fmtMoney(e.paid)}</TableCell>
-                  <TableCell className={`text-right ${e.due > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{fmtMoney(e.due)}</TableCell>
-                  <TableCell><Badge variant={STATUS_VARIANT[e.status]} withDot>{e.status}</Badge></TableCell>
-                  <TableCell>
-                    <div className="flex justify-end gap-1">
-                      <Button variant="ghost" size="icon" className="size-7" title="Payments" onClick={() => setPayFor(e.id)}>
-                        <Wallet className="size-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="size-7" title="Edit" onClick={() => { setEditing(e); setDialogOpen(true) }}>
-                        <Pencil className="size-4" />
-                      </Button>
-                      <ConfirmDelete
-                        title={`Delete expense "${e.desc}"?`}
-                        description="Its payment records will also be deleted."
-                        onConfirm={() => deleteExpense.mutate(e.id)}
-                        trigger={<Button variant="ghost" size="icon" className="size-7 text-muted-foreground hover:text-red-600"><Trash2 className="size-4" /></Button>}
-                      />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+      <DataTable
+        columns={columns}
+        data={data?.rows}
+        total={data?.total ?? 0}
+        page={data?.page ?? page}
+        limit={data?.limit ?? limit}
+        onPageChange={setPage}
+        onLimitChange={(l) => { setLimit(l); resetPage() }}
+        isLoading={isLoading}
+        empty={<EmptyState icon={Receipt} message="No expenses recorded" />}
+        renderCard={(e) => (
+          <Card className="py-3">
+            <CardContent className="space-y-2 px-4">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="text-[13px] font-semibold">{e.desc}</div>
+                  <div className="text-[11px] text-muted-foreground">{fmtDate(e.date)}{e.vendor && ` · ${e.vendor}`}</div>
+                </div>
+                <Badge variant="secondary">{e.cat}</Badge>
+              </div>
+              <div className="flex items-center justify-between text-[13px] tabular-nums">
+                <span>{fmtMoney(e.amount)} <span className="text-muted-foreground">bill</span></span>
+                <span className={e.due > 0 ? 'text-destructive' : 'text-success'}>
+                  {fmtMoney(e.due)} <span className="text-muted-foreground">due</span>
+                </span>
+                <Badge variant={STATUS_VARIANT[e.status]} withDot>{e.status}</Badge>
+              </div>
+              <div className="flex justify-end gap-1 border-t pt-2">{actions(e)}</div>
+            </CardContent>
+          </Card>
+        )}
+      />
 
-      <ExpenseDialog open={dialogOpen} onClose={() => setDialogOpen(false)} expense={editing} />
+      <ExpenseSheet open={sheetOpen} onClose={() => setSheetOpen(false)} expense={editing} />
       {payExpense && <ExpensePayPanel expense={payExpense} onClose={() => setPayFor(null)} />}
     </div>
   )

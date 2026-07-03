@@ -16,15 +16,23 @@ expensesRouter.get('/summary', async (req, res) => {
 
 expensesRouter.get('/', async (req, res) => {
   const { month, cat } = req.query as Record<string, string | undefined>
+  const page = Math.max(parseInt(String(req.query.page)) || 1, 1)
+  const limit = Math.min(Math.max(parseInt(String(req.query.limit)) || 10, 1), 100)
   const filter: Record<string, unknown> = {}
   if (month) filter.date = { $regex: `^${month.replace(/[^\d-]/g, '')}` }
   if (cat) filter.cat = cat
-  const expenses = await Expense.find(filter).sort({ date: -1 })
+  const [expenses, total, allDates] = await Promise.all([
+    Expense.find(filter).sort({ date: -1 }).skip((page - 1) * limit).limit(limit),
+    Expense.countDocuments(filter),
+    Expense.distinct('date'),
+  ])
+  const months = [...new Set(allDates.map((d) => d.slice(0, 7)))].sort().reverse()
   const sums = await expensePaymentSums(expenses.map((e) => e._id))
-  res.json(expenses.map((e) => {
+  const rows = expenses.map((e) => {
     const paid = sums.get(e.id) ?? 0
     return serializeExpense({ ...e.toObject(), id: e.id, paid, due: e.amount - paid, status: statusOf(e.amount, paid) })
-  }))
+  })
+  res.json({ rows, total, page, limit, months })
 })
 
 expensesRouter.post('/', async (req, res) => {

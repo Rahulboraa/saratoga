@@ -35,6 +35,10 @@ App-level components (`client/src/components/`):
 - **PageHeader**: `text-[28px] font-semibold tracking-tight` title + 13px muted description + actions right, `mb-8`. SectionHeader: 15px semibold.
 - **Badge** (CallDesk-exact): `rounded-md px-1.5 py-0.5 text-[11px]`, variants muted/info/purple/success/warning/destructive (`bg-{c}/10 border-{c}/20 text-{c}`), optional `withDot`. Status map: paid=success, partial=warning, pending=destructive (always withDot).
 - **Table** (CallDesk-exact): header `bg-muted/40`, heads `h-10 px-4 text-xs uppercase tracking-wide text-muted-foreground`, cells `px-4 py-3 text-[13px]`, containers `rounded-xl border-border/60 bg-card shadow-sm`.
+- **DataTable** (`components/DataTable.tsx`): TanStack Table + shadcn Table, server-side pagination (`{rows,total,page,limit}` API shape), rows-per-page Select (10/20/50), first/prev/next/last pager, `renderCard` prop renders the same rows as stacked Cards below `md`.
+- **Charts**: shadcn chart primitives only (`ui/chart.tsx` ChartContainer/Tooltip/Legend) via `components/charts.tsx` (RevenueChart, PLChart, CountChart, TrendChart, IncentiveTrendChart). Never raw recharts Tooltip styling.
+- **Forms**: right-side Sheet drawers (`sm:max-w-lg/xl`, header/body/footer with borders), never centered dialogs for record forms. Dates via `DatePicker` (Popover+Calendar), times via `TimeSelect` (30-min Select). AlertDialog only for delete confirms.
+- **TopBar**: desktop-only sticky h-16 breadcrumb bar (`Saratoga Villa › Page`), `bg-background/80 backdrop-blur`; content area `bg-slate-50/50`.
 - **Button** (CallDesk-exact): `h-9 text-[13px]`, `active:scale-[0.98]` on solid variants, success variant available.
 - **Empty**: lucide icon in `rounded-full bg-muted p-3` chip + medium title + sm muted description (no emoji).
 - **MonthCalendar**: 7-col grid, purpose-colored dots per day, red tint + border for overlap days, primary ring on today.

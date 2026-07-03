@@ -10,7 +10,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { DatePicker, TimeSelect } from '@/components/DatePicker'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface FormValues {
@@ -43,7 +44,7 @@ function toForm(l?: Lead | null): FormValues {
   }
 }
 
-export default function LeadDialog({ open, onClose, lead }: { open: boolean; onClose: () => void; lead?: Lead | null }) {
+export default function LeadSheet({ open, onClose, lead }: { open: boolean; onClose: () => void; lead?: Lead | null }) {
   const { user } = useAuth()
   const isManager = user?.role === 'admin' || user?.role === 'manager'
   const queryClient = useQueryClient()
@@ -91,20 +92,22 @@ export default function LeadDialog({ open, onClose, lead }: { open: boolean; onC
   const flag = watch('flag')
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{lead ? '✏️ Edit Lead' : '📞 Log Call'}</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={onSubmit} className="space-y-3">
+    <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
+      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-lg">
+        <SheetHeader className="border-b px-6 py-4">
+          <SheetTitle>{lead ? 'Edit lead' : 'Log call'}</SheetTitle>
+          <SheetDescription>{lead ? `Editing ${lead.name}` : 'Record a lead or call outcome'}</SheetDescription>
+        </SheetHeader>
+        <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
+          <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Date *</Label>
-              <Input type="date" {...register('date', { required: true })} aria-invalid={!!errors.date} />
+              <DatePicker value={watch('date')} onChange={(v) => setValue('date', v)} />
             </div>
             <div className="space-y-1.5">
               <Label>Time</Label>
-              <Input type="time" {...register('time')} />
+              <TimeSelect value={watch('time')} onChange={(v) => setValue('time', v)} allowEmpty />
             </div>
             <div className="space-y-1.5">
               <Label>Lead Name *</Label>
@@ -134,8 +137,8 @@ export default function LeadDialog({ open, onClose, lead }: { open: boolean; onC
               </Select>
             </div>
             <div className="space-y-1.5 col-span-2">
-              <Label>Next Follow-up Date</Label>
-              <Input type="date" {...register('followup')} />
+              <Label>Next follow-up date</Label>
+              <DatePicker value={watch('followup')} onChange={(v) => setValue('followup', v)} clearable placeholder="No follow-up" />
             </div>
           </div>
           <div className="space-y-1.5">
@@ -170,12 +173,13 @@ export default function LeadDialog({ open, onClose, lead }: { open: boolean; onC
               </div>
             </div>
           )}
-          <DialogFooter>
-            <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
-            <Button type="submit" disabled={isSubmitting}>Save</Button>
-          </DialogFooter>
+          </div>
+          <SheetFooter className="flex-row justify-end gap-2 border-t px-6 py-4">
+            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+            <Button type="submit" disabled={isSubmitting}>Save lead</Button>
+          </SheetFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   )
 }

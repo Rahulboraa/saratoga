@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   Menu, LogOut, Home, CalendarDays, Users2, PhoneCall, Receipt,
-  Coins, Upload, KeyRound, ChevronsUpDown,
+  Coins, Upload, KeyRound, ChevronsUpDown, ChevronRight,
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
@@ -55,7 +55,7 @@ function NavItem({ to, label, icon: Icon, onNavigate }: { to: string; label: str
 function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const { user } = useAuth()
   return (
-    <nav className="flex-1 space-y-1 overflow-y-auto px-3">
+    <nav className="flex-1 space-y-1 overflow-y-auto px-3 [scrollbar-width:none]">
       <div className="mb-2 px-2">
         <p className="mb-2 px-1 text-[12px] font-bold uppercase tracking-wider text-slate-500">Main menu</p>
         {NAV_MAIN.map((n) => <NavItem key={n.to} {...n} onNavigate={onNavigate} />)}
@@ -115,6 +115,25 @@ function UserFooter() {
   )
 }
 
+const PAGE_LABELS: Record<string, string> = {
+  '': 'Dashboard', bookings: 'Bookings', visitors: 'Visitors', leads: 'CRM',
+  expenses: 'Expenses', incentives: 'Incentives', import: 'Import', users: 'Users',
+}
+
+function TopBar() {
+  const { pathname } = useLocation()
+  const key = pathname.split('/').filter(Boolean)[0] ?? ''
+  return (
+    <div className="sticky top-0 z-30 hidden h-16 items-center gap-2 border-b border-border/60 bg-background/80 px-6 backdrop-blur md:flex">
+      <nav className="flex items-center gap-2 text-[13px]">
+        <NavLink to="/" className="text-muted-foreground transition-colors hover:text-foreground">Saratoga Villa</NavLink>
+        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40" />
+        <span className="font-medium text-foreground">{PAGE_LABELS[key] ?? 'Dashboard'}</span>
+      </nav>
+    </div>
+  )
+}
+
 export default function AppLayout() {
   const [open, setOpen] = useState(false)
 
@@ -122,7 +141,7 @@ export default function AppLayout() {
     <div className="min-h-screen">
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-[260px] flex-col border-r border-slate-200 bg-[#f8fafc] md:flex">
         <div className="px-5 pb-3 pt-5">
-          <div className="mb-3"><Brand /></div>
+          <div className="mb-6"><Brand /></div>
         </div>
         <SidebarNav />
         <UserFooter />
@@ -142,8 +161,11 @@ export default function AppLayout() {
         <Brand />
       </header>
 
-      <main className="min-w-0 p-4 md:ml-[260px] md:p-6">
-        <Outlet />
+      <main className="min-h-screen bg-slate-50/50 md:pl-[260px]">
+        <TopBar />
+        <div className="mx-auto px-4 py-5 sm:px-5 sm:py-6 md:px-6 md:py-6">
+          <Outlet />
+        </div>
       </main>
     </div>
   )

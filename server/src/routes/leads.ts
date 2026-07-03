@@ -32,8 +32,31 @@ leadsRouter.get('/', async (req, res) => {
     const rx = new RegExp(escapeRegex(q), 'i')
     filter.$or = [{ name: rx }, { phone: rx }]
   }
-  const leads = await Lead.find(filter).sort({ date: -1, time: -1 })
-  res.json(leads.map((l) => serializeLead(l.toObject(), req.user.role)))
+  const page = Math.max(parseInt(String(req.query.page)) || 1, 1)
+  const limit = Math.min(Math.max(parseInt(String(req.query.limit)) || 10, 1), 100)
+  const [leads, total] = await Promise.all([
+    Lead.find(filter).sort({ date: -1, time: -1 }).skip((page - 1) * limit).limit(limit),
+    Lead.countDocuments(filter),
+  ])
+  res.json({ rows: leads.map((l) => serializeLead(l.toObject(), req.user.role)), total, page, limit })
+})
+
+leadsRouter.get('/summary', async (req, res) => {
+  const filter: Record<string, unknown> = req.user.role === 'sales' ? { exec: req.user.username } : {}
+  const leads = await Lead.find(filter).select('outcome followup exec')
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
+  res.json({
+    total: leads.length,
+    converted: leads.filter((l) => l.outcome === 'Converted').length,
+    callbacks: leads.filter((l) => l.outcome === 'Callback' && (!l.followup || l.followup >= today)).length,
+    overdue: leads.filter((l) => l.followup && l.followup < today && l.outcome !== 'Converted' && l.outcome !== 'Not Interested').length,
+    unassigned: req.user.role === 'sales' ? 0 : leads.filter((l) => !l.exec).length,
+  })
+})
+
+leadsRouter.get('/unassigned', requireRole('admin', 'manager'), async (_req, res) => {
+  const leads = await Lead.find({ exec: '' }).sort({ date: -1 }).limit(10)
+  res.json(leads.map((l) => ({ id: l.id, name: l.name, phone: l.phone, eventType: l.eventType })))
 })
 
 leadsRouter.get('/report', requireRole('admin', 'manager'), async (req, res) => {

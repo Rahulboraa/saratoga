@@ -8,13 +8,15 @@ import type { Booking, Payment } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { DatePicker } from '@/components/DatePicker'
 import ConfirmDelete from '@/components/ConfirmDelete'
 import EmptyState from '@/components/EmptyState'
 
 export default function PaymentPanel({ booking, onClose }: { booking: Booking | null; onClose: () => void }) {
   const queryClient = useQueryClient()
   const [showForm, setShowForm] = useState(false)
+  const [payDate, setPayDate] = useState(todayYmd())
 
   const { data: payments = [] } = useQuery({
     queryKey: ['payments', booking?.id],
@@ -58,95 +60,97 @@ export default function PaymentPanel({ booking, onClose }: { booking: Booking | 
     e.preventDefault()
     const fd = new FormData(e.currentTarget)
     addPayment.mutate({
-      date: fd.get('date'), amount: Number(fd.get('amount')), method: fd.get('method'),
+      date: payDate, amount: Number(fd.get('amount')), method: fd.get('method'),
       dest: fd.get('dest'), by: fd.get('by'), notes: fd.get('notes'),
     })
   }
 
   return (
-    <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>💳 {booking.guest}</DialogTitle>
-          <p className="text-sm text-muted-foreground">{fmtDate(booking.checkinDate)} · {booking.purpose}</p>
-        </DialogHeader>
+    <Sheet open onOpenChange={(o) => !o && onClose()}>
+      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-lg">
+        <SheetHeader className="border-b px-6 py-4">
+          <SheetTitle>Payments — {booking.guest}</SheetTitle>
+          <SheetDescription>{fmtDate(booking.checkinDate)} · {booking.purpose}</SheetDescription>
+        </SheetHeader>
 
-        <div className="grid grid-cols-3 gap-2 text-center">
-          <div className="rounded-lg border p-2">
-            <div className="text-xs text-muted-foreground">Bill</div>
-            <div className="font-bold">{fmtMoney(amount)}</div>
+        <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="rounded-lg border border-border/60 p-2 shadow-sm">
+              <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Bill</div>
+              <div className="text-[15px] font-semibold tabular-nums">{fmtMoney(amount)}</div>
+            </div>
+            <div className="rounded-lg border border-border/60 p-2 shadow-sm">
+              <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Paid</div>
+              <div className="text-[15px] font-semibold tabular-nums text-success">{fmtMoney(paid)}</div>
+            </div>
+            <div className="rounded-lg border border-border/60 p-2 shadow-sm">
+              <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Due</div>
+              <div className={`text-[15px] font-semibold tabular-nums ${due > 0 ? 'text-destructive' : 'text-success'}`}>{fmtMoney(due)}</div>
+            </div>
           </div>
-          <div className="rounded-lg border p-2">
-            <div className="text-xs text-muted-foreground">Paid</div>
-            <div className="font-bold text-emerald-600">{fmtMoney(paid)}</div>
+          <div className="h-2 overflow-hidden rounded-full bg-muted">
+            <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
           </div>
-          <div className="rounded-lg border p-2">
-            <div className="text-xs text-muted-foreground">Due</div>
-            <div className={`font-bold ${due > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{fmtMoney(due)}</div>
-          </div>
-        </div>
-        <div className="h-2 overflow-hidden rounded-full bg-accent">
-          <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
-        </div>
 
-        {payments.length === 0 ? (
-          <EmptyState icon={Wallet} message="No payments recorded yet" />
-        ) : (
-          <div className="space-y-2">
-            {payments.map((p) => (
-              <div key={p.id} className="flex items-center justify-between rounded-lg border p-2 text-sm">
-                <div>
-                  <span className="font-semibold">{fmtMoney(p.amount)}</span>
-                  <span className="text-muted-foreground"> · {fmtDate(p.date)}{p.method && ` · ${p.method}`}{p.by && ` · by ${p.by}`}</span>
-                  {p.notes && <div className="text-xs text-muted-foreground">{p.notes}</div>}
+          {payments.length === 0 ? (
+            <EmptyState icon={Wallet} message="No payments recorded yet" />
+          ) : (
+            <div className="space-y-2">
+              {payments.map((p) => (
+                <div key={p.id} className="flex items-center justify-between rounded-lg border border-border/60 p-2.5 text-[13px] shadow-sm">
+                  <div>
+                    <span className="font-semibold tabular-nums">{fmtMoney(p.amount)}</span>
+                    <span className="text-muted-foreground"> · {fmtDate(p.date)}{p.method && ` · ${p.method}`}{p.by && ` · by ${p.by}`}</span>
+                    {p.notes && <div className="text-[11px] text-muted-foreground">{p.notes}</div>}
+                  </div>
+                  <ConfirmDelete
+                    title="Delete this payment?"
+                    onConfirm={() => deletePayment.mutate(p.id)}
+                    trigger={<Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-destructive"><Trash2 className="size-4" /></Button>}
+                  />
                 </div>
-                <ConfirmDelete
-                  title="Delete this payment?"
-                  onConfirm={() => deletePayment.mutate(p.id)}
-                  trigger={<Button variant="ghost" size="icon" className="size-7 text-muted-foreground hover:text-red-600"><Trash2 className="size-4" /></Button>}
-                />
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
 
-        {showForm ? (
-          <form onSubmit={onSubmit} className="space-y-3 rounded-lg border p-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label>Date</Label>
-                <Input name="date" type="date" defaultValue={todayYmd()} required />
+          {showForm ? (
+            <form onSubmit={onSubmit} className="space-y-3 rounded-lg border border-border/60 p-3 shadow-sm">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Date</Label>
+                  <DatePicker value={payDate} onChange={setPayDate} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Amount *</Label>
+                  <Input name="amount" type="number" min="1" required autoFocus />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Method</Label>
+                  <Input name="method" placeholder="UPI / Cash / Bank" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Destination</Label>
+                  <Input name="dest" placeholder="Account / Paytm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Paid by</Label>
+                  <Input name="by" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Notes</Label>
+                  <Input name="notes" />
+                </div>
               </div>
-              <div className="space-y-1.5">
-                <Label>Amount *</Label>
-                <Input name="amount" type="number" min="1" required autoFocus />
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={() => setShowForm(false)}>Cancel</Button>
+                <Button type="submit" size="sm" disabled={addPayment.isPending}>Add payment</Button>
               </div>
-              <div className="space-y-1.5">
-                <Label>Method</Label>
-                <Input name="method" placeholder="UPI / Cash / Bank" />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Destination</Label>
-                <Input name="dest" placeholder="Account / Paytm" />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Paid By</Label>
-                <Input name="by" />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Notes</Label>
-                <Input name="notes" />
-              </div>
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="ghost" size="sm" onClick={() => setShowForm(false)}>Cancel</Button>
-              <Button type="submit" size="sm" disabled={addPayment.isPending}>Add Payment</Button>
-            </div>
-          </form>
-        ) : (
-          <Button onClick={() => setShowForm(true)}>+ Record Payment</Button>
-        )}
-      </DialogContent>
-    </Dialog>
+            </form>
+          ) : (
+            <Button onClick={() => { setPayDate(todayYmd()); setShowForm(true) }}>+ Record payment</Button>
+          )}
+        </div>
+      </SheetContent>
+    </Sheet>
   )
 }
