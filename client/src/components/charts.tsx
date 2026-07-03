@@ -172,12 +172,12 @@ function Bars({ data, series, height = 220, stacked = false, line, fmt = fmtLakh
 }
 
 const C = {
-  bookedLight: 'hsl(217 91% 78%)',
-  blue: 'hsl(221 83% 56%)',
-  coral: 'hsl(11 84% 66%)',
-  green: 'hsl(158 64% 42%)',
-  purple: 'hsl(262 83% 58%)',
-  pendingPink: 'hsl(350 85% 88%)',
+  indigoSoft: 'hsl(230 75% 85%)',
+  indigo: 'hsl(230 80% 62%)',
+  violet: 'hsl(262 83% 58%)',
+  electric: 'hsl(199 89% 48%)',
+  crimson: 'hsl(0 72% 62%)',
+  lavender: 'hsl(255 35% 88%)',
 }
 
 function barStyle(color: string, heightPct: number, index: number): CSSProperties {
@@ -193,8 +193,8 @@ export function RevenueChart({ data }: { data: MoneyPoint[] }) {
     <Bars
       data={data}
       series={[
-        { key: 'booked', label: 'Booked', color: C.bookedLight },
-        { key: 'collected', label: 'Collected', color: C.blue },
+        { key: 'booked', label: 'Booked', color: C.indigoSoft },
+        { key: 'collected', label: 'Collected', color: C.indigo },
       ]}
     />
   )
@@ -206,10 +206,10 @@ export function PLChart({ data }: { data: MoneyPoint[] }) {
     <Bars
       data={rows}
       series={[
-        { key: 'revenue', label: 'Revenue', color: C.blue },
-        { key: 'expenses', label: 'Expenses', color: C.coral },
+        { key: 'revenue', label: 'Revenue', color: C.indigo },
+        { key: 'expenses', label: 'Expenses', color: C.crimson },
       ]}
-      line={{ key: 'profit', label: 'Profit', color: C.green }}
+      line={{ key: 'profit', label: 'Profit', color: C.electric }}
     />
   )
 }
@@ -220,8 +220,8 @@ export function TrendChart({ data }: { data: MoneyPoint[] }) {
       data={data}
       stacked
       series={[
-        { key: 'collected', label: 'Collected', color: C.blue },
-        { key: 'pending', label: 'Pending', color: C.pendingPink },
+        { key: 'collected', label: 'Collected', color: C.indigo },
+        { key: 'pending', label: 'Pending', color: C.lavender },
       ]}
     />
   )
@@ -232,8 +232,8 @@ export function IncentiveTrendChart({ data }: { data: { label: string; deepak: n
     <Bars
       data={data as unknown as MoneyPoint[]}
       series={[
-        { key: 'deepak', label: 'Deepak', color: C.blue },
-        { key: 'akhil', label: 'Akhil', color: C.green },
+        { key: 'deepak', label: 'Deepak', color: C.indigo },
+        { key: 'akhil', label: 'Akhil', color: C.electric },
       ]}
     />
   )
@@ -253,7 +253,7 @@ export function CountChart({ data }: { data: { label: string; count: number }[] 
               </span>
               <div
                 className="chart-bar w-full max-w-[34px] cursor-help rounded-t-[5px] transition-all group-hover:brightness-105 group-hover:saturate-125"
-                style={barStyle(C.purple, d.count > 0 ? Math.max((d.count / max) * 100, 2) : 0, i)}
+                style={barStyle(C.violet, d.count > 0 ? Math.max((d.count / max) * 100, 2) : 0, i)}
               />
             </div>
           ))}
