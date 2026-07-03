@@ -28,7 +28,7 @@ export default function StatCard({ icon: Icon, tint = 'foreground', label, value
         )}
         <span className="text-[13px] font-medium text-foreground">{label}</span>
       </div>
-      <div className="mt-3 truncate text-2xl font-semibold leading-none tracking-tight tabular-nums md:text-[30px]">{value}</div>
+      <div className="mt-3 truncate text-xl font-semibold leading-none tracking-tight tabular-nums md:text-[26px]">{value}</div>
       <div className="mt-3 text-[12px] text-muted-foreground">{hint ?? ''}</div>
     </div>
   )
