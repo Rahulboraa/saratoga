@@ -26,12 +26,10 @@ export default function InstallPrompt() {
 
   return (
     <div className="fixed inset-x-3 bottom-16 z-50 mb-[env(safe-area-inset-bottom)] flex items-center gap-3 rounded-xl border border-border/60 bg-card p-3 shadow-lg md:hidden">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-[12px] font-bold text-primary-foreground">
-        SV
-      </div>
+      <img src="/pwa-192.png" alt="" className="h-9 w-9 shrink-0 rounded-lg" />
       <div className="min-w-0 flex-1">
         <div className="text-[13px] font-semibold">Install Saratoga app</div>
-        <div className="text-[11px] text-muted-foreground">Home screen se seedha kholo</div>
+        <div className="text-[11px] text-muted-foreground">Add to your home screen</div>
       </div>
       <Button
         size="sm"

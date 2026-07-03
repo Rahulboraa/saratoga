@@ -17,10 +17,7 @@ export default function Caretaker() {
     <div className="mx-auto min-h-screen max-w-3xl p-4">
       <header className="mb-4 flex items-center justify-between">
         <div>
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-[#2563eb] text-[12px] font-bold text-white shadow-sm">SV</div>
-            <span className="text-lg font-bold tracking-tight">Saratoga Villa</span>
-          </div>
+          <span className="text-lg font-bold tracking-tight">Saratoga <span className="text-[#2563eb]">Villa</span></span>
           <div className="text-xs text-muted-foreground">Caretaker · {user?.name}</div>
         </div>
         <Button variant="ghost" size="sm" onClick={() => logout()}>

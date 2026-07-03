@@ -164,7 +164,7 @@ function ExpensePayPanel({ expense, onClose }: { expense: Expense; onClose: () =
     <Sheet open onOpenChange={(o) => !o && onClose()}>
       <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-xl">
         <SheetHeader className="border-b px-6 py-5">
-          <SheetTitle>Payments — {expense.desc}</SheetTitle>
+          <SheetTitle>Payments · {expense.desc}</SheetTitle>
           <SheetDescription>{fmtDate(expense.date)} · {expense.cat}</SheetDescription>
         </SheetHeader>
         <div className="flex-1 space-y-6 overflow-y-auto px-6 py-6">
@@ -386,7 +386,7 @@ export default function Expenses() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="text-[15px]">P&L by Month</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-[15px]">P&L by month</CardTitle></CardHeader>
         <CardContent className="overflow-x-auto px-0">
           <Table>
             <TableHeader>

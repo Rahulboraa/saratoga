@@ -230,7 +230,7 @@ export default function BookingSheet({ open, onClose, booking }: { open: boolean
 
             {conflicts && (
               <div className="rounded-lg border border-warning/25 bg-warning/10 p-3 text-[13px]">
-                <div className="font-semibold text-warning">Dates overlap with existing booking{conflicts.length > 1 ? 's' : ''}:</div>
+                <div className="font-semibold text-warning">These dates overlap with:</div>
                 <ul className="mt-1 list-inside list-disc">
                   {conflicts.map((c, i) => (
                     <li key={i}>{c.guest} — {fmtDate(c.checkinDate)}{c.checkoutDate !== c.checkinDate && ` → ${fmtDate(c.checkoutDate)}`}</li>

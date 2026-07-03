@@ -37,16 +37,13 @@ export default function Login() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
         <div className="relative z-10 p-12">
           <h2 className="text-4xl font-bold tracking-tight text-white">Saratoga Villa</h2>
-          <p className="mt-2 text-lg text-white/80">Bookings, payments, visitors and CRM in one place.</p>
+          <p className="mt-2 text-lg text-white/80">Booking Manager</p>
         </div>
       </div>
 
       <div className="flex w-full items-center justify-center bg-background p-8 sm:p-12 lg:w-[40%]">
         <div className="w-full max-w-sm space-y-8">
           <div className="flex flex-col gap-2">
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-[15px] font-bold text-primary-foreground shadow-md lg:hidden">
-              SV
-            </div>
             <h1 className="text-3xl font-bold tracking-tight text-foreground">Welcome back</h1>
             <p className="text-sm text-muted-foreground">Sign in to Saratoga Villa Booking Manager</p>
           </div>

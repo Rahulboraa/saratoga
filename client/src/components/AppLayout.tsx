@@ -76,12 +76,9 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 
 function Brand() {
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex h-7 w-7 items-center justify-center rounded bg-[#2563eb] text-[12px] font-bold text-white shadow-sm">
-        SV
-      </div>
-      <span className="text-[18px] font-bold tracking-tight text-slate-900">Saratoga Villa</span>
-    </div>
+    <span className="text-[19px] font-bold tracking-tight text-slate-900">
+      Saratoga <span className="text-[#2563eb]">Villa</span>
+    </span>
   )
 }
 

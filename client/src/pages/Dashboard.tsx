@@ -48,7 +48,7 @@ export default function Dashboard() {
     <div>
       <PageHeader
         title="Dashboard"
-        description="Bookings, collections and activity at a glance"
+        description="Bookings, collections and activity"
         actions={isAdmin && (
           <Button
             variant="outline"
@@ -112,7 +112,7 @@ export default function Dashboard() {
           <CardContent className="px-5">
             <div className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-destructive">
               <TriangleAlert className="size-4" />
-              {data.overlapCount} overlapping booking{data.overlapCount > 1 ? 's' : ''}: same dates clash
+              {data.overlapCount} overlapping booking{data.overlapCount > 1 ? 's' : ''}
             </div>
             <div className="space-y-1">
               {data.conflicts.map((c) => (
@@ -149,18 +149,18 @@ export default function Dashboard() {
 
       <div className="mb-8 grid gap-6 lg:grid-cols-2">
         {isAdmin && (
-          <ChartCard title="Monthly Revenue — Booked vs Collected"><RevenueChart data={series} /></ChartCard>
+          <ChartCard title="Monthly revenue"><RevenueChart data={series} /></ChartCard>
         )}
         {isAdmin && (
           <ChartCard title="Monthly P&L"><PLChart data={series} /></ChartCard>
         )}
-        <ChartCard title="Bookings Per Month"><CountChart data={countSeries} /></ChartCard>
+        <ChartCard title="Bookings per month"><CountChart data={countSeries} /></ChartCard>
         {isAdmin && (
-          <ChartCard title="Payment Trend — Collected vs Pending"><TrendChart data={series} /></ChartCard>
+          <ChartCard title="Payment trend"><TrendChart data={series} /></ChartCard>
         )}
         <MonthCalendar />
         <Card className="h-full">
-          <CardHeader><CardTitle className="text-[15px]">Bookings by Type</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-[15px]">Bookings by type</CardTitle></CardHeader>
           <CardContent className="flex h-full flex-col items-center justify-center gap-8 py-6 sm:flex-row">
             <div className="animate-fade-in shrink-0">
               <DonutChart

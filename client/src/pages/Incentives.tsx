@@ -48,7 +48,7 @@ export default function Incentives() {
       </div>
 
       <Card className="mb-6">
-        <CardHeader><CardTitle className="text-[15px]">Incentive Slabs</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-[15px]">Incentive slabs</CardTitle></CardHeader>
         <CardContent className="overflow-x-auto px-0">
           <Table>
             <TableHeader>
@@ -72,7 +72,7 @@ export default function Incentives() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="text-[15px]">Monthly Incentive Trend</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-[15px]">Monthly incentive trend</CardTitle></CardHeader>
         <CardContent>
           {trend.length === 0 ? (
             <EmptyState icon={Coins} message="No incentive data yet" description="Incentives apply from April 2026 onward." />
@@ -84,7 +84,7 @@ export default function Incentives() {
 
       {trend.length > 0 && (
         <Card className="mt-6">
-          <CardHeader><CardTitle className="text-[15px]">Month-wise Breakdown</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-[15px]">Month-wise breakdown</CardTitle></CardHeader>
           <CardContent className="overflow-x-auto px-0">
             <Table>
               <TableHeader>

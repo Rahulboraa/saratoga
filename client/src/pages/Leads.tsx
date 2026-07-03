@@ -244,7 +244,7 @@ export default function Leads() {
               return <ExportButton path="/export/leads" name="leads" params={p} />
             })()}
             {isManager && (
-              <Button variant="outline" onClick={() => setShowReport((s) => !s)}>Exec report</Button>
+              <Button variant="outline" onClick={() => setShowReport((s) => !s)}>Executive report</Button>
             )}
             <Button onClick={() => { setEditing(null); setSheetOpen(true) }}>+ Log call</Button>
           </>
@@ -268,7 +268,7 @@ export default function Leads() {
       {isManager && showReport && (
         <Card className="mb-6">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-[15px]">Sales Executive Performance</CardTitle>
+            <CardTitle className="text-[15px]">Executive performance</CardTitle>
             <Button variant="outline" size="sm" onClick={exportReportCsv}>CSV</Button>
           </CardHeader>
           <CardContent className="overflow-x-auto px-0">
@@ -304,7 +304,7 @@ export default function Leads() {
         <Card className="mb-6 border-destructive/25 bg-destructive/5 py-3">
           <CardContent className="px-4">
             <div className="mb-2 text-[13px] font-semibold text-destructive">
-              {overdueLeads.length} overdue follow-up{overdueLeads.length > 1 ? 's' : ''}: call back today
+              {overdueLeads.length} overdue follow-up{overdueLeads.length > 1 ? 's' : ''}
             </div>
             <div className="space-y-1">
               {overdueLeads.map((l) => (
