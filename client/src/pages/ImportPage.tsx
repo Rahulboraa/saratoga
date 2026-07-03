@@ -6,7 +6,6 @@ import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
 import { Card, CardContent } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PageHeader } from '@/components/PageHeader'
@@ -40,14 +39,12 @@ export default function ImportPage() {
   const queryClient = useQueryClient()
   const [type, setType] = useState('bookings')
   const [file, setFile] = useState<File | null>(null)
-  const [updateDupes, setUpdateDupes] = useState(false)
   const [result, setResult] = useState<RunResult | null>(null)
 
   const run = useMutation({
     mutationFn: () => {
       const fd = new FormData()
       fd.append('type', type)
-      fd.append('mode', updateDupes ? 'update' : 'skip')
       fd.append('file', file!)
       return api<RunResult>('/import/run', { formData: fd })
     },
@@ -88,10 +85,6 @@ export default function ImportPage() {
                 onChange={(e) => { setFile(e.target.files?.[0] ?? null); setResult(null) }}
               />
             </div>
-            <div className="flex h-10 items-center gap-2">
-              <Switch checked={updateDupes} onCheckedChange={setUpdateDupes} id="dupes" />
-              <Label htmlFor="dupes" className="font-normal text-muted-foreground">Update duplicates</Label>
-            </div>
           </div>
           <div className="flex flex-wrap gap-3">
             <Button size="lg" onClick={() => run.mutate()} disabled={!file || run.isPending}>
@@ -113,7 +106,7 @@ export default function ImportPage() {
             </Button>
           </div>
           <p className="text-[12px] text-muted-foreground">
-            Duplicates are matched by phone/date/guest and skipped by default. Turn on "Update duplicates" to overwrite them instead.
+            Exact duplicates (same guest, same date, same time) are skipped automatically. The same guest can still book different slots on the same day.
           </p>
         </CardContent>
       </Card>

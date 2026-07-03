@@ -283,7 +283,7 @@ async function bookingLookups() {
 
 function naturalKey(type: ImportType, d: Raw): string {
   switch (type) {
-    case 'bookings': return `${String(d.guest).toLowerCase()}|${d.checkinDate}|${d.phone}`
+    case 'bookings': return `${String(d.guest).toLowerCase()}|${d.checkinDate}|${d.checkinTime}|${d.phone}`
     case 'payments': return `${d.bookingRef}|${d.date}|${d.amount}`
     case 'expenses': return `${d.date}|${d.cat}|${String(d.desc).toLowerCase()}|${d.amount}`
     case 'visitors': return `${d.date}|${d.phone}|${String(d.name).toLowerCase()}`

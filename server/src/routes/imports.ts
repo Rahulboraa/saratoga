@@ -30,12 +30,11 @@ importsRouter.post('/preview', upload.single('file'), async (req, res) => {
 
 importsRouter.post('/run', upload.single('file'), async (req, res) => {
   const type = z.enum(IMPORT_TYPES).parse(req.body.type) as ImportType
-  const mode = z.enum(['skip', 'update']).catch('skip').parse(req.body.mode)
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' })
   const rawRows = parseFile(req.file.buffer)
   if (!rawRows.length) return res.status(400).json({ error: 'File has no data rows' })
   const prepared = await prepareRows(type, rawRows)
-  const result = await commitRows(type, prepared, mode, req.user.username)
+  const result = await commitRows(type, prepared, 'skip', req.user.username)
   const errors = prepared.filter((r) => !r.valid).slice(0, 5).map((r) => `Row ${r.index + 1}: ${r.errors[0]}`)
   res.json({ ...result, total: rawRows.length, errors })
 })
