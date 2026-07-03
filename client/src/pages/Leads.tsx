@@ -256,7 +256,7 @@ export default function Leads() {
             <CardTitle className="text-[15px]">Sales Executive Performance</CardTitle>
             <Button variant="outline" size="sm" onClick={exportReportCsv}><Download className="size-4" /> CSV</Button>
           </CardHeader>
-          <CardContent className="overflow-x-auto">
+          <CardContent className="overflow-x-auto px-0">
             <Table>
               <TableHeader>
                 <TableRow>

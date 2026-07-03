@@ -374,7 +374,7 @@ export default function Expenses() {
 
       <Card>
         <CardHeader><CardTitle className="text-[15px]">P&L by Month</CardTitle></CardHeader>
-        <CardContent className="overflow-x-auto">
+        <CardContent className="overflow-x-auto px-0">
           <Table>
             <TableHeader>
               <TableRow>

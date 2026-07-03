@@ -163,7 +163,7 @@ export default function ImportPage() {
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="overflow-x-auto">
+            <CardContent className="overflow-x-auto px-0">
               <Table>
                 <TableHeader>
                   <TableRow>

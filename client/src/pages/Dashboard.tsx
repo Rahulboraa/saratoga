@@ -139,8 +139,8 @@ export default function Dashboard() {
       </div>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">Upcoming Bookings</CardTitle></CardHeader>
-        <CardContent>
+        <CardHeader><CardTitle className="text-[15px]">Upcoming Bookings</CardTitle></CardHeader>
+        <CardContent className="px-0">
           {data.upcoming.length === 0 ? (
             <EmptyState icon={CalendarDays} message="No upcoming bookings" />
           ) : (

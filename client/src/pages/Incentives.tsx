@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Coins } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { IncentiveTrendChart } from '@/components/charts'
@@ -11,6 +10,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton'
 import EmptyState from '@/components/EmptyState'
 import { PageHeader } from '@/components/PageHeader'
+import StatCard from '@/components/StatCard'
+import { Coins, TrendingUp } from 'lucide-react'
 
 export default function Incentives() {
   const [month, setMonth] = useState('all')
@@ -40,26 +41,14 @@ export default function Incentives() {
         </Select>}
       />
 
-      <div className="mb-6 grid gap-3 sm:grid-cols-2">
-        <Card>
-          <CardContent className="px-5 py-4">
-            <div className="text-[13px] font-medium">Deepak — Sales Incentive</div>
-            <div className="mt-2 text-[30px] font-semibold tracking-tight tabular-nums leading-none">{fmtMoney(sel.deepak)}</div>
-            <div className="mt-1 text-xs text-muted-foreground">on {fmtMoney(sel.sales)} collected</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="px-5 py-4">
-            <div className="text-[13px] font-medium">Akhil — Profit Share</div>
-            <div className="mt-2 text-[30px] font-semibold tracking-tight tabular-nums leading-none">{fmtMoney(sel.akhil)}</div>
-            <div className="mt-1 text-xs text-muted-foreground">on {fmtMoney(sel.profit)} profit</div>
-          </CardContent>
-        </Card>
+      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <StatCard icon={Coins} tint="info" label="Deepak · Sales Incentive" value={fmtMoney(sel.deepak)} hint={`on ${fmtMoney(sel.sales)} collected`} />
+        <StatCard icon={TrendingUp} tint="success" label="Akhil · Profit Share" value={fmtMoney(sel.akhil)} hint={`on ${fmtMoney(sel.profit)} profit`} />
       </div>
 
       <Card className="mb-6">
         <CardHeader><CardTitle className="text-[15px]">Incentive Slabs</CardTitle></CardHeader>
-        <CardContent className="overflow-x-auto">
+        <CardContent className="overflow-x-auto px-0">
           <Table>
             <TableHeader>
               <TableRow>
@@ -95,7 +84,7 @@ export default function Incentives() {
       {trend.length > 0 && (
         <Card className="mt-6">
           <CardHeader><CardTitle className="text-[15px]">Month-wise Breakdown</CardTitle></CardHeader>
-          <CardContent className="overflow-x-auto">
+          <CardContent className="overflow-x-auto px-0">
             <Table>
               <TableHeader>
                 <TableRow>
