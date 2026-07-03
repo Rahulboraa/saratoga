@@ -255,7 +255,7 @@ export default function Expenses() {
   const [month, setMonth] = useState('all')
   const [cat, setCat] = useState('all')
   const [page, setPage] = useState(1)
-  const [limit, setLimit] = useState(10)
+  const [limit, setLimit] = useState(20)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editing, setEditing] = useState<Expense | null>(null)
   const [payFor, setPayFor] = useState<string | null>(null)

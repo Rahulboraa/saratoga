@@ -1,17 +1,17 @@
 import { useState } from 'react'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { CalendarClock } from 'lucide-react'
+import type { ColumnDef } from '@tanstack/react-table'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { fmtMoney, fmtDate, PURPOSE_COLORS, STATUS_VARIANT } from '@/lib/format'
 import { PURPOSES, type Booking } from '@/types'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Skeleton } from '@/components/ui/skeleton'
-import EmptyState from '@/components/EmptyState'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import EmptyState from '@/components/EmptyState'
+import { DataTable, type Paged } from '@/components/DataTable'
 import { PageHeader } from '@/components/PageHeader'
 import { cn } from '@/lib/utils'
 
@@ -20,15 +20,20 @@ export default function Upcoming() {
   const isAdmin = user?.role === 'admin'
   const [q, setQ] = useState('')
   const [purpose, setPurpose] = useState('all')
-  const params = new URLSearchParams()
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(20)
+
+  const params = new URLSearchParams({ page: String(page), limit: String(limit) })
   if (q) params.set('q', q)
   if (purpose !== 'all') params.set('purpose', purpose)
 
-  const { data: bookings, isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['bookings', 'upcoming', params.toString()],
-    queryFn: () => api<Booking[]>(`/bookings/upcoming?${params}`),
+    queryFn: () => api<Paged<Booking>>(`/bookings/upcoming?${params}`),
     placeholderData: keepPreviousData,
   })
+
+  const resetPage = () => setPage(1)
 
   const purposePill = (b: Booking) => (
     <span className="whitespace-nowrap rounded-md px-1.5 py-0.5 text-[11px] font-medium" style={{ background: `${PURPOSE_COLORS[b.purpose]}1c`, color: PURPOSE_COLORS[b.purpose] }}>
@@ -36,13 +41,70 @@ export default function Upcoming() {
     </span>
   )
 
+  const columns: ColumnDef<Booking>[] = [
+    {
+      id: 'date',
+      header: 'Date',
+      cell: ({ row: { original: b } }) => (
+        <div className="whitespace-nowrap font-medium">
+          {fmtDate(b.checkinDate)}
+          {b.checkoutDate !== b.checkinDate && <div className="text-[11px] font-normal text-muted-foreground">→ {fmtDate(b.checkoutDate)}</div>}
+        </div>
+      ),
+    },
+    {
+      id: 'guest',
+      header: 'Guest',
+      cell: ({ row: { original: b } }) => (
+        <div>
+          <div className="font-medium">{b.guest}</div>
+          {b.phone && <div className="text-[11px] text-muted-foreground">{b.phone}</div>}
+        </div>
+      ),
+    },
+    {
+      id: 'times',
+      header: 'Times',
+      cell: ({ row: { original: b } }) => <span className="whitespace-nowrap text-muted-foreground">{b.checkinTime} → {b.checkoutTime}</span>,
+    },
+    { id: 'type', header: 'Type', cell: ({ row: { original: b } }) => purposePill(b) },
+    {
+      id: 'pax',
+      header: 'Pax',
+      cell: ({ row: { original: b } }) => <span className="block max-w-28 truncate">{b.pax || '—'}</span>,
+    },
+    ...(isAdmin
+      ? ([
+          {
+            id: 'amount',
+            header: 'Amount',
+            meta: { headClass: 'text-right', cellClass: 'text-right tabular-nums' },
+            cell: ({ row: { original: b } }) => fmtMoney(b.amount),
+          },
+          {
+            id: 'due',
+            header: 'Due',
+            meta: { headClass: 'text-right', cellClass: 'text-right tabular-nums' },
+            cell: ({ row: { original: b } }) => (
+              <span className={(b.due ?? 0) > 0 ? 'text-destructive' : 'text-success'}>{fmtMoney(b.due)}</span>
+            ),
+          },
+          {
+            id: 'status',
+            header: 'Status',
+            cell: ({ row: { original: b } }) => <Badge variant={STATUS_VARIANT[b.status ?? 'pending']} withDot>{b.status}</Badge>,
+          },
+        ] satisfies ColumnDef<Booking>[])
+      : []),
+  ]
+
   return (
     <div>
       <PageHeader title="Upcoming" description="Next events at the villa, soonest first" />
 
-      <div className="mb-4 flex flex-wrap gap-3">
-        <Input placeholder="Search guest or phone…" value={q} onChange={(e) => setQ(e.target.value)} className="h-10 w-full sm:w-64" />
-        <Select value={purpose} onValueChange={setPurpose}>
+      <div className="mb-5 flex flex-wrap gap-3">
+        <Input placeholder="Search guest or phone…" value={q} onChange={(e) => { setQ(e.target.value); resetPage() }} className="h-10 w-full sm:w-64" />
+        <Select value={purpose} onValueChange={(v) => { setPurpose(v); resetPage() }}>
           <SelectTrigger className="h-10 w-[calc(50%-6px)] sm:w-64"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All types</SelectItem>
@@ -51,80 +113,39 @@ export default function Upcoming() {
         </Select>
       </div>
 
-      {isLoading ? (
-        <div className="space-y-2">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-12 rounded-lg" />)}</div>
-      ) : !bookings?.length ? (
-        <EmptyState icon={CalendarClock} message="No upcoming bookings" description="New bookings will show up here." />
-      ) : (
-        <>
-          <div className="scrollbar-thin hidden overflow-x-auto rounded-xl border border-border/60 bg-card shadow-sm md:block">
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent">
-                  <TableHead className="w-14">S.No</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Guest</TableHead>
-                  <TableHead>Times</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Pax</TableHead>
-                  {isAdmin && <TableHead className="text-right">Amount</TableHead>}
-                  {isAdmin && <TableHead className="text-right">Due</TableHead>}
-                  {isAdmin && <TableHead>Status</TableHead>}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {bookings.map((b, i) => (
-                  <TableRow key={b.id} className={cn(b.overlap && 'border-l-2 border-l-destructive')}>
-                    <TableCell className="tabular-nums text-muted-foreground">{i + 1}</TableCell>
-                    <TableCell className="whitespace-nowrap font-medium">
-                      {fmtDate(b.checkinDate)}
-                      {b.checkoutDate !== b.checkinDate && <div className="text-[11px] font-normal text-muted-foreground">→ {fmtDate(b.checkoutDate)}</div>}
-                    </TableCell>
-                    <TableCell>
-                      <div className="font-medium">{b.guest}</div>
-                      {b.phone && <div className="text-[11px] text-muted-foreground">{b.phone}</div>}
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap text-muted-foreground">{b.checkinTime} → {b.checkoutTime}</TableCell>
-                    <TableCell>{purposePill(b)}</TableCell>
-                    <TableCell className="max-w-28 truncate">{b.pax || '—'}</TableCell>
-                    {isAdmin && <TableCell className="text-right tabular-nums">{fmtMoney(b.amount)}</TableCell>}
-                    {isAdmin && (
-                      <TableCell className={cn('text-right tabular-nums', (b.due ?? 0) > 0 ? 'text-destructive' : 'text-success')}>
-                        {fmtMoney(b.due)}
-                      </TableCell>
-                    )}
-                    {isAdmin && <TableCell><Badge variant={STATUS_VARIANT[b.status ?? 'pending']} withDot>{b.status}</Badge></TableCell>}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-
-          <div className="space-y-2 md:hidden">
-            {bookings.map((b) => (
-              <Card key={b.id} className={cn('py-3', b.overlap && 'border-l-2 border-l-destructive')}>
-                <CardContent className="space-y-1.5 px-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <div className="text-[13px] font-semibold">{b.guest}</div>
-                      <div className="text-[11px] text-muted-foreground">
-                        {fmtDate(b.checkinDate)}{b.checkoutDate !== b.checkinDate && ` → ${fmtDate(b.checkoutDate)}`} · {b.checkinTime}
-                      </div>
-                    </div>
-                    {purposePill(b)}
+      <DataTable
+        columns={columns}
+        data={data?.rows}
+        total={data?.total ?? 0}
+        page={data?.page ?? page}
+        limit={data?.limit ?? limit}
+        onPageChange={setPage}
+        onLimitChange={(l) => { setLimit(l); resetPage() }}
+        isLoading={isLoading}
+        rowClassName={(b) => cn(b.overlap && 'border-l-2 border-l-destructive')}
+        empty={<EmptyState icon={CalendarClock} message="No upcoming bookings" description="New bookings will show up here." />}
+        renderCard={(b) => (
+          <Card className={cn('py-3', b.overlap && 'border-l-2 border-l-destructive')}>
+            <CardContent className="space-y-1.5 px-4">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="text-[13px] font-semibold">{b.guest}</div>
+                  <div className="text-[11px] text-muted-foreground">
+                    {fmtDate(b.checkinDate)}{b.checkoutDate !== b.checkinDate && ` → ${fmtDate(b.checkoutDate)}`} · {b.checkinTime}
                   </div>
-                  {isAdmin && (
-                    <div className="flex items-center justify-between text-[13px] tabular-nums">
-                      <span>{fmtMoney(b.amount)}</span>
-                      <Badge variant={STATUS_VARIANT[b.status ?? 'pending']} withDot>{b.status}</Badge>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </>
-      )}
+                </div>
+                {purposePill(b)}
+              </div>
+              {isAdmin && (
+                <div className="flex items-center justify-between text-[13px] tabular-nums">
+                  <span>{fmtMoney(b.amount)}</span>
+                  <Badge variant={STATUS_VARIANT[b.status ?? 'pending']} withDot>{b.status}</Badge>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+      />
     </div>
   )
 }

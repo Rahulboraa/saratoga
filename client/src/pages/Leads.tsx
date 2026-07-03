@@ -64,7 +64,7 @@ export default function Leads() {
   const [exec, setExec] = useState('all')
   const [eventType, setEventType] = useState('all')
   const [page, setPage] = useState(1)
-  const [limit, setLimit] = useState(10)
+  const [limit, setLimit] = useState(20)
   const [showReport, setShowReport] = useState(false)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editing, setEditing] = useState<Lead | null>(null)

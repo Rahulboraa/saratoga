@@ -63,7 +63,10 @@ bookingsRouter.get('/upcoming', requireRole('admin', 'manager', 'sales'), async 
     const rx = new RegExp(escapeRegex(q), 'i')
     filter.$or = [{ guest: rx }, { phone: rx }]
   }
-  const query = Booking.find(filter).sort({ checkinDate: 1, checkinTime: 1 }).limit(50)
+  const page = Math.max(parseInt(String(req.query.page)) || 1, 1)
+  const limit = Math.min(Math.max(parseInt(String(req.query.limit)) || 20, 1), 100)
+  const total = await Booking.countDocuments(filter)
+  const query = Booking.find(filter).sort({ checkinDate: 1, checkinTime: 1 }).skip((page - 1) * limit).limit(limit)
   if (!isAdmin) query.select('-breakdown -amount -legacyReceived -dest')
   const bookings = await query
 
@@ -75,7 +78,7 @@ bookingsRouter.get('/upcoming', requireRole('admin', 'manager', 'sales'), async 
     const sums = await paymentSums(bookings.map((b) => b._id))
     rows = rows.map((r) => ({ ...r, ...withFinance(r as never, sums) }))
   }
-  res.json(rows.map((r) => serializeBooking(r, req.user.role)))
+  res.json({ rows: rows.map((r) => serializeBooking(r, req.user.role)), total, page, limit })
 })
 
 bookingsRouter.get('/calendar', async (req, res) => {

@@ -34,7 +34,7 @@ export default function Bookings() {
   const [status, setStatus] = useState('all')
   const [purpose, setPurpose] = useState('all')
   const [page, setPage] = useState(1)
-  const [limit, setLimit] = useState(10)
+  const [limit, setLimit] = useState(20)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editing, setEditing] = useState<Booking | null>(null)
   const [payFor, setPayFor] = useState<string | null>(null)
