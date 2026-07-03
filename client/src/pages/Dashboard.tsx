@@ -46,7 +46,7 @@ export default function Dashboard() {
   return (
     <div>
       <PageHeader title="Dashboard" description="Bookings, collections and activity at a glance" />
-      <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-5">
         {isAdmin ? (
           <>
             <StatCard icon={IndianRupee} tint="info" label="Total Booked" value={fmtMoney(data.totalBooked)} hint={`${data.totalBookings} bookings`} />

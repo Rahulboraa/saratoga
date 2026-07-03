@@ -19,7 +19,7 @@ export default function StatCard({ icon: Icon, tint = 'foreground', label, value
   className?: string
 }) {
   return (
-    <div className={cn('rounded-xl border border-border/60 bg-card p-5 shadow-sm', className)}>
+    <div className={cn('rounded-xl border border-border/60 bg-card p-4 shadow-sm md:p-5', className)}>
       <div className="flex items-center gap-2.5">
         {Icon && (
           <span className={cn('flex h-8 w-8 items-center justify-center rounded-lg', tintBg[tint])}>
@@ -28,7 +28,7 @@ export default function StatCard({ icon: Icon, tint = 'foreground', label, value
         )}
         <span className="text-[13px] font-medium text-foreground">{label}</span>
       </div>
-      <div className="mt-3 truncate text-[30px] font-semibold leading-none tracking-tight tabular-nums">{value}</div>
+      <div className="mt-3 truncate text-2xl font-semibold leading-none tracking-tight tabular-nums md:text-[30px]">{value}</div>
       <div className="mt-3 text-[12px] text-muted-foreground">{hint ?? ''}</div>
     </div>
   )

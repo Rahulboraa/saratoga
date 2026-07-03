@@ -12,6 +12,7 @@ import {
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
+import InstallPrompt from '@/components/InstallPrompt'
 
 const NAV_MAIN = [
   { to: '/', label: 'Dashboard', icon: Home },
@@ -134,6 +135,46 @@ function TopBar() {
   )
 }
 
+function BottomNav({ onMore }: { onMore: () => void }) {
+  const { user } = useAuth()
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
+      <div className={cn('grid', user?.role === 'admin' ? 'grid-cols-5' : 'grid-cols-4')}>
+        {NAV_MAIN.map(({ to, label, icon: Icon }) => (
+          <NavLink
+            key={to}
+            to={to}
+            end={to === '/'}
+            className={({ isActive }) =>
+              cn(
+                'flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium',
+                isActive ? 'text-[#2563eb]' : 'text-slate-500',
+              )
+            }
+          >
+            {({ isActive }) => (
+              <>
+                <Icon className="size-5" strokeWidth={isActive ? 2.5 : 2} />
+                {label}
+              </>
+            )}
+          </NavLink>
+        ))}
+        {user?.role === 'admin' && (
+          <button
+            type="button"
+            onClick={onMore}
+            className="flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium text-slate-500"
+          >
+            <Menu className="size-5" />
+            More
+          </button>
+        )}
+      </div>
+    </nav>
+  )
+}
+
 export default function AppLayout() {
   const [open, setOpen] = useState(false)
 
@@ -163,10 +204,13 @@ export default function AppLayout() {
 
       <main className="min-h-screen bg-slate-50/50 md:pl-[260px]">
         <TopBar />
-        <div className="mx-auto px-4 py-5 sm:px-5 sm:py-6 md:px-6 md:py-6">
+        <div className="mx-auto px-4 py-5 pb-24 sm:px-5 sm:py-6 md:px-6 md:py-6 md:pb-6">
           <Outlet />
         </div>
       </main>
+
+      <BottomNav onMore={() => setOpen(true)} />
+      <InstallPrompt />
     </div>
   )
 }

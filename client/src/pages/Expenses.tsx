@@ -346,7 +346,7 @@ export default function Expenses() {
         actions={<Button onClick={() => { setEditing(null); setSheetOpen(true) }}>+ Add expense</Button>}
       />
 
-      <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard icon={Receipt} tint="info" label="Total Bill" value={fmtMoney(summary?.totalBill)} />
         <StatCard icon={Wallet} tint="success" label="Total Paid" value={fmtMoney(summary?.totalPaid)} />
         <StatCard icon={IndianRupee} tint={(summary?.totalDue ?? 0) > 0 ? 'destructive' : 'foreground'} label="Total Due" value={fmtMoney(summary?.totalDue)} />

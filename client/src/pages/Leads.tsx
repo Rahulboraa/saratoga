@@ -236,7 +236,7 @@ export default function Leads() {
         }
       />
 
-      <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-5">
         <StatCard icon={PhoneCall} tint="info" label="Total Leads" value={summary?.total ?? 0} />
         <StatCard icon={CheckCircle2} tint="success" label="Converted" value={summary?.converted ?? 0} />
         <StatCard icon={CalendarClock} tint="warning" label="Callbacks" value={summary?.callbacks ?? 0} hint="pending" />

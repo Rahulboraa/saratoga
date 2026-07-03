@@ -8,10 +8,10 @@ export function PageHeader({ title, description, actions, className }: {
   className?: string
 }) {
   return (
-    <div className={cn('mb-8', className)}>
+    <div className={cn('mb-6 md:mb-8', className)}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="text-[28px] font-semibold leading-tight tracking-tight">{title}</h1>
+          <h1 className="text-[22px] font-semibold leading-tight tracking-tight md:text-[28px]">{title}</h1>
           {description && <p className="mt-1 text-[13px] text-muted-foreground">{description}</p>}
         </div>
         {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
