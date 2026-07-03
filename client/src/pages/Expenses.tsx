@@ -21,7 +21,7 @@ import StatCard from '@/components/StatCard'
 import ConfirmDelete from '@/components/ConfirmDelete'
 import EmptyState from '@/components/EmptyState'
 
-const tooltipStyle = { background: 'oklch(0.195 0.015 75)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 8, fontSize: 12 }
+const tooltipStyle = { background: '#fff', border: '1px solid hsl(240 6% 90%)', borderRadius: 8, fontSize: 12, color: 'hsl(240 8% 12%)' }
 
 interface ExpenseForm {
   date: string
@@ -167,11 +167,11 @@ function ExpensePayPanel({ expense, onClose }: { expense: Expense; onClose: () =
           </div>
           <div className="rounded-lg border p-2">
             <div className="text-xs text-muted-foreground">Paid</div>
-            <div className="font-bold text-emerald-400">{fmtMoney(paid)}</div>
+            <div className="font-bold text-emerald-600">{fmtMoney(paid)}</div>
           </div>
           <div className="rounded-lg border p-2">
             <div className="text-xs text-muted-foreground">Due</div>
-            <div className={`font-bold ${due > 0 ? 'text-red-400' : 'text-emerald-400'}`}>{fmtMoney(due)}</div>
+            <div className={`font-bold ${due > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{fmtMoney(due)}</div>
           </div>
         </div>
         <div className="h-2 overflow-hidden rounded-full bg-accent">
@@ -191,7 +191,7 @@ function ExpensePayPanel({ expense, onClose }: { expense: Expense; onClose: () =
                 <ConfirmDelete
                   title="Delete this payment?"
                   onConfirm={() => remove.mutate(p.id)}
-                  trigger={<Button variant="ghost" size="icon" className="size-7 text-muted-foreground hover:text-red-400"><Trash2 className="size-4" /></Button>}
+                  trigger={<Button variant="ghost" size="icon" className="size-7 text-muted-foreground hover:text-red-600"><Trash2 className="size-4" /></Button>}
                 />
               </div>
             ))}
@@ -290,8 +290,8 @@ export default function Expenses() {
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <StatCard label="Total Bill" value={fmtMoney(summary?.totalBill)} />
-        <StatCard label="Total Paid" value={<span className="text-emerald-400">{fmtMoney(summary?.totalPaid)}</span>} />
-        <StatCard label="Total Due" value={<span className={(summary?.totalDue ?? 0) > 0 ? 'text-red-400' : ''}>{fmtMoney(summary?.totalDue)}</span>} />
+        <StatCard label="Total Paid" value={<span className="text-emerald-600">{fmtMoney(summary?.totalPaid)}</span>} />
+        <StatCard label="Total Due" value={<span className={(summary?.totalDue ?? 0) > 0 ? 'text-red-600' : ''}>{fmtMoney(summary?.totalDue)}</span>} />
         <StatCard label="Categories" value={summary?.categories.length ?? 0} />
       </div>
 
@@ -312,7 +312,7 @@ export default function Expenses() {
         <CardContent className="h-64">
           <ResponsiveContainer>
             <ComposedChart data={plSeries}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" />
               <XAxis dataKey="label" tick={{ fontSize: 11 }} />
               <YAxis tickFormatter={fmtLakh} tick={{ fontSize: 11 }} width={52} />
               <Tooltip formatter={(v) => fmtMoney(Number(v))} contentStyle={tooltipStyle} />
@@ -344,7 +344,7 @@ export default function Expenses() {
                   <TableCell>{p.label}</TableCell>
                   <TableCell className="text-right">{fmtMoney(p.revenue)}</TableCell>
                   <TableCell className="text-right">{fmtMoney(p.expenses)}</TableCell>
-                  <TableCell className={`text-right font-medium ${p.profit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{fmtMoney(p.profit)}</TableCell>
+                  <TableCell className={`text-right font-medium ${p.profit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{fmtMoney(p.profit)}</TableCell>
                   <TableCell className="text-right">{p.margin}%</TableCell>
                 </TableRow>
               ))}
@@ -399,8 +399,8 @@ export default function Expenses() {
                     {e.vendor && <div className="truncate text-xs text-muted-foreground">{e.vendor}</div>}
                   </TableCell>
                   <TableCell className="text-right">{fmtMoney(e.amount)}</TableCell>
-                  <TableCell className="text-right text-emerald-400">{fmtMoney(e.paid)}</TableCell>
-                  <TableCell className={`text-right ${e.due > 0 ? 'text-red-400' : 'text-emerald-400'}`}>{fmtMoney(e.due)}</TableCell>
+                  <TableCell className="text-right text-emerald-600">{fmtMoney(e.paid)}</TableCell>
+                  <TableCell className={`text-right ${e.due > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{fmtMoney(e.due)}</TableCell>
                   <TableCell><Badge variant="outline" className={STATUS_BADGE[e.status]}>{e.status}</Badge></TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-1">
@@ -414,7 +414,7 @@ export default function Expenses() {
                         title={`Delete expense "${e.desc}"?`}
                         description="Its payment records will also be deleted."
                         onConfirm={() => deleteExpense.mutate(e.id)}
-                        trigger={<Button variant="ghost" size="icon" className="size-7 text-muted-foreground hover:text-red-400"><Trash2 className="size-4" /></Button>}
+                        trigger={<Button variant="ghost" size="icon" className="size-7 text-muted-foreground hover:text-red-600"><Trash2 className="size-4" /></Button>}
                       />
                     </div>
                   </TableCell>

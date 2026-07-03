@@ -75,7 +75,7 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
                   'flex min-h-12 flex-col items-center rounded-md border border-transparent p-1 text-xs transition-colors md:min-h-16',
                   date === today && 'border-primary/50 font-bold',
                   dayBookings.length > 0 && !hasOverlap && 'bg-primary/10',
-                  hasOverlap && 'bg-red-500/15 border-red-500/40',
+                  hasOverlap && 'bg-red-50 border-red-300',
                   onSelectDate && 'cursor-pointer hover:bg-accent',
                 )}
               >

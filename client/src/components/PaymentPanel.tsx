@@ -78,11 +78,11 @@ export default function PaymentPanel({ booking, onClose }: { booking: Booking | 
           </div>
           <div className="rounded-lg border p-2">
             <div className="text-xs text-muted-foreground">Paid</div>
-            <div className="font-bold text-emerald-400">{fmtMoney(paid)}</div>
+            <div className="font-bold text-emerald-600">{fmtMoney(paid)}</div>
           </div>
           <div className="rounded-lg border p-2">
             <div className="text-xs text-muted-foreground">Due</div>
-            <div className={`font-bold ${due > 0 ? 'text-red-400' : 'text-emerald-400'}`}>{fmtMoney(due)}</div>
+            <div className={`font-bold ${due > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{fmtMoney(due)}</div>
           </div>
         </div>
         <div className="h-2 overflow-hidden rounded-full bg-accent">
@@ -103,7 +103,7 @@ export default function PaymentPanel({ booking, onClose }: { booking: Booking | 
                 <ConfirmDelete
                   title="Delete this payment?"
                   onConfirm={() => deletePayment.mutate(p.id)}
-                  trigger={<Button variant="ghost" size="icon" className="size-7 text-muted-foreground hover:text-red-400"><Trash2 className="size-4" /></Button>}
+                  trigger={<Button variant="ghost" size="icon" className="size-7 text-muted-foreground hover:text-red-600"><Trash2 className="size-4" /></Button>}
                 />
               </div>
             ))}

@@ -221,9 +221,9 @@ export default function BookingDialog({ open, onClose, booking }: { open: boolea
           </div>
 
           {conflicts && (
-            <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
-              <div className="font-semibold text-amber-400">⚠️ Dates overlap with existing booking{conflicts.length > 1 ? 's' : ''}:</div>
-              <ul className="mt-1 list-inside list-disc text-amber-300/90">
+            <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm">
+              <div className="font-semibold text-amber-700">⚠️ Dates overlap with existing booking{conflicts.length > 1 ? 's' : ''}:</div>
+              <ul className="mt-1 list-inside list-disc text-amber-700">
                 {conflicts.map((c, i) => (
                   <li key={i}>{c.guest} — {fmtDate(c.checkinDate)}{c.checkoutDate !== c.checkinDate && ` → ${fmtDate(c.checkoutDate)}`}</li>
                 ))}

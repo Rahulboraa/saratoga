@@ -15,7 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { cn } from '@/lib/utils'
 import type { DashboardStats } from '@/types'
 
-const tooltipStyle = { background: 'oklch(0.195 0.015 75)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 8, fontSize: 12 }
+const tooltipStyle = { background: '#fff', border: '1px solid hsl(240 6% 90%)', borderRadius: 8, fontSize: 12, color: 'hsl(240 8% 12%)' }
 
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -61,7 +61,7 @@ export default function Dashboard() {
             <StatCard
               label="Upcoming"
               value={data.upcomingCount}
-              sub={data.overlapCount ? <span className="text-red-400">⚠️ {data.overlapCount} overlaps</span> : 'no overlaps'}
+              sub={data.overlapCount ? <span className="text-red-600">⚠️ {data.overlapCount} overlaps</span> : 'no overlaps'}
             />
           </>
         ) : (
@@ -72,7 +72,7 @@ export default function Dashboard() {
             <StatCard
               label="Overlaps"
               value={data.overlapCount}
-              sub={data.overlapCount ? <span className="text-red-400">needs attention</span> : 'all clear'}
+              sub={data.overlapCount ? <span className="text-red-600">needs attention</span> : 'all clear'}
             />
             <StatCard label="Event Types" value={data.purposeBreakdown.length} />
           </>
@@ -100,7 +100,7 @@ export default function Dashboard() {
           <ChartCard title="Monthly Revenue — Booked vs Collected">
             <ResponsiveContainer>
               <BarChart data={series}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" />
                 <XAxis dataKey="label" tick={{ fontSize: 11 }} />
                 <YAxis tickFormatter={fmtLakh} tick={{ fontSize: 11 }} width={52} />
                 <Tooltip formatter={(v) => fmtMoney(Number(v))} contentStyle={tooltipStyle} />
@@ -115,7 +115,7 @@ export default function Dashboard() {
           <ChartCard title="Monthly P&L">
             <ResponsiveContainer>
               <ComposedChart data={series}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" />
                 <XAxis dataKey="label" tick={{ fontSize: 11 }} />
                 <YAxis tickFormatter={fmtLakh} tick={{ fontSize: 11 }} width={52} />
                 <Tooltip formatter={(v) => fmtMoney(Number(v))} contentStyle={tooltipStyle} />
@@ -130,7 +130,7 @@ export default function Dashboard() {
         <ChartCard title="Bookings Per Month">
           <ResponsiveContainer>
             <BarChart data={countSeries}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" />
               <XAxis dataKey="label" tick={{ fontSize: 11 }} />
               <YAxis allowDecimals={false} tick={{ fontSize: 11 }} width={32} />
               <Tooltip contentStyle={tooltipStyle} />
@@ -142,7 +142,7 @@ export default function Dashboard() {
           <ChartCard title="Payment Trend — Collected vs Pending">
             <ResponsiveContainer>
               <BarChart data={series}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" />
                 <XAxis dataKey="label" tick={{ fontSize: 11 }} />
                 <YAxis tickFormatter={fmtLakh} tick={{ fontSize: 11 }} width={52} />
                 <Tooltip formatter={(v) => fmtMoney(Number(v))} contentStyle={tooltipStyle} />

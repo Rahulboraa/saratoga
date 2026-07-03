@@ -42,7 +42,7 @@ export const PURPOSE_COLORS: Record<string, string> = {
 }
 
 export const STATUS_BADGE: Record<string, string> = {
-  paid: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
-  partial: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
-  pending: 'bg-red-500/15 text-red-400 border-red-500/30',
+  paid: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  partial: 'bg-amber-50 text-amber-700 border-amber-200',
+  pending: 'bg-red-50 text-red-700 border-red-200',
 }

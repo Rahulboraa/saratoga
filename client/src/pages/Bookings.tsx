@@ -137,7 +137,7 @@ export default function Bookings() {
                     key={b.id}
                     className={cn(
                       b.overlap && 'border-l-2 border-l-red-500',
-                      isAdmin && b.status === 'pending' && 'bg-red-500/5',
+                      isAdmin && b.status === 'pending' && 'bg-red-50/60',
                     )}
                   >
                     <TableCell className="whitespace-nowrap">
@@ -149,9 +149,9 @@ export default function Bookings() {
                       {b.phone && <div className="text-xs text-muted-foreground">{b.phone}</div>}
                     </TableCell>
                     {isAdmin && <TableCell className="text-right">{fmtMoney(b.amount)}</TableCell>}
-                    {isAdmin && <TableCell className="text-right text-emerald-400">{fmtMoney(b.collected)}</TableCell>}
+                    {isAdmin && <TableCell className="text-right text-emerald-600">{fmtMoney(b.collected)}</TableCell>}
                     {isAdmin && (
-                      <TableCell className={cn('text-right', (b.due ?? 0) > 0 ? 'text-red-400' : 'text-emerald-400')}>
+                      <TableCell className={cn('text-right', (b.due ?? 0) > 0 ? 'text-red-600' : 'text-emerald-600')}>
                         {fmtMoney(b.due)}
                       </TableCell>
                     )}
@@ -181,7 +181,7 @@ export default function Bookings() {
                             title={`Delete booking for ${b.guest}?`}
                             description="All payment records for this booking will also be deleted."
                             onConfirm={() => deleteBooking.mutate(b.id)}
-                            trigger={<Button variant="ghost" size="icon" className="size-7 text-muted-foreground hover:text-red-400"><Trash2 className="size-4" /></Button>}
+                            trigger={<Button variant="ghost" size="icon" className="size-7 text-muted-foreground hover:text-red-600"><Trash2 className="size-4" /></Button>}
                           />
                         )}
                       </div>
@@ -212,7 +212,7 @@ export default function Bookings() {
                   {isAdmin && (
                     <div className="flex items-center justify-between text-sm">
                       <span>{fmtMoney(b.amount)} <span className="text-muted-foreground">bill</span></span>
-                      <span className={cn((b.due ?? 0) > 0 ? 'text-red-400' : 'text-emerald-400')}>
+                      <span className={cn((b.due ?? 0) > 0 ? 'text-red-600' : 'text-emerald-600')}>
                         {fmtMoney(b.due)} <span className="text-muted-foreground">due</span>
                       </span>
                       <Badge variant="outline" className={STATUS_BADGE[b.status ?? 'pending']}>{b.status}</Badge>
@@ -226,7 +226,7 @@ export default function Bookings() {
                         <ConfirmDelete
                           title={`Delete booking for ${b.guest}?`}
                           onConfirm={() => deleteBooking.mutate(b.id)}
-                          trigger={<Button variant="outline" size="sm" className="text-red-400"><Trash2 className="size-3.5" /></Button>}
+                          trigger={<Button variant="outline" size="sm" className="text-red-600"><Trash2 className="size-3.5" /></Button>}
                         />
                       )}
                     </div>

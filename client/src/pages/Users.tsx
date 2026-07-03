@@ -105,7 +105,7 @@ export default function Users() {
                       <span className="font-semibold">{u.name}</span>
                       <span className="text-sm text-muted-foreground">@{u.username}</span>
                       {u.id === me?.id && <Badge variant="outline">you</Badge>}
-                      {!u.active && <Badge variant="outline" className="bg-red-500/10 text-red-400">inactive</Badge>}
+                      {!u.active && <Badge variant="outline" className="bg-red-50 text-red-600">inactive</Badge>}
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -134,7 +134,7 @@ export default function Users() {
                       <ConfirmDelete
                         title={`Remove user ${u.name}?`}
                         onConfirm={() => deleteUser.mutate(u.id)}
-                        trigger={<Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-red-400"><Trash2 className="size-4" /></Button>}
+                        trigger={<Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-red-600"><Trash2 className="size-4" /></Button>}
                       />
                     )}
                   </div>

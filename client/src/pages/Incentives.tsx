@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton'
 import EmptyState from '@/components/EmptyState'
 
-const tooltipStyle = { background: 'oklch(0.195 0.015 75)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 8, fontSize: 12 }
+const tooltipStyle = { background: '#fff', border: '1px solid hsl(240 6% 90%)', borderRadius: 8, fontSize: 12, color: 'hsl(240 8% 12%)' }
 
 export default function Incentives() {
   const [month, setMonth] = useState('all')
@@ -91,7 +91,7 @@ export default function Incentives() {
           ) : (
             <ResponsiveContainer>
               <BarChart data={trend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" />
                 <XAxis dataKey="label" tick={{ fontSize: 11 }} />
                 <YAxis tickFormatter={fmtLakh} tick={{ fontSize: 11 }} width={52} />
                 <Tooltip formatter={(v) => fmtMoney(Number(v))} contentStyle={tooltipStyle} />
@@ -126,7 +126,7 @@ export default function Incentives() {
                     <TableCell>{t.label}</TableCell>
                     <TableCell className="text-right">{fmtMoney(t.sales)}</TableCell>
                     <TableCell className="text-right">{fmtMoney(t.expenses)}</TableCell>
-                    <TableCell className={`text-right ${t.profit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{fmtMoney(t.profit)}</TableCell>
+                    <TableCell className={`text-right ${t.profit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{fmtMoney(t.profit)}</TableCell>
                     <TableCell className="text-right">{fmtMoney(t.deepak)}</TableCell>
                     <TableCell className="text-right">{fmtMoney(t.akhil)}</TableCell>
                     <TableCell className="text-right font-medium">{fmtMoney(t.total)}</TableCell>

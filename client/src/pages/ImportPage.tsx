@@ -105,12 +105,12 @@ export default function ImportPage() {
         <>
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="outline">{preview.summary.total} rows</Badge>
-            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400">{preview.summary.valid} valid</Badge>
+            <Badge variant="outline" className="bg-emerald-50 text-emerald-600">{preview.summary.valid} valid</Badge>
             {preview.summary.invalid > 0 && (
-              <Badge variant="outline" className="bg-red-500/10 text-red-400">{preview.summary.invalid} invalid</Badge>
+              <Badge variant="outline" className="bg-red-50 text-red-600">{preview.summary.invalid} invalid</Badge>
             )}
             {preview.summary.duplicates > 0 && (
-              <Badge variant="outline" className="bg-amber-500/10 text-amber-400">{preview.summary.duplicates} duplicates</Badge>
+              <Badge variant="outline" className="bg-amber-50 text-amber-700">{preview.summary.duplicates} duplicates</Badge>
             )}
             {preview.mapping.unmapped.length > 0 && (
               <span className="text-xs text-muted-foreground">Ignored columns: {preview.mapping.unmapped.join(', ')}</span>
@@ -151,7 +151,7 @@ export default function ImportPage() {
                 </TableHeader>
                 <TableBody>
                   {preview.rows.slice(0, 100).map((r) => (
-                    <TableRow key={r.index} className={!r.valid ? 'bg-red-500/5' : undefined}>
+                    <TableRow key={r.index} className={!r.valid ? 'bg-red-50/60' : undefined}>
                       <TableCell className="text-muted-foreground">{r.index + 1}</TableCell>
                       {cols.map((c) => (
                         <TableCell key={c} className="max-w-40 truncate">{String(r.data[c] ?? '')}</TableCell>
@@ -160,14 +160,14 @@ export default function ImportPage() {
                         {!r.valid ? (
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Badge variant="outline" className="cursor-help bg-red-500/10 text-red-400">invalid</Badge>
+                              <Badge variant="outline" className="cursor-help bg-red-50 text-red-600">invalid</Badge>
                             </TooltipTrigger>
                             <TooltipContent className="max-w-64">{r.errors.join('; ')}</TooltipContent>
                           </Tooltip>
                         ) : r.duplicate ? (
-                          <Badge variant="outline" className="bg-amber-500/10 text-amber-400">duplicate</Badge>
+                          <Badge variant="outline" className="bg-amber-50 text-amber-700">duplicate</Badge>
                         ) : (
-                          <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400">new</Badge>
+                          <Badge variant="outline" className="bg-emerald-50 text-emerald-600">new</Badge>
                         )}
                       </TableCell>
                     </TableRow>
@@ -183,10 +183,10 @@ export default function ImportPage() {
       )}
 
       {result && (
-        <Card className="border-emerald-500/40 bg-emerald-500/5">
+        <Card className="border-emerald-300 bg-emerald-50">
           <CardContent className="px-5 py-4 text-sm">
             ✅ Import complete — <b>{result.inserted}</b> inserted, <b>{result.updated}</b> updated,{' '}
-            <b>{result.skipped}</b> skipped{result.invalid > 0 && <>, <b className="text-red-400">{result.invalid}</b> invalid</>}.
+            <b>{result.skipped}</b> skipped{result.invalid > 0 && <>, <b className="text-red-600">{result.invalid}</b> invalid</>}.
           </CardContent>
         </Card>
       )}

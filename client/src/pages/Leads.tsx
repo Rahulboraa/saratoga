@@ -19,10 +19,10 @@ import ConfirmDelete from '@/components/ConfirmDelete'
 import EmptyState from '@/components/EmptyState'
 
 const OUTCOME_BADGE: Record<string, string> = {
-  'Interested': 'bg-emerald-500/15 text-emerald-400',
-  'Not Interested': 'bg-red-500/15 text-red-400',
-  'Callback': 'bg-amber-500/15 text-amber-400',
-  'Converted': 'bg-primary/20 text-primary',
+  'Interested': 'bg-emerald-50 text-emerald-600',
+  'Not Interested': 'bg-red-50 text-red-600',
+  'Callback': 'bg-amber-50 text-amber-700',
+  'Converted': 'bg-blue-50 text-blue-700',
 }
 
 function flagLabel(flag?: string) {
@@ -141,7 +141,7 @@ export default function Leads() {
         <StatCard
           label="Overdue"
           value={summary.overdue}
-          sub={summary.overdue > 0 ? <span className="text-red-400">follow-ups missed</span> : 'all on track'}
+          sub={summary.overdue > 0 ? <span className="text-red-600">follow-ups missed</span> : 'all on track'}
         />
         {isManager && <StatCard label="Unassigned" value={summary.unassigned} />}
       </div>
@@ -182,9 +182,9 @@ export default function Leads() {
       )}
 
       {isManager && unassignedLeads.length > 0 && (
-        <Card className="border-amber-500/40 bg-amber-500/5 py-3">
+        <Card className="border-amber-300 bg-amber-50 py-3">
           <CardContent className="px-4">
-            <div className="mb-2 text-sm font-semibold text-amber-400">⚠️ {unassignedLeads.length} unassigned lead{unassignedLeads.length > 1 ? 's' : ''}</div>
+            <div className="mb-2 text-sm font-semibold text-amber-700">⚠️ {unassignedLeads.length} unassigned lead{unassignedLeads.length > 1 ? 's' : ''}</div>
             <div className="space-y-1.5">
               {unassignedLeads.slice(0, 5).map((l) => (
                 <div key={l.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
@@ -254,14 +254,14 @@ export default function Leads() {
                         {fmtDate(l.date)}{l.time && ` ${l.time}`} · {l.eventType}
                         {l.execLabel && <span> · 👤 {l.execLabel}</span>}
                         {l.followup && (
-                          <span className={overdue ? 'font-medium text-red-400' : ''}>
+                          <span className={overdue ? 'font-medium text-red-600' : ''}>
                             {' '}· follow-up {fmtDate(l.followup)}{overdue && ' ⚠️'}
                           </span>
                         )}
                       </div>
                       {l.notes && <div className="mt-1 line-clamp-2 text-sm">{l.notes}</div>}
                       {isManager && l.adminComment && (
-                        <div className="mt-1 text-sm text-amber-300/80">🔒 {l.adminComment}</div>
+                        <div className="mt-1 text-sm text-amber-700">🔒 {l.adminComment}</div>
                       )}
                     </div>
                     <div className="flex shrink-0 gap-1">
@@ -269,7 +269,7 @@ export default function Leads() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="text-emerald-400"
+                          className="text-emerald-600"
                           onClick={() => markConverted.mutate(l.id)}
                           title="Mark converted"
                         >
@@ -283,7 +283,7 @@ export default function Leads() {
                         <ConfirmDelete
                           title={`Delete lead ${l.name}?`}
                           onConfirm={() => deleteLead.mutate(l.id)}
-                          trigger={<Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-red-400"><Trash2 className="size-4" /></Button>}
+                          trigger={<Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-red-600"><Trash2 className="size-4" /></Button>}
                         />
                       )}
                     </div>

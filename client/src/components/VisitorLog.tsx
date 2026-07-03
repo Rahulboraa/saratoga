@@ -102,7 +102,7 @@ export default function VisitorLog() {
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-semibold">{v.name}</span>
                         <span className="text-sm text-muted-foreground">{v.phone}</span>
-                        {v.fuStatus && <Badge variant="outline" className="bg-sky-500/10 text-sky-400">{v.fuStatus}</Badge>}
+                        {v.fuStatus && <Badge variant="outline" className="bg-sky-50 text-sky-700">{v.fuStatus}</Badge>}
                       </div>
                       <div className="mt-0.5 text-sm text-muted-foreground">
                         {v.purpose && <span>{v.purpose} · </span>}
@@ -110,7 +110,7 @@ export default function VisitorLog() {
                         {v.loggedBy && <span> · by {v.loggedBy}</span>}
                       </div>
                       {v.remarks && <div className="mt-1 text-sm">{v.remarks}</div>}
-                      {v.fuRemark && <div className="mt-1 text-sm text-sky-300/90">↪ {v.fuRemark}</div>}
+                      {v.fuRemark && <div className="mt-1 text-sm text-sky-700">↪ {v.fuRemark}</div>}
                     </div>
                     <div className="flex shrink-0 gap-1">
                       {!v.outTime && (
@@ -125,7 +125,7 @@ export default function VisitorLog() {
                         <ConfirmDelete
                           title={`Delete entry for ${v.name}?`}
                           onConfirm={() => deleteVisitor.mutate(v.id)}
-                          trigger={<Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-red-400"><Trash2 className="size-4" /></Button>}
+                          trigger={<Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-red-600"><Trash2 className="size-4" /></Button>}
                         />
                       )}
                     </div>
