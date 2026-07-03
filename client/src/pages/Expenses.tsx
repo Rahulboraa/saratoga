@@ -415,14 +415,14 @@ export default function Expenses() {
 
       <div className="mb-5 mt-8 flex flex-wrap gap-3">
         <Select value={month} onValueChange={(v) => { setMonth(v); resetPage() }}>
-          <SelectTrigger className="h-10 w-40"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-10 w-full sm:w-64"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All months</SelectItem>
             {(data?.months ?? []).map((m) => <SelectItem key={m} value={m}>{fmtMonth(m)}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={cat} onValueChange={(v) => { setCat(v); resetPage() }}>
-          <SelectTrigger className="h-10 w-44"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-10 w-full sm:w-64"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All categories</SelectItem>
             {EXPENSE_CATS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}

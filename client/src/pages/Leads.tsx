@@ -345,7 +345,7 @@ export default function Leads() {
       <div className="mb-5 flex flex-wrap gap-3">
         <Input placeholder="Search name or phone…" value={q} onChange={(e) => { setQ(e.target.value); resetPage() }} className="h-10 w-full sm:w-64" />
         <Select value={outcome} onValueChange={(v) => { setOutcome(v); resetPage() }}>
-          <SelectTrigger className="h-10 w-[calc(50%-6px)] sm:w-44"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-10 w-[calc(50%-6px)] sm:w-64"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All outcomes</SelectItem>
             <SelectItem value="none">Not called yet</SelectItem>
@@ -354,7 +354,7 @@ export default function Leads() {
         </Select>
         {isManager && (
           <Select value={exec} onValueChange={(v) => { setExec(v); resetPage() }}>
-            <SelectTrigger className="h-10 w-[calc(50%-6px)] sm:w-40"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-10 w-[calc(50%-6px)] sm:w-64"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All execs</SelectItem>
               <SelectItem value="unassigned">Unassigned</SelectItem>
@@ -363,7 +363,7 @@ export default function Leads() {
           </Select>
         )}
         <Select value={eventType} onValueChange={(v) => { setEventType(v); resetPage() }}>
-          <SelectTrigger className="h-10 w-[calc(50%-6px)] sm:w-56"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-10 w-[calc(50%-6px)] sm:w-64"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All event types</SelectItem>
             {EVENT_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}

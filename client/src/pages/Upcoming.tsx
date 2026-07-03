@@ -43,7 +43,7 @@ export default function Upcoming() {
       <div className="mb-4 flex flex-wrap gap-3">
         <Input placeholder="Search guest or phone…" value={q} onChange={(e) => setQ(e.target.value)} className="h-10 w-full sm:w-64" />
         <Select value={purpose} onValueChange={setPurpose}>
-          <SelectTrigger className="h-10 w-[calc(50%-6px)] sm:w-44"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-10 w-[calc(50%-6px)] sm:w-64"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All types</SelectItem>
             {PURPOSES.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
