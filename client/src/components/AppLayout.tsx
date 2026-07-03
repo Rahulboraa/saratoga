@@ -2,13 +2,9 @@ import { useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   Menu, LogOut, Home, CalendarDays, Users2, PhoneCall, Receipt,
-  Coins, Upload, KeyRound, ChevronsUpDown, ChevronRight,
+  Coins, Upload, KeyRound, ChevronsUpDown, ChevronRight, CalendarClock,
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
-import { useQuery } from '@tanstack/react-query'
-import { api } from '@/lib/api'
-import { PURPOSE_COLORS, fmtDate } from '@/lib/format'
-import type { CalendarBooking } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
 import {
@@ -21,6 +17,7 @@ import InstallPrompt from '@/components/InstallPrompt'
 const NAV_MAIN = [
   { to: '/', label: 'Dashboard', icon: Home },
   { to: '/bookings', label: 'Bookings', icon: CalendarDays },
+  { to: '/upcoming', label: 'Upcoming', icon: CalendarClock },
   { to: '/visitors', label: 'Visitors', icon: Users2 },
   { to: '/leads', label: 'CRM', icon: PhoneCall },
 ]
@@ -75,35 +72,6 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   )
 }
 
-function SidebarUpcoming() {
-  const { user } = useAuth()
-  const { data: upcoming = [] } = useQuery({
-    queryKey: ['bookings', 'upcoming'],
-    queryFn: () => api<CalendarBooking[]>('/bookings/upcoming'),
-    enabled: user?.role !== 'caretaker',
-    staleTime: 60_000,
-  })
-  if (!upcoming.length) return null
-  return (
-    <div className="px-5 pb-3 pt-4">
-      <p className="mb-2 text-[12px] font-bold uppercase tracking-wider text-slate-500">Upcoming</p>
-      <div className="space-y-1">
-        {upcoming.map((b) => (
-          <NavLink
-            key={b.id}
-            to="/bookings"
-            className="flex items-center gap-2 rounded-md px-1 py-1 transition-colors hover:bg-slate-100/80"
-          >
-            <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: PURPOSE_COLORS[b.purpose] }} />
-            <span className="min-w-0 flex-1 truncate text-[12px] font-medium text-slate-700">{b.guest}</span>
-            <span className="shrink-0 text-[11px] tabular-nums text-slate-400">{fmtDate(b.checkinDate).replace(/ \d{4}$/, '')}</span>
-          </NavLink>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 function Brand() {
   return (
     <div className="flex items-center gap-2">
@@ -150,7 +118,7 @@ function UserFooter() {
 }
 
 const PAGE_LABELS: Record<string, string> = {
-  '': 'Dashboard', bookings: 'Bookings', visitors: 'Visitors', leads: 'CRM',
+  '': 'Dashboard', bookings: 'Bookings', upcoming: 'Upcoming', visitors: 'Visitors', leads: 'CRM',
   expenses: 'Expenses', incentives: 'Incentives', import: 'Import', users: 'Users',
 }
 
@@ -172,8 +140,8 @@ function BottomNav({ onMore }: { onMore: () => void }) {
   const { user } = useAuth()
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
-      <div className={cn('grid', user?.role === 'admin' ? 'grid-cols-5' : 'grid-cols-4')}>
-        {NAV_MAIN.map(({ to, label, icon: Icon }) => (
+      <div className={cn('grid', 'grid-cols-5')}>
+        {(user?.role === 'admin' ? NAV_MAIN.slice(0, 4) : NAV_MAIN).map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
@@ -218,7 +186,6 @@ export default function AppLayout() {
           <div className="mb-6"><Brand /></div>
         </div>
         <SidebarNav />
-        <SidebarUpcoming />
         <UserFooter />
       </aside>
 

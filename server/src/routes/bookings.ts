@@ -53,13 +53,22 @@ bookingsRouter.get('/', requireRole('admin', 'manager', 'sales'), async (req, re
   res.json({ rows: rows.map((r) => serializeBooking(r, req.user.role)), total, page, limit, months })
 })
 
-bookingsRouter.get('/upcoming', requireRole('admin', 'manager', 'sales'), async (_req, res) => {
+bookingsRouter.get('/upcoming', requireRole('admin', 'manager', 'sales'), async (req, res) => {
   const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
-  const bookings = await Booking.find({ checkinDate: { $gte: today } })
-    .select('guest checkinDate checkoutDate checkinTime checkoutTime pax purpose')
-    .sort({ checkinDate: 1 })
-    .limit(6)
-  res.json(bookings.map((b) => serializeCalendarBooking({ ...b.toObject(), id: b.id })))
+  const isAdmin = req.user.role === 'admin'
+  const query = Booking.find({ checkinDate: { $gte: today } }).sort({ checkinDate: 1, checkinTime: 1 }).limit(50)
+  if (!isAdmin) query.select('-breakdown -amount -legacyReceived -dest')
+  const bookings = await query
+
+  const allSpans = await Booking.find().select('checkinDate checkoutDate checkinTime checkoutTime')
+  const overlapIds = overlapIdSet(allSpans.map((b) => ({ ...b.toObject(), id: b.id })))
+
+  let rows = bookings.map((b) => ({ ...b.toObject(), id: b.id, overlap: overlapIds.has(b.id) }))
+  if (isAdmin) {
+    const sums = await paymentSums(bookings.map((b) => b._id))
+    rows = rows.map((r) => ({ ...r, ...withFinance(r as never, sums) }))
+  }
+  res.json(rows.map((r) => serializeBooking(r, req.user.role)))
 })
 
 bookingsRouter.get('/calendar', async (req, res) => {

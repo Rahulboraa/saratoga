@@ -5,6 +5,7 @@ import AppLayout from './components/AppLayout'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Bookings from './pages/Bookings'
+import Upcoming from './pages/Upcoming'
 import Visitors from './pages/Visitors'
 import Leads from './pages/Leads'
 import Expenses from './pages/Expenses'
@@ -34,6 +35,7 @@ export default function App() {
         <Route element={<AppLayout />}>
           <Route index element={<Dashboard />} />
           <Route path="/bookings" element={<Bookings />} />
+          <Route path="/upcoming" element={<Upcoming />} />
           <Route path="/visitors" element={<Visitors />} />
           <Route path="/leads" element={<Leads />} />
           <Route element={<RequireRole roles={['admin']} />}>

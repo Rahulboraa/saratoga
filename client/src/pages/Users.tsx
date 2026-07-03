@@ -10,7 +10,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
-import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -97,55 +96,55 @@ export default function Users() {
       {isLoading ? (
         <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-16" />)}</div>
       ) : (
-        <div className="space-y-2">
+        <div className="divide-y rounded-xl border border-border/60 bg-card shadow-sm">
           {(users ?? []).map((u) => (
-            <Card key={u.id} className="py-3">
-              <CardContent className="px-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-[11px] font-medium">
-                      {u.name.split(' ').map((p) => p[0]).join('').slice(0, 2).toUpperCase()}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[13px] font-semibold">{u.name}</span>
-                      <span className="text-[12px] text-muted-foreground">@{u.username}</span>
-                      {u.id === me?.id && <Badge variant="info">you</Badge>}
-                      {!u.active && <Badge variant="destructive" withDot>inactive</Badge>}
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Select
-                      value={u.role}
-                      onValueChange={(role) => updateUser.mutate({ id: u.id, body: { role } })}
-                      disabled={u.id === me?.id}
-                    >
-                      <SelectTrigger className="h-8 w-32"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {ROLES.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                    <div className="flex items-center gap-1.5">
-                      <Switch
-                        checked={u.active}
-                        disabled={u.id === me?.id}
-                        onCheckedChange={(active) => updateUser.mutate({ id: u.id, body: { active } })}
-                      />
-                      <span className="text-xs text-muted-foreground">active</span>
-                    </div>
-                    <Button variant="outline" size="sm" onClick={() => setResetFor(u)}>
-                      <KeyRound className="size-3.5" /> Reset
-                    </Button>
-                    {u.id !== me?.id && (
-                      <ConfirmDelete
-                        title={`Remove user ${u.name}?`}
-                        onConfirm={() => deleteUser.mutate(u.id)}
-                        trigger={<Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-red-600"><Trash2 className="size-4" /></Button>}
-                      />
-                    )}
-                  </div>
+            <div key={u.id} className="flex flex-wrap items-center gap-x-4 gap-y-3 px-4 py-3">
+              <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-[11px] font-medium">
+                  {u.name.split(' ').map((p) => p[0]).join('').slice(0, 2).toUpperCase()}
                 </div>
-              </CardContent>
-            </Card>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="truncate text-[13px] font-semibold">{u.name}</span>
+                    {u.id === me?.id && <Badge variant="info">you</Badge>}
+                    {!u.active && <Badge variant="destructive" withDot>inactive</Badge>}
+                  </div>
+                  <div className="truncate text-[12px] text-muted-foreground">@{u.username}</div>
+                </div>
+              </div>
+              <div className="flex shrink-0 items-center gap-3">
+                <Select
+                  value={u.role}
+                  onValueChange={(role) => updateUser.mutate({ id: u.id, body: { role } })}
+                  disabled={u.id === me?.id}
+                >
+                  <SelectTrigger className="h-8 w-32"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {ROLES.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <div className="flex w-20 items-center gap-1.5">
+                  <Switch
+                    checked={u.active}
+                    disabled={u.id === me?.id}
+                    onCheckedChange={(active) => updateUser.mutate({ id: u.id, body: { active } })}
+                  />
+                  <span className="text-xs text-muted-foreground">active</span>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setResetFor(u)}>
+                  <KeyRound className="size-3.5" /> Reset
+                </Button>
+                <div className="flex w-8 justify-center">
+                  {u.id !== me?.id ? (
+                    <ConfirmDelete
+                      title={`Remove user ${u.name}?`}
+                      onConfirm={() => deleteUser.mutate(u.id)}
+                      trigger={<Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-destructive"><Trash2 className="size-4" /></Button>}
+                    />
+                  ) : null}
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       )}
