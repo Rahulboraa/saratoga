@@ -5,7 +5,7 @@ import { Slot } from "radix-ui"
 import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  "inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px] font-medium transition-colors whitespace-nowrap",
+  "inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[12px] font-medium transition-colors whitespace-nowrap",
   {
     variants: {
       variant: {
@@ -56,7 +56,7 @@ function Badge({
       className={cn(badgeVariants({ variant }), className)}
       {...props}
     >
-      {withDot && <span className={cn("h-1.5 w-1.5 rounded-full", dotColor[variant ?? "muted"])} />}
+      {withDot && <span className={cn("h-2 w-2 rounded-full", dotColor[variant ?? "muted"])} />}
       {children}
     </Comp>
   )

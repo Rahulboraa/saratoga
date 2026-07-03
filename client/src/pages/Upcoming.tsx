@@ -36,7 +36,7 @@ export default function Upcoming() {
   const resetPage = () => setPage(1)
 
   const purposePill = (b: Booking) => (
-    <span className="whitespace-nowrap rounded-md px-1.5 py-0.5 text-[11px] font-medium" style={{ background: `${PURPOSE_COLORS[b.purpose]}1c`, color: PURPOSE_COLORS[b.purpose] }}>
+    <span className="whitespace-nowrap rounded-md px-2.5 py-1 text-[12px] font-medium" style={{ background: `${PURPOSE_COLORS[b.purpose]}1c`, color: PURPOSE_COLORS[b.purpose] }}>
       {b.purpose}
     </span>
   )
