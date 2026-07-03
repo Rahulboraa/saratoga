@@ -7,6 +7,7 @@ import { todayYmd } from '@/lib/format'
 import { RevenueChart, PLChart, CountChart, TrendChart, DonutChart } from '@/components/charts'
 import { api, apiDownload } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
+import { Link } from 'react-router-dom'
 import { fmtMoney, fmtLakh, fmtDate, fmtMonth, PURPOSE_COLORS } from '@/lib/format'
 import StatCard from '@/components/StatCard'
 import { PageHeader } from '@/components/PageHeader'
@@ -69,6 +70,79 @@ export default function Dashboard() {
           </Button>
         )}
       />
+      <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-5">
+        {isAdmin ? (
+          <>
+            <StatCard icon={IndianRupee} tint="info" label="Total Booked" value={fmtMoney(data.totalBooked)} hint={`${data.totalBookings} bookings`} />
+            <StatCard
+              icon={Wallet}
+              tint="success"
+              label="Collected"
+              value={fmtMoney(data.totalCollected)}
+              hint={data.totalBooked ? `${Math.round(((data.totalCollected ?? 0) / data.totalBooked) * 100)}% of booked` : '—'}
+            />
+            <StatCard icon={AlertCircle} tint="destructive" label="Outstanding" value={fmtMoney(data.outstanding)} hint={`${data.upcomingUnpaid} upcoming unpaid`} />
+            <StatCard icon={Layers} tint="purple" label="Total Events" value={data.totalBookings} hint={`${data.uniqueDates} unique dates`} />
+            <StatCard
+              icon={CalendarClock}
+              tint="warning"
+              label="Upcoming"
+              value={data.upcomingCount}
+              hint={data.overlapCount ? <span className="font-medium text-destructive">{data.overlapCount} overlaps</span> : 'no overlaps'}
+            />
+          </>
+        ) : (
+          <>
+            <StatCard icon={Layers} tint="purple" label="Total Events" value={data.totalBookings} hint={`${data.uniqueDates} unique dates`} />
+            <StatCard icon={CalendarClock} tint="info" label="Upcoming" value={data.upcomingCount} />
+            <StatCard icon={CalendarDays} tint="success" label="This Month" value={countSeries.at(-1)?.count ?? 0} hint="bookings" />
+            <StatCard
+              icon={AlertCircle}
+              tint={data.overlapCount ? 'destructive' : 'foreground'}
+              label="Overlaps"
+              value={data.overlapCount}
+              hint={data.overlapCount ? <span className="font-medium text-destructive">needs attention</span> : 'all clear'}
+            />
+            <StatCard icon={Layers} label="Event Types" value={data.purposeBreakdown.length} />
+          </>
+        )}
+      </div>
+
+      {data.conflicts.length > 0 && (
+        <Card className="mb-8 py-0">
+          <CardContent className="px-5 py-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
+                  <TriangleAlert className="size-5" strokeWidth={2} />
+                </span>
+                <div>
+                  <div className="text-[13px] font-semibold">Overlapping bookings</div>
+                  <div className="text-[12px] text-muted-foreground">{data.overlapCount} bookings share the same dates</div>
+                </div>
+              </div>
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/bookings">Review bookings</Link>
+              </Button>
+            </div>
+            <div className="mt-3 divide-y border-t">
+              {data.conflicts.map((c) => (
+                <div key={c.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5 text-[13px]">
+                  <span className="h-2 w-2 rounded-full bg-destructive" />
+                  <span className="font-medium">{c.guest}</span>
+                  <span className="rounded-md px-2 py-0.5 text-[11px] font-medium" style={{ background: `${PURPOSE_COLORS[c.purpose]}1c`, color: PURPOSE_COLORS[c.purpose] }}>
+                    {c.purpose}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {fmtDate(c.checkinDate)} {c.checkinTime} → {c.checkoutDate !== c.checkinDate ? `${fmtDate(c.checkoutDate)} ` : ''}{c.checkoutTime}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-5">
         {isAdmin ? (
           <>
