@@ -89,6 +89,7 @@ export default function Incentives() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-14">S.No</TableHead>
                   <TableHead>Month</TableHead>
                   <TableHead className="text-right">Sales Collected</TableHead>
                   <TableHead className="text-right">Expenses</TableHead>
@@ -99,8 +100,9 @@ export default function Incentives() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {trend.map((t) => (
+                {trend.map((t, i) => (
                   <TableRow key={t.month}>
+                    <TableCell className="tabular-nums text-muted-foreground">{i + 1}</TableCell>
                     <TableCell>{t.label}</TableCell>
                     <TableCell className="text-right">{fmtMoney(t.sales)}</TableCell>
                     <TableCell className="text-right">{fmtMoney(t.expenses)}</TableCell>
