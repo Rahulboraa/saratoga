@@ -56,7 +56,14 @@ bookingsRouter.get('/', requireRole('admin', 'manager', 'sales'), async (req, re
 bookingsRouter.get('/upcoming', requireRole('admin', 'manager', 'sales'), async (req, res) => {
   const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
   const isAdmin = req.user.role === 'admin'
-  const query = Booking.find({ checkinDate: { $gte: today } }).sort({ checkinDate: 1, checkinTime: 1 }).limit(50)
+  const { q, purpose } = req.query as Record<string, string | undefined>
+  const filter: Record<string, unknown> = { checkinDate: { $gte: today } }
+  if (purpose) filter.purpose = purpose
+  if (q) {
+    const rx = new RegExp(escapeRegex(q), 'i')
+    filter.$or = [{ guest: rx }, { phone: rx }]
+  }
+  const query = Booking.find(filter).sort({ checkinDate: 1, checkinTime: 1 }).limit(50)
   if (!isAdmin) query.select('-breakdown -amount -legacyReceived -dest')
   const bookings = await query
 

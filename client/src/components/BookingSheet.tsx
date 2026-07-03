@@ -127,7 +127,7 @@ export default function BookingSheet({ open, onClose, booking }: { open: boolean
 
   return (
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-2xl">
+      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-3xl">
         <SheetHeader className="border-b px-6 py-5">
           <SheetTitle>{booking ? 'Edit booking' : 'New booking'}</SheetTitle>
           <SheetDescription>{booking ? `Editing ${booking.guest}` : 'Add an event booking'}</SheetDescription>

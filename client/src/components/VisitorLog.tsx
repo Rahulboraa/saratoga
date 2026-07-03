@@ -105,17 +105,17 @@ export default function VisitorLog({ embedded = false }: { embedded?: boolean })
         />
       )}
 
-      <div className="mb-4 flex flex-wrap gap-2">
-        <Input placeholder="Search name, phone, purpose…" value={q} onChange={(e) => { setQ(e.target.value); setPage(1) }} className="w-full sm:w-64" />
+      <div className="mb-5 flex flex-wrap gap-3">
+        <Input placeholder="Search name, phone, purpose…" value={q} onChange={(e) => { setQ(e.target.value); setPage(1) }} className="h-10 w-full sm:w-64" />
         <Select value={date} onValueChange={(v) => { setDate(v); setPage(1) }}>
-          <SelectTrigger className="w-[calc(50%-4px)] sm:w-40"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-10 w-[calc(50%-6px)] sm:w-44"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All dates</SelectItem>
             {dates.map((d) => <SelectItem key={d} value={d}>{fmtDate(d)}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={type} onValueChange={(v) => { setType(v); setPage(1) }}>
-          <SelectTrigger className="w-[calc(50%-4px)] sm:w-36"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-10 w-[calc(50%-6px)] sm:w-40"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All types</SelectItem>
             {['Guest', 'Vendor', 'Delivery', 'Staff', 'Other'].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}

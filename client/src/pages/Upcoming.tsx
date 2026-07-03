@@ -1,23 +1,33 @@
-import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { CalendarClock } from 'lucide-react'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { fmtMoney, fmtDate, PURPOSE_COLORS, STATUS_VARIANT } from '@/lib/format'
-import type { Booking } from '@/types'
+import { PURPOSES, type Booking } from '@/types'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
 import EmptyState from '@/components/EmptyState'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PageHeader } from '@/components/PageHeader'
 import { cn } from '@/lib/utils'
 
 export default function Upcoming() {
   const { user } = useAuth()
   const isAdmin = user?.role === 'admin'
+  const [q, setQ] = useState('')
+  const [purpose, setPurpose] = useState('all')
+  const params = new URLSearchParams()
+  if (q) params.set('q', q)
+  if (purpose !== 'all') params.set('purpose', purpose)
+
   const { data: bookings, isLoading } = useQuery({
-    queryKey: ['bookings', 'upcoming'],
-    queryFn: () => api<Booking[]>('/bookings/upcoming'),
+    queryKey: ['bookings', 'upcoming', params.toString()],
+    queryFn: () => api<Booking[]>(`/bookings/upcoming?${params}`),
+    placeholderData: keepPreviousData,
   })
 
   const purposePill = (b: Booking) => (
@@ -29,6 +39,17 @@ export default function Upcoming() {
   return (
     <div>
       <PageHeader title="Upcoming" description="Next events at the villa, soonest first" />
+
+      <div className="mb-4 flex flex-wrap gap-3">
+        <Input placeholder="Search guest or phone…" value={q} onChange={(e) => setQ(e.target.value)} className="h-10 w-full sm:w-64" />
+        <Select value={purpose} onValueChange={setPurpose}>
+          <SelectTrigger className="h-10 w-[calc(50%-6px)] sm:w-44"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All types</SelectItem>
+            {PURPOSES.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
 
       {isLoading ? (
         <div className="space-y-2">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-12 rounded-lg" />)}</div>
