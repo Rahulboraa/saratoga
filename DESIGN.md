@@ -15,10 +15,7 @@ Tokens live in `client/src/index.css` as CSS variables consumed by shadcn/Tailwi
 - **muted / secondary surfaces**: `hsl(240 5% 96%)`, muted text `hsl(240 4% 44%)`
 - **border**: `hsl(240 6% 90%)`; input border slightly darker
 - **destructive**: `hsl(0 72% 51%)`
-- Semantic money/status colors (Tailwind classes, light tints):
-  - paid/collected: `emerald-600` text, `bg-emerald-50 text-emerald-700 border-emerald-200` badge
-  - partial/warning: `amber-700` on `amber-50`, `amber-200` border
-  - pending/due: `red-600` text, `bg-red-50 text-red-700 border-red-200` badge
+- Semantic tokens (CallDesk): success `hsl(142 65% 40%)`, warning `hsl(28 90% 50%)`, info `hsl(217 91% 60%)`, purple `hsl(270 75% 60%)`, destructive `hsl(0 72% 51%)` — used via Badge/StatCard variants; money text uses emerald-600/red-600.
 - **Purpose colors** (booking event types, from legacy app, in `lib/format.ts` `PURPOSE_COLORS`): Party `#7B6EF6`, Shoot `#1D9E75`, Pre-wedding `#D4537E`, Kids Birthday `#F0A500`, Other `#888780`. Rendered as `${color}22` background pill with the color as text.
 - Chart series: booked `#B5D4F4`, collected/revenue `#3266ad`, expenses `#E8877A`, profit `#1D9E75`, count `#7B6EF6`, pending `#F7C1C1`.
 
@@ -34,7 +31,12 @@ shadcn/ui (radix base, `client/src/components/ui/`): button, input, label, card,
 
 App-level components (`client/src/components/`):
 - **AppLayout**: fixed 260px sidebar (`#f8fafc`), brand chip "SV" (blue square, white bold initials) + name, "MAIN MENU"/"ADMINISTRATION" sections, active nav = `bg-[#eff6ff] text-[#2563eb] font-bold` pill with lucide icon at strokeWidth 2.5; user footer (initials avatar on `slate-900`, name + role, dropdown with sign out). Mobile: 14-height white top bar + Sheet drawer.
-- **StatCard**: uppercase 12px muted label, bold value, small sub-line. No gradients, no icons.
+- **StatCard** (CallDesk-exact): `rounded-xl border-border/60 p-5 shadow-sm`, tinted icon chip (`h-8 w-8 rounded-lg bg-{tint}/10 text-{tint}`; tints info/purple/success/warning/destructive/foreground), 13px medium label, `text-[30px] font-semibold tabular-nums` value, 12px muted hint row.
+- **PageHeader**: `text-[28px] font-semibold tracking-tight` title + 13px muted description + actions right, `mb-8`. SectionHeader: 15px semibold.
+- **Badge** (CallDesk-exact): `rounded-md px-1.5 py-0.5 text-[11px]`, variants muted/info/purple/success/warning/destructive (`bg-{c}/10 border-{c}/20 text-{c}`), optional `withDot`. Status map: paid=success, partial=warning, pending=destructive (always withDot).
+- **Table** (CallDesk-exact): header `bg-muted/40`, heads `h-10 px-4 text-xs uppercase tracking-wide text-muted-foreground`, cells `px-4 py-3 text-[13px]`, containers `rounded-xl border-border/60 bg-card shadow-sm`.
+- **Button** (CallDesk-exact): `h-9 text-[13px]`, `active:scale-[0.98]` on solid variants, success variant available.
+- **Empty**: lucide icon in `rounded-full bg-muted p-3` chip + medium title + sm muted description (no emoji).
 - **MonthCalendar**: 7-col grid, purpose-colored dots per day, red tint + border for overlap days, primary ring on today.
 - **BookingDialog / PaymentPanel / ExpensePayPanel**: 2-col form grids, `space-y-1.5` label+input stacks, bill/paid/due 3-stat strip + progress bar.
 - **EmptyState**: emoji + one-line message, centered, `py-12`.

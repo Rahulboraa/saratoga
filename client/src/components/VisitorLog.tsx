@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Pencil, Trash2, LogOut } from 'lucide-react'
+import { Pencil, Trash2, LogOut, Users2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
@@ -15,8 +15,9 @@ import { Skeleton } from '@/components/ui/skeleton'
 import VisitorDialog from '@/components/VisitorDialog'
 import ConfirmDelete from '@/components/ConfirmDelete'
 import EmptyState from '@/components/EmptyState'
+import { PageHeader, SectionHeader } from '@/components/PageHeader'
 
-export default function VisitorLog() {
+export default function VisitorLog({ embedded = false }: { embedded?: boolean }) {
   const { user } = useAuth()
   const isAdmin = user?.role === 'admin'
   const queryClient = useQueryClient()
@@ -69,13 +70,21 @@ export default function VisitorLog() {
   })
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-xl font-bold">Visitor Log</h1>
-        <Button onClick={() => { setEditing(null); setDialogOpen(true) }}>+ Log Visitor</Button>
-      </div>
+    <div>
+      {embedded ? (
+        <SectionHeader
+          title="Visitor Log"
+          actions={<Button size="sm" onClick={() => { setEditing(null); setDialogOpen(true) }}>+ Log visitor</Button>}
+        />
+      ) : (
+        <PageHeader
+          title="Visitors"
+          description="Arrivals, departures and follow-ups"
+          actions={<Button onClick={() => { setEditing(null); setDialogOpen(true) }}>+ Log visitor</Button>}
+        />
+      )}
 
-      <div className="flex flex-wrap gap-2">
+      <div className="mb-4 flex flex-wrap gap-2">
         <Input placeholder="Search name, phone, purpose…" value={q} onChange={(e) => setQ(e.target.value)} className="w-full sm:w-64" />
         <Select value={date} onValueChange={setDate}>
           <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
@@ -89,11 +98,11 @@ export default function VisitorLog() {
       {isLoading ? (
         <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-16" />)}</div>
       ) : grouped.length === 0 ? (
-        <EmptyState icon="👥" message="No visitor records yet" />
+        <EmptyState icon={Users2} message="No visitor records yet" />
       ) : (
         grouped.map(([groupDate, entries]) => (
-          <div key={groupDate} className="space-y-2">
-            <div className="text-sm font-semibold text-muted-foreground">{fmtDate(groupDate)}</div>
+          <div key={groupDate} className="mb-5 space-y-2">
+            <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{fmtDate(groupDate)}</div>
             {entries.map((v) => (
               <Card key={v.id} className="py-3">
                 <CardContent className="px-4">
@@ -102,7 +111,7 @@ export default function VisitorLog() {
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-semibold">{v.name}</span>
                         <span className="text-sm text-muted-foreground">{v.phone}</span>
-                        {v.fuStatus && <Badge variant="outline" className="bg-sky-50 text-sky-700">{v.fuStatus}</Badge>}
+                        {v.fuStatus && <Badge variant="info" withDot>{v.fuStatus}</Badge>}
                       </div>
                       <div className="mt-0.5 text-sm text-muted-foreground">
                         {v.purpose && <span>{v.purpose} · </span>}

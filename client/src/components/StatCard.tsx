@@ -1,14 +1,35 @@
-import { Card, CardContent } from '@/components/ui/card'
-import type { ReactNode } from 'react'
+import type { ReactNode, ComponentType, SVGProps } from 'react'
+import { cn } from '@/lib/utils'
 
-export default function StatCard({ label, value, sub }: { label: string; value: ReactNode; sub?: ReactNode }) {
+const tintBg: Record<string, string> = {
+  info: 'bg-info/10 text-info',
+  purple: 'bg-purple/10 text-purple',
+  success: 'bg-success/10 text-success',
+  warning: 'bg-warning/15 text-warning',
+  destructive: 'bg-destructive/10 text-destructive',
+  foreground: 'bg-muted text-foreground',
+}
+
+export default function StatCard({ icon: Icon, tint = 'foreground', label, value, hint, className }: {
+  icon?: ComponentType<SVGProps<SVGSVGElement>>
+  tint?: keyof typeof tintBg
+  label: string
+  value: ReactNode
+  hint?: ReactNode
+  className?: string
+}) {
   return (
-    <Card className="py-4">
-      <CardContent className="px-4">
-        <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</div>
-        <div className="mt-1 truncate text-xl font-bold md:text-2xl">{value}</div>
-        {sub && <div className="mt-0.5 text-xs text-muted-foreground">{sub}</div>}
-      </CardContent>
-    </Card>
+    <div className={cn('rounded-xl border border-border/60 bg-card p-5 shadow-sm', className)}>
+      <div className="flex items-center gap-2.5">
+        {Icon && (
+          <span className={cn('flex h-8 w-8 items-center justify-center rounded-lg', tintBg[tint])}>
+            <Icon className="h-[18px] w-[18px]" strokeWidth={2} />
+          </span>
+        )}
+        <span className="text-[13px] font-medium text-foreground">{label}</span>
+      </div>
+      <div className="mt-3 truncate text-[30px] font-semibold leading-none tracking-tight tabular-nums">{value}</div>
+      <div className="mt-3 text-[12px] text-muted-foreground">{hint ?? ''}</div>
+    </div>
   )
 }

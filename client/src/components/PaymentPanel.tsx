@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Wallet } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { fmtMoney, fmtDate, todayYmd } from '@/lib/format'
@@ -90,7 +90,7 @@ export default function PaymentPanel({ booking, onClose }: { booking: Booking | 
         </div>
 
         {payments.length === 0 ? (
-          <EmptyState icon="💳" message="No payments recorded yet" />
+          <EmptyState icon={Wallet} message="No payments recorded yet" />
         ) : (
           <div className="space-y-2">
             {payments.map((p) => (

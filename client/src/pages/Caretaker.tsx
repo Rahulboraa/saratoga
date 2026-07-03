@@ -56,7 +56,7 @@ export default function Caretaker() {
           )}
         </TabsContent>
         <TabsContent value="visitors" className="mt-4">
-          <VisitorLog />
+          <VisitorLog embedded />
         </TabsContent>
       </Tabs>
     </div>

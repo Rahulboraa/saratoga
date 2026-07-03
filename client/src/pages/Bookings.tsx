@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Pencil, Trash2, Wallet } from 'lucide-react'
+import { Pencil, Trash2, Wallet, CalendarDays } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
-import { fmtMoney, fmtDate, fmtMonth, PURPOSE_COLORS, STATUS_BADGE } from '@/lib/format'
+import { fmtMoney, fmtDate, fmtMonth, PURPOSE_COLORS, STATUS_VARIANT } from '@/lib/format'
 import { PURPOSES, type Booking } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,6 +18,7 @@ import PaymentPanel from '@/components/PaymentPanel'
 import ConfirmDelete from '@/components/ConfirmDelete'
 import EmptyState from '@/components/EmptyState'
 import { cn } from '@/lib/utils'
+import { PageHeader } from '@/components/PageHeader'
 
 export default function Bookings() {
   const { user } = useAuth()
@@ -67,15 +68,14 @@ export default function Bookings() {
   const payBooking = payFor ? (bookings ?? []).find((b) => b.id === payFor) ?? null : null
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-xl font-bold">All Bookings</h1>
-        {canEdit && (
-          <Button onClick={() => { setEditing(null); setDialogOpen(true) }}>+ New Booking</Button>
-        )}
-      </div>
+    <div>
+      <PageHeader
+        title="Bookings"
+        description="Every event with payment status and conflicts"
+        actions={canEdit && <Button onClick={() => { setEditing(null); setDialogOpen(true) }}>+ New Booking</Button>}
+      />
 
-      <div className="flex flex-wrap gap-2">
+      <div className="mb-4 flex flex-wrap gap-2">
         <Input
           placeholder="Search guest or phone…"
           value={q}
@@ -112,11 +112,11 @@ export default function Bookings() {
       {isLoading ? (
         <div className="space-y-2">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-12" />)}</div>
       ) : !bookings?.length ? (
-        <EmptyState icon="📅" message="No bookings match your filters." />
+        <EmptyState icon={CalendarDays} message="No bookings found" description="Try adjusting your search or filters." />
       ) : (
         <>
           {/* Desktop table */}
-          <div className="hidden overflow-x-auto rounded-lg border md:block">
+          <div className="hidden overflow-x-auto rounded-xl border border-border/60 bg-card shadow-sm md:block scrollbar-thin">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -162,7 +162,7 @@ export default function Bookings() {
                     </TableCell>
                     <TableCell className="max-w-28 truncate text-sm">{b.pax || '—'}</TableCell>
                     {isAdmin && (
-                      <TableCell><Badge variant="outline" className={STATUS_BADGE[b.status ?? 'pending']}>{b.status}</Badge></TableCell>
+                      <TableCell><Badge variant={STATUS_VARIANT[b.status ?? 'pending']} withDot>{b.status}</Badge></TableCell>
                     )}
                     <TableCell>
                       <div className="flex justify-end gap-1">
@@ -215,7 +215,7 @@ export default function Bookings() {
                       <span className={cn((b.due ?? 0) > 0 ? 'text-red-600' : 'text-emerald-600')}>
                         {fmtMoney(b.due)} <span className="text-muted-foreground">due</span>
                       </span>
-                      <Badge variant="outline" className={STATUS_BADGE[b.status ?? 'pending']}>{b.status}</Badge>
+                      <Badge variant={STATUS_VARIANT[b.status ?? 'pending']} withDot>{b.status}</Badge>
                     </div>
                   )}
                   {(canEdit || isAdmin) && (

@@ -1,11 +1,11 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ResponsiveContainer, ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts'
-import { Pencil, Trash2, Wallet } from 'lucide-react'
+import { Pencil, Trash2, Wallet, Receipt, IndianRupee, Layers } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
-import { fmtMoney, fmtLakh, fmtDate, fmtMonth, todayYmd, STATUS_BADGE } from '@/lib/format'
+import { fmtMoney, fmtLakh, fmtDate, fmtMonth, todayYmd, STATUS_VARIANT } from '@/lib/format'
 import { EXPENSE_CATS, type Expense, type ExpensePayment, type ExpenseSummary } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
 import StatCard from '@/components/StatCard'
+import { PageHeader } from '@/components/PageHeader'
 import ConfirmDelete from '@/components/ConfirmDelete'
 import EmptyState from '@/components/EmptyState'
 
@@ -179,7 +180,7 @@ function ExpensePayPanel({ expense, onClose }: { expense: Expense; onClose: () =
         </div>
 
         {payments.length === 0 ? (
-          <EmptyState icon="💳" message="No payments yet" />
+          <EmptyState icon={Wallet} message="No payments yet" />
         ) : (
           <div className="space-y-2">
             {payments.map((p) => (
@@ -282,33 +283,34 @@ export default function Expenses() {
   const payExpense = payFor ? (expenses ?? []).find((e) => e.id === payFor) ?? null : null
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-xl font-bold">Expenses & P&L</h1>
-        <Button onClick={() => { setEditing(null); setDialogOpen(true) }}>+ Add Expense</Button>
+    <div>
+      <PageHeader
+        title="Expenses & P&L"
+        description="Bills, payments and monthly profit"
+        actions={<Button onClick={() => { setEditing(null); setDialogOpen(true) }}>+ Add expense</Button>}
+      />
+
+      <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard icon={Receipt} tint="info" label="Total Bill" value={fmtMoney(summary?.totalBill)} />
+        <StatCard icon={Wallet} tint="success" label="Total Paid" value={fmtMoney(summary?.totalPaid)} />
+        <StatCard icon={IndianRupee} tint={(summary?.totalDue ?? 0) > 0 ? 'destructive' : 'foreground'} label="Total Due" value={fmtMoney(summary?.totalDue)} />
+        <StatCard icon={Layers} tint="purple" label="Categories" value={summary?.categories.length ?? 0} />
       </div>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <StatCard label="Total Bill" value={fmtMoney(summary?.totalBill)} />
-        <StatCard label="Total Paid" value={<span className="text-emerald-600">{fmtMoney(summary?.totalPaid)}</span>} />
-        <StatCard label="Total Due" value={<span className={(summary?.totalDue ?? 0) > 0 ? 'text-red-600' : ''}>{fmtMoney(summary?.totalDue)}</span>} />
-        <StatCard label="Categories" value={summary?.categories.length ?? 0} />
-      </div>
-
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+      <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-5">
         {(summary?.categories ?? []).map((c) => (
           <Card key={c.cat} className="py-3">
             <CardContent className="px-4">
-              <div className="text-sm font-semibold">{c.cat}</div>
+              <div className="text-[13px] font-medium">{c.cat}</div>
               <div className="text-xs text-muted-foreground">{c.count} expenses</div>
-              <div className="mt-1 text-sm font-bold">{fmtMoney(c.amount)}</div>
+              <div className="mt-1 text-[15px] font-semibold tabular-nums">{fmtMoney(c.amount)}</div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <Card>
-        <CardHeader><CardTitle className="text-base">Monthly P&L</CardTitle></CardHeader>
+      <Card className="mb-6">
+        <CardHeader><CardTitle className="text-[15px]">Monthly P&L</CardTitle></CardHeader>
         <CardContent className="h-64">
           <ResponsiveContainer>
             <ComposedChart data={plSeries}>
@@ -326,7 +328,7 @@ export default function Expenses() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">P&L by Month</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-[15px]">P&L by Month</CardTitle></CardHeader>
         <CardContent className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -353,7 +355,7 @@ export default function Expenses() {
         </CardContent>
       </Card>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="mb-4 mt-8 flex flex-wrap gap-2">
         <Select value={month} onValueChange={setMonth}>
           <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -373,9 +375,9 @@ export default function Expenses() {
       {isLoading ? (
         <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12" />)}</div>
       ) : !expenses?.length ? (
-        <EmptyState icon="🧾" message="No expenses recorded" />
+        <EmptyState icon={Receipt} message="No expenses recorded" />
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
+        <div className="overflow-x-auto rounded-xl border border-border/60 bg-card shadow-sm scrollbar-thin">
           <Table>
             <TableHeader>
               <TableRow>
@@ -401,7 +403,7 @@ export default function Expenses() {
                   <TableCell className="text-right">{fmtMoney(e.amount)}</TableCell>
                   <TableCell className="text-right text-emerald-600">{fmtMoney(e.paid)}</TableCell>
                   <TableCell className={`text-right ${e.due > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{fmtMoney(e.due)}</TableCell>
-                  <TableCell><Badge variant="outline" className={STATUS_BADGE[e.status]}>{e.status}</Badge></TableCell>
+                  <TableCell><Badge variant={STATUS_VARIANT[e.status]} withDot>{e.status}</Badge></TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-1">
                       <Button variant="ghost" size="icon" className="size-7" title="Payments" onClick={() => setPayFor(e.id)}>

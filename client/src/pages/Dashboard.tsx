@@ -2,10 +2,12 @@ import { useQuery } from '@tanstack/react-query'
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ComposedChart, Line, CartesianGrid,
 } from 'recharts'
+import { CalendarDays, IndianRupee, Wallet, AlertCircle, CalendarClock, Layers } from 'lucide-react'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
-import { fmtMoney, fmtLakh, fmtDate, fmtMonth, PURPOSE_COLORS, STATUS_BADGE } from '@/lib/format'
+import { fmtMoney, fmtLakh, fmtDate, fmtMonth, PURPOSE_COLORS, STATUS_VARIANT } from '@/lib/format'
 import StatCard from '@/components/StatCard'
+import { PageHeader } from '@/components/PageHeader'
 import MonthCalendar from '@/components/MonthCalendar'
 import EmptyState from '@/components/EmptyState'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -46,44 +48,54 @@ export default function Dashboard() {
   const countSeries = data.bookingsPerMonth.map((p) => ({ ...p, label: fmtMonth(p.month) }))
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+    <div>
+      <PageHeader title="Dashboard" description="Bookings, collections and activity at a glance" />
+      <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
         {isAdmin ? (
           <>
-            <StatCard label="Total Booked" value={fmtMoney(data.totalBooked)} sub={`${data.totalBookings} bookings`} />
+            <StatCard icon={IndianRupee} tint="info" label="Total Booked" value={fmtMoney(data.totalBooked)} hint={`${data.totalBookings} bookings`} />
             <StatCard
+              icon={Wallet}
+              tint="success"
               label="Collected"
               value={fmtMoney(data.totalCollected)}
-              sub={data.totalBooked ? `${Math.round(((data.totalCollected ?? 0) / data.totalBooked) * 100)}% of booked` : '—'}
+              hint={data.totalBooked ? `${Math.round(((data.totalCollected ?? 0) / data.totalBooked) * 100)}% of booked` : '—'}
             />
-            <StatCard label="Outstanding" value={fmtMoney(data.outstanding)} sub={`${data.upcomingUnpaid} upcoming unpaid`} />
-            <StatCard label="Total Events" value={data.totalBookings} sub={`${data.uniqueDates} unique dates`} />
+            <StatCard icon={AlertCircle} tint="destructive" label="Outstanding" value={fmtMoney(data.outstanding)} hint={`${data.upcomingUnpaid} upcoming unpaid`} />
+            <StatCard icon={Layers} tint="purple" label="Total Events" value={data.totalBookings} hint={`${data.uniqueDates} unique dates`} />
             <StatCard
+              icon={CalendarClock}
+              tint="warning"
               label="Upcoming"
               value={data.upcomingCount}
-              sub={data.overlapCount ? <span className="text-red-600">⚠️ {data.overlapCount} overlaps</span> : 'no overlaps'}
+              hint={data.overlapCount ? <span className="font-medium text-destructive">{data.overlapCount} overlaps</span> : 'no overlaps'}
             />
           </>
         ) : (
           <>
-            <StatCard label="Total Events" value={data.totalBookings} sub={`${data.uniqueDates} unique dates`} />
-            <StatCard label="Upcoming" value={data.upcomingCount} />
-            <StatCard label="This Month" value={countSeries.at(-1)?.count ?? 0} sub="bookings" />
+            <StatCard icon={Layers} tint="purple" label="Total Events" value={data.totalBookings} hint={`${data.uniqueDates} unique dates`} />
+            <StatCard icon={CalendarClock} tint="info" label="Upcoming" value={data.upcomingCount} />
+            <StatCard icon={CalendarDays} tint="success" label="This Month" value={countSeries.at(-1)?.count ?? 0} hint="bookings" />
             <StatCard
+              icon={AlertCircle}
+              tint={data.overlapCount ? 'destructive' : 'foreground'}
               label="Overlaps"
               value={data.overlapCount}
-              sub={data.overlapCount ? <span className="text-red-600">needs attention</span> : 'all clear'}
+              hint={data.overlapCount ? <span className="font-medium text-destructive">needs attention</span> : 'all clear'}
             />
-            <StatCard label="Event Types" value={data.purposeBreakdown.length} />
+            <StatCard icon={Layers} label="Event Types" value={data.purposeBreakdown.length} />
           </>
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+      <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-5">
         {data.purposeBreakdown.map((p) => (
-          <Card key={p.purpose} className="border-l-4 py-3" style={{ borderLeftColor: PURPOSE_COLORS[p.purpose] }}>
+          <Card key={p.purpose} className="py-3">
             <CardContent className="px-4">
-              <div className="text-sm font-semibold">{p.purpose}</div>
+              <div className="flex items-center gap-1.5 text-[13px] font-medium">
+                <span className="h-1.5 w-1.5 rounded-full" style={{ background: PURPOSE_COLORS[p.purpose] }} />
+                {p.purpose}
+              </div>
               <div className="text-xs text-muted-foreground">{p.count} events</div>
               {p.booked !== undefined && (
                 <div className="mt-1 text-xs text-muted-foreground">
@@ -95,7 +107,7 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="mb-8 grid gap-6 lg:grid-cols-2">
         {isAdmin && (
           <ChartCard title="Monthly Revenue — Booked vs Collected">
             <ResponsiveContainer>
@@ -160,7 +172,7 @@ export default function Dashboard() {
         <CardHeader><CardTitle className="text-base">Upcoming Bookings</CardTitle></CardHeader>
         <CardContent>
           {data.upcoming.length === 0 ? (
-            <EmptyState icon="📅" message="No upcoming bookings" />
+            <EmptyState icon={CalendarDays} message="No upcoming bookings" />
           ) : (
             <div className="overflow-x-auto">
               <Table>
@@ -188,7 +200,7 @@ export default function Dashboard() {
                       {isAdmin && <TableCell className="text-right">{fmtMoney(b.amount)}</TableCell>}
                       {isAdmin && (
                         <TableCell>
-                          <Badge variant="outline" className={STATUS_BADGE[b.status ?? 'pending']}>{b.status}</Badge>
+                          <Badge variant={STATUS_VARIANT[b.status ?? 'pending']} withDot>{b.status}</Badge>
                         </TableCell>
                       )}
                     </TableRow>

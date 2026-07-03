@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Coins } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts'
 import { api } from '@/lib/api'
@@ -9,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
 import EmptyState from '@/components/EmptyState'
+import { PageHeader } from '@/components/PageHeader'
 
 const tooltipStyle = { background: '#fff', border: '1px solid hsl(240 6% 90%)', borderRadius: 8, fontSize: 12, color: 'hsl(240 8% 12%)' }
 
@@ -27,40 +29,38 @@ export default function Incentives() {
   const sel = data.selected
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h1 className="text-xl font-bold">Staff Incentives</h1>
-          <p className="text-sm text-muted-foreground">Effective from April 2026 · Deepak: slab on collected sales · Akhil: 5% of profit above ₹5L</p>
-        </div>
-        <Select value={month} onValueChange={setMonth}>
+    <div>
+      <PageHeader
+        title="Incentives"
+        description="Effective April 2026 · Deepak: slab on collected sales · Akhil: 5% of profit above ₹5L"
+        actions={<Select value={month} onValueChange={setMonth}>
           <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All-time</SelectItem>
             {data.trend.map((t) => <SelectItem key={t.month} value={t.month}>{fmtMonth(t.month)}</SelectItem>)}
           </SelectContent>
-        </Select>
-      </div>
+        </Select>}
+      />
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="mb-6 grid gap-3 sm:grid-cols-2">
         <Card>
           <CardContent className="px-5 py-4">
-            <div className="text-sm font-semibold text-muted-foreground">Deepak — Sales Incentive</div>
-            <div className="mt-1 text-3xl font-bold text-primary">{fmtMoney(sel.deepak)}</div>
+            <div className="text-[13px] font-medium">Deepak — Sales Incentive</div>
+            <div className="mt-2 text-[30px] font-semibold tracking-tight tabular-nums leading-none">{fmtMoney(sel.deepak)}</div>
             <div className="mt-1 text-xs text-muted-foreground">on {fmtMoney(sel.sales)} collected</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="px-5 py-4">
-            <div className="text-sm font-semibold text-muted-foreground">Akhil — Profit Share</div>
-            <div className="mt-1 text-3xl font-bold text-primary">{fmtMoney(sel.akhil)}</div>
+            <div className="text-[13px] font-medium">Akhil — Profit Share</div>
+            <div className="mt-2 text-[30px] font-semibold tracking-tight tabular-nums leading-none">{fmtMoney(sel.akhil)}</div>
             <div className="mt-1 text-xs text-muted-foreground">on {fmtMoney(sel.profit)} profit</div>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader><CardTitle className="text-base">Incentive Slabs</CardTitle></CardHeader>
+      <Card className="mb-6">
+        <CardHeader><CardTitle className="text-[15px]">Incentive Slabs</CardTitle></CardHeader>
         <CardContent className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -84,10 +84,10 @@ export default function Incentives() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">Monthly Incentive Trend</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-[15px]">Monthly Incentive Trend</CardTitle></CardHeader>
         <CardContent className="h-64">
           {trend.length === 0 ? (
-            <EmptyState icon="💰" message="No incentive data yet (starts April 2026)" />
+            <EmptyState icon={Coins} message="No incentive data yet" description="Incentives apply from April 2026 onward." />
           ) : (
             <ResponsiveContainer>
               <BarChart data={trend}>
@@ -105,8 +105,8 @@ export default function Incentives() {
       </Card>
 
       {trend.length > 0 && (
-        <Card>
-          <CardHeader><CardTitle className="text-base">Month-wise Breakdown</CardTitle></CardHeader>
+        <Card className="mt-6">
+          <CardHeader><CardTitle className="text-[15px]">Month-wise Breakdown</CardTitle></CardHeader>
           <CardContent className="overflow-x-auto">
             <Table>
               <TableHeader>

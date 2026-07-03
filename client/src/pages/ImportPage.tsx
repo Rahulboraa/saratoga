@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { PageHeader } from '@/components/PageHeader'
 
 const TYPES = [
   { value: 'bookings', label: 'Bookings' },
@@ -70,10 +71,10 @@ export default function ImportPage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-xl font-bold">Import Data</h1>
-        <p className="text-sm text-muted-foreground">Upload an Excel (.xlsx) or CSV file. Columns are auto-mapped — preview before committing.</p>
-      </div>
+      <PageHeader
+        title="Import"
+        description="Upload an Excel (.xlsx) or CSV file. Columns are auto-mapped; preview before committing."
+      />
 
       <Card>
         <CardContent className="flex flex-wrap items-end gap-3 px-5 py-4">
@@ -104,13 +105,13 @@ export default function ImportPage() {
       {preview && (
         <>
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline">{preview.summary.total} rows</Badge>
-            <Badge variant="outline" className="bg-emerald-50 text-emerald-600">{preview.summary.valid} valid</Badge>
+            <Badge variant="secondary">{preview.summary.total} rows</Badge>
+            <Badge variant="success">{preview.summary.valid} valid</Badge>
             {preview.summary.invalid > 0 && (
-              <Badge variant="outline" className="bg-red-50 text-red-600">{preview.summary.invalid} invalid</Badge>
+              <Badge variant="destructive">{preview.summary.invalid} invalid</Badge>
             )}
             {preview.summary.duplicates > 0 && (
-              <Badge variant="outline" className="bg-amber-50 text-amber-700">{preview.summary.duplicates} duplicates</Badge>
+              <Badge variant="warning">{preview.summary.duplicates} duplicates</Badge>
             )}
             {preview.mapping.unmapped.length > 0 && (
               <span className="text-xs text-muted-foreground">Ignored columns: {preview.mapping.unmapped.join(', ')}</span>
@@ -134,7 +135,7 @@ export default function ImportPage() {
                 <Button
                   onClick={() => doCommit.mutate()}
                   disabled={preview.summary.valid === 0 || doCommit.isPending}
-                  className="bg-emerald-600 text-white hover:bg-emerald-700"
+                  variant="success"
                 >
                   {doCommit.isPending ? 'Importing…' : `✓ Import ${preview.summary.valid} rows`}
                 </Button>
@@ -160,14 +161,14 @@ export default function ImportPage() {
                         {!r.valid ? (
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Badge variant="outline" className="cursor-help bg-red-50 text-red-600">invalid</Badge>
+                              <Badge variant="destructive" className="cursor-help">invalid</Badge>
                             </TooltipTrigger>
                             <TooltipContent className="max-w-64">{r.errors.join('; ')}</TooltipContent>
                           </Tooltip>
                         ) : r.duplicate ? (
-                          <Badge variant="outline" className="bg-amber-50 text-amber-700">duplicate</Badge>
+                          <Badge variant="warning">duplicate</Badge>
                         ) : (
-                          <Badge variant="outline" className="bg-emerald-50 text-emerald-600">new</Badge>
+                          <Badge variant="success">new</Badge>
                         )}
                       </TableCell>
                     </TableRow>

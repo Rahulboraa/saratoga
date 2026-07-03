@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Pencil, Trash2, Download, CheckCircle2 } from 'lucide-react'
+import { Pencil, Trash2, Download, CheckCircle2, PhoneCall, CalendarClock, AlertCircle, UserX } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
@@ -14,15 +14,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
 import StatCard from '@/components/StatCard'
+import { PageHeader } from '@/components/PageHeader'
 import LeadDialog from '@/components/LeadDialog'
 import ConfirmDelete from '@/components/ConfirmDelete'
 import EmptyState from '@/components/EmptyState'
 
-const OUTCOME_BADGE: Record<string, string> = {
-  'Interested': 'bg-emerald-50 text-emerald-600',
-  'Not Interested': 'bg-red-50 text-red-600',
-  'Callback': 'bg-amber-50 text-amber-700',
-  'Converted': 'bg-blue-50 text-blue-700',
+const OUTCOME_VARIANT: Record<string, 'success' | 'warning' | 'destructive' | 'info' | 'purple'> = {
+  'Interested': 'success',
+  'Not Interested': 'destructive',
+  'Callback': 'warning',
+  'Converted': 'purple',
 }
 
 function flagLabel(flag?: string) {
@@ -123,27 +124,32 @@ export default function Leads() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-xl font-bold">CRM — Leads & Calls</h1>
-        <div className="flex flex-wrap gap-2">
-          {isManager && (
-            <Button variant="outline" onClick={() => setShowReport((s) => !s)}>📈 Exec Report</Button>
-          )}
-          <Button onClick={() => { setEditing(null); setDialogOpen(true) }}>+ Log Call</Button>
-        </div>
-      </div>
+    <div>
+      <PageHeader
+        title="CRM"
+        description="Leads, calls and follow-ups"
+        actions={
+          <>
+            {isManager && (
+              <Button variant="outline" onClick={() => setShowReport((s) => !s)}>Exec report</Button>
+            )}
+            <Button onClick={() => { setEditing(null); setDialogOpen(true) }}>+ Log call</Button>
+          </>
+        }
+      />
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-        <StatCard label="Total Leads" value={summary.total} />
-        <StatCard label="Converted" value={summary.converted} />
-        <StatCard label="Callbacks" value={summary.callbacks} sub="pending" />
+      <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <StatCard icon={PhoneCall} tint="info" label="Total Leads" value={summary.total} />
+        <StatCard icon={CheckCircle2} tint="success" label="Converted" value={summary.converted} />
+        <StatCard icon={CalendarClock} tint="warning" label="Callbacks" value={summary.callbacks} hint="pending" />
         <StatCard
+          icon={AlertCircle}
+          tint={summary.overdue > 0 ? 'destructive' : 'foreground'}
           label="Overdue"
           value={summary.overdue}
-          sub={summary.overdue > 0 ? <span className="text-red-600">follow-ups missed</span> : 'all on track'}
+          hint={summary.overdue > 0 ? <span className="font-medium text-destructive">follow-ups missed</span> : 'all on track'}
         />
-        {isManager && <StatCard label="Unassigned" value={summary.unassigned} />}
+        {isManager && <StatCard icon={UserX} tint="purple" label="Unassigned" value={summary.unassigned} />}
       </div>
 
       {isManager && showReport && (
@@ -202,7 +208,7 @@ export default function Leads() {
         </Card>
       )}
 
-      <div className="flex flex-wrap gap-2">
+      <div className="mb-4 flex flex-wrap gap-2">
         <Input placeholder="Search name or phone…" value={q} onChange={(e) => setQ(e.target.value)} className="w-full sm:w-56" />
         <Select value={outcome} onValueChange={setOutcome}>
           <SelectTrigger className="w-[calc(50%-4px)] sm:w-40"><SelectValue /></SelectTrigger>
@@ -234,7 +240,7 @@ export default function Leads() {
       {isLoading ? (
         <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-14" />)}</div>
       ) : !leads?.length ? (
-        <EmptyState icon="📞" message='No leads yet. Import from Excel or click "+ Log Call"' />
+        <EmptyState icon={PhoneCall} message="No leads yet" description="Import from Excel or log your first call." />
       ) : (
         <div className="space-y-2">
           {leads.map((l) => {
@@ -247,7 +253,7 @@ export default function Leads() {
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-semibold">{l.name}</span>
                         <span className="text-sm text-muted-foreground">{l.phone}</span>
-                        {l.outcome && <Badge variant="outline" className={OUTCOME_BADGE[l.outcome]}>{l.outcome}</Badge>}
+                        {l.outcome && <Badge variant={OUTCOME_VARIANT[l.outcome] ?? 'muted'} withDot>{l.outcome}</Badge>}
                         {isManager && l.flag && <span className="text-sm">{flagLabel(l.flag)}</span>}
                       </div>
                       <div className="mt-0.5 text-sm text-muted-foreground">

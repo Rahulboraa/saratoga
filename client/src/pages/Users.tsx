@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import ConfirmDelete from '@/components/ConfirmDelete'
+import { PageHeader } from '@/components/PageHeader'
 
 const ROLES: Role[] = ['admin', 'manager', 'sales', 'caretaker']
 
@@ -86,11 +87,12 @@ export default function Users() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-xl font-bold">Users</h1>
-        <Button onClick={() => setAddOpen(true)}>+ Add User</Button>
-      </div>
+    <div>
+      <PageHeader
+        title="Users"
+        description="Team access, roles and passwords"
+        actions={<Button onClick={() => setAddOpen(true)}>+ Add user</Button>}
+      />
 
       {isLoading ? (
         <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-16" />)}</div>
@@ -100,12 +102,15 @@ export default function Users() {
             <Card key={u.id} className="py-3">
               <CardContent className="px-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-[11px] font-medium">
+                      {u.name.split(' ').map((p) => p[0]).join('').slice(0, 2).toUpperCase()}
+                    </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold">{u.name}</span>
-                      <span className="text-sm text-muted-foreground">@{u.username}</span>
-                      {u.id === me?.id && <Badge variant="outline">you</Badge>}
-                      {!u.active && <Badge variant="outline" className="bg-red-50 text-red-600">inactive</Badge>}
+                      <span className="text-[13px] font-semibold">{u.name}</span>
+                      <span className="text-[12px] text-muted-foreground">@{u.username}</span>
+                      {u.id === me?.id && <Badge variant="info">you</Badge>}
+                      {!u.active && <Badge variant="destructive" withDot>inactive</Badge>}
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
