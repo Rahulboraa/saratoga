@@ -1,14 +1,20 @@
 {
   "name": "saratoga-villa",
   "private": true,
-  "workspaces": ["server", "client"],
-  "engines": { "node": ">=20" },
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "npm run dev -w server & npm run dev -w client & wait",
     "build": "npm run build -w client && npm run build -w server",
     "start": "node server/dist/index.js",
     "test": "npm test -w server",
     "seed": "npm run seed -w server",
-    "import:legacy": "npm run import:legacy -w server"
+    "import:legacy": "npm run import:legacy -w server",
+    "seed:demo": "npm run seed:demo -w server"
   }
 }
