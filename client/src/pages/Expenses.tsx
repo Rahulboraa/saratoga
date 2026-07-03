@@ -20,6 +20,7 @@ import StatCard from '@/components/StatCard'
 import ConfirmDelete from '@/components/ConfirmDelete'
 import EmptyState from '@/components/EmptyState'
 import { DataTable, type Paged } from '@/components/DataTable'
+import ExportButton from '@/components/ExportButton'
 import { PageHeader } from '@/components/PageHeader'
 import { DatePicker } from '@/components/DatePicker'
 import { PLChart } from '@/components/charts'
@@ -343,7 +344,17 @@ export default function Expenses() {
       <PageHeader
         title="Expenses & P&L"
         description="Bills, payments and monthly profit"
-        actions={<Button onClick={() => { setEditing(null); setSheetOpen(true) }}>+ Add expense</Button>}
+        actions={
+          <>
+            {(() => {
+              const p = new URLSearchParams()
+              if (month !== 'all') p.set('month', month)
+              if (cat !== 'all') p.set('cat', cat)
+              return <ExportButton path="/export/expenses" name="expenses" params={p} />
+            })()}
+            <Button onClick={() => { setEditing(null); setSheetOpen(true) }}>+ Add expense</Button>
+          </>
+        }
       />
 
       <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-4">

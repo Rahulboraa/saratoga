@@ -18,6 +18,7 @@ import LeadSheet from '@/components/LeadSheet'
 import ConfirmDelete from '@/components/ConfirmDelete'
 import EmptyState from '@/components/EmptyState'
 import { DataTable, type Paged } from '@/components/DataTable'
+import ExportButton from '@/components/ExportButton'
 import { PageHeader } from '@/components/PageHeader'
 
 const OUTCOME_VARIANT: Record<string, 'success' | 'warning' | 'destructive' | 'info' | 'purple'> = {
@@ -228,6 +229,14 @@ export default function Leads() {
         description="Leads, calls and follow-ups"
         actions={
           <>
+            {isManager && (() => {
+              const p = new URLSearchParams()
+              if (q) p.set('q', q)
+              if (outcome !== 'all') p.set('outcome', outcome === 'none' ? '' : outcome)
+              if (exec !== 'all') p.set('exec', exec)
+              if (eventType !== 'all') p.set('eventType', eventType)
+              return <ExportButton path="/export/leads" name="leads" params={p} />
+            })()}
             {isManager && (
               <Button variant="outline" onClick={() => setShowReport((s) => !s)}>Exec report</Button>
             )}

@@ -17,6 +17,7 @@ import PaymentPanel from '@/components/PaymentPanel'
 import ConfirmDelete from '@/components/ConfirmDelete'
 import EmptyState from '@/components/EmptyState'
 import { DataTable, type Paged } from '@/components/DataTable'
+import ExportButton from '@/components/ExportButton'
 import { PageHeader } from '@/components/PageHeader'
 import { cn } from '@/lib/utils'
 
@@ -158,7 +159,19 @@ export default function Bookings() {
       <PageHeader
         title="Bookings"
         description="Every event with payment status and conflicts"
-        actions={canEdit && <Button onClick={() => { setEditing(null); setSheetOpen(true) }}>+ New booking</Button>}
+        actions={
+          <>
+            {isAdmin && (() => {
+              const p = new URLSearchParams()
+              if (q) p.set('q', q)
+              if (month !== 'all') p.set('month', month)
+              if (status !== 'all') p.set('status', status)
+              if (purpose !== 'all') p.set('purpose', purpose)
+              return <ExportButton path="/export/bookings" name="bookings" params={p} />
+            })()}
+            {canEdit && <Button onClick={() => { setEditing(null); setSheetOpen(true) }}>+ New booking</Button>}
+          </>
+        }
       />
 
       <div className="mb-4 flex flex-wrap gap-2">

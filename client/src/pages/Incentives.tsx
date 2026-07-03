@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import EmptyState from '@/components/EmptyState'
 import { PageHeader } from '@/components/PageHeader'
 import StatCard from '@/components/StatCard'
+import ExportButton from '@/components/ExportButton'
 import { Coins, TrendingUp } from 'lucide-react'
 
 export default function Incentives() {
@@ -32,13 +33,13 @@ export default function Incentives() {
       <PageHeader
         title="Incentives"
         description="Effective April 2026 · Deepak: slab on collected sales · Akhil: 5% of profit above ₹5L"
-        actions={<Select value={month} onValueChange={setMonth}>
+        actions={<><ExportButton path="/export/incentives" name="incentives" /><Select value={month} onValueChange={setMonth}>
           <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All-time</SelectItem>
             {data.trend.map((t) => <SelectItem key={t.month} value={t.month}>{fmtMonth(t.month)}</SelectItem>)}
           </SelectContent>
-        </Select>}
+        </Select></>}
       />
 
       <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">

@@ -21,6 +21,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import VisitorSheet from '@/components/VisitorSheet'
+import ExportButton from '@/components/ExportButton'
 import ConfirmDelete from '@/components/ConfirmDelete'
 import EmptyState from '@/components/EmptyState'
 import { PageHeader, SectionHeader } from '@/components/PageHeader'
@@ -90,7 +91,17 @@ export default function VisitorLog({ embedded = false }: { embedded?: boolean })
         <PageHeader
           title="Visitors"
           description="Arrivals, departures and follow-ups"
-          actions={<Button onClick={() => { setEditing(null); setDialogOpen(true) }}>+ Log visitor</Button>}
+          actions={
+            <>
+              {(user?.role === 'admin' || user?.role === 'manager') && (() => {
+                const p = new URLSearchParams()
+                if (q) p.set('q', q)
+                if (date !== 'all') p.set('date', date)
+                return <ExportButton path="/export/visitors" name="visitors" params={p} />
+              })()}
+              <Button onClick={() => { setEditing(null); setDialogOpen(true) }}>+ Log visitor</Button>
+            </>
+          }
         />
       )}
 
