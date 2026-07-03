@@ -23,7 +23,7 @@ Tokens live in `client/src/index.css` as CSS variables consumed by shadcn/Tailwi
 
 - **Family**: Inter Variable (self-hosted via `@fontsource-variable/inter`); single family, weight-contrast hierarchy.
 - **Base**: 14px body, `letter-spacing: -0.005em`; headings `-0.02em`.
-- Scale in practice: page title `text-xl font-bold`; card titles `text-base font-semibold`; stat values `text-xl/2xl font-bold`; labels/meta `text-xs`/`text-[11px]` muted; sidebar section labels 12px bold uppercase tracked (deliberate CallDesk signature, sidebar only — not a per-section eyebrow pattern).
+- Scale in practice: page title `text-[28px] font-semibold tracking-tight` (PageHeader); section titles 15px semibold; stat values `text-[30px] font-semibold tabular-nums`; body/cells 13px; labels/meta 11-12px muted; sidebar section labels + table heads 11-12px uppercase tracked (CallDesk signature, those two spots only).
 
 ## Components
 
@@ -39,8 +39,6 @@ App-level components (`client/src/components/`):
 - **Empty**: lucide icon in `rounded-full bg-muted p-3` chip + medium title + sm muted description (no emoji).
 - **MonthCalendar**: 7-col grid, purpose-colored dots per day, red tint + border for overlap days, primary ring on today.
 - **BookingDialog / PaymentPanel / ExpensePayPanel**: 2-col form grids, `space-y-1.5` label+input stacks, bill/paid/due 3-stat strip + progress bar.
-- **EmptyState**: emoji + one-line message, centered, `py-12`.
-- Status badges always `Badge variant="outline"` + semantic tint classes above.
 
 ## Layout
 
