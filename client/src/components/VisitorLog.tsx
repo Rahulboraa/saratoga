@@ -21,6 +21,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import VisitorSheet from '@/components/VisitorSheet'
+import { DatePicker } from '@/components/DatePicker'
 import ExportButton from '@/components/ExportButton'
 import ConfirmDelete from '@/components/ConfirmDelete'
 import EmptyState from '@/components/EmptyState'
@@ -31,7 +32,7 @@ export default function VisitorLog({ embedded = false }: { embedded?: boolean })
   const isAdmin = user?.role === 'admin'
   const queryClient = useQueryClient()
   const [q, setQ] = useState('')
-  const [date, setDate] = useState('all')
+  const [date, setDate] = useState('')
   const [type, setType] = useState('all')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Visitor | null>(null)
@@ -41,7 +42,7 @@ export default function VisitorLog({ embedded = false }: { embedded?: boolean })
 
   const params = new URLSearchParams({ page: String(page), limit: String(limit) })
   if (q) params.set('q', q)
-  if (date !== 'all') params.set('date', date)
+  if (date) params.set('date', date)
   if (type !== 'all') params.set('type', type)
 
   const { data, isLoading } = useQuery({
@@ -50,7 +51,6 @@ export default function VisitorLog({ embedded = false }: { embedded?: boolean })
     placeholderData: keepPreviousData,
   })
 
-  const dates = data?.dates ?? []
   const pageCount = Math.max(Math.ceil((data?.total ?? 0) / limit), 1)
 
   const grouped = useMemo(() => {
@@ -107,13 +107,13 @@ export default function VisitorLog({ embedded = false }: { embedded?: boolean })
 
       <div className="mb-5 flex flex-wrap gap-3">
         <Input placeholder="Search name, phone, purpose…" value={q} onChange={(e) => { setQ(e.target.value); setPage(1) }} className="h-10 w-full sm:w-64" />
-        <Select value={date} onValueChange={(v) => { setDate(v); setPage(1) }}>
-          <SelectTrigger className="h-10 w-[calc(50%-6px)] sm:w-64"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All dates</SelectItem>
-            {dates.map((d) => <SelectItem key={d} value={d}>{fmtDate(d)}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <DatePicker
+          value={date}
+          onChange={(v) => { setDate(v); setPage(1) }}
+          placeholder="All dates"
+          clearable
+          className="h-10 w-[calc(50%-6px)] sm:w-64"
+        />
         <Select value={type} onValueChange={(v) => { setType(v); setPage(1) }}>
           <SelectTrigger className="h-10 w-[calc(50%-6px)] sm:w-64"><SelectValue /></SelectTrigger>
           <SelectContent>
