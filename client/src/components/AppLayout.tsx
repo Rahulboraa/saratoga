@@ -41,7 +41,7 @@ function NavItem({ to, label, icon: Icon, onNavigate }: { to: string; label: str
         cn(
           'group flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13.5px] transition-all',
           isActive
-            ? 'bg-[#eff6ff] font-bold text-[#2563eb] shadow-sm'
+            ? 'bg-[#eff6ff] font-bold text-[#2563eb]'
             : 'font-medium text-slate-700 hover:bg-slate-100/80 hover:text-slate-900',
         )
       }

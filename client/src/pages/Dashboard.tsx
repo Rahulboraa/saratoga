@@ -159,22 +159,45 @@ export default function Dashboard() {
           <ChartCard title="Payment Trend — Collected vs Pending"><TrendChart data={series} /></ChartCard>
         )}
         <MonthCalendar />
-        <Card>
+        <Card className="h-full">
           <CardHeader><CardTitle className="text-[15px]">Bookings by Type</CardTitle></CardHeader>
-          <CardContent className="flex flex-wrap items-center justify-center gap-8">
-            <DonutChart
-              data={data.purposeBreakdown.map((p) => ({ label: p.purpose, value: p.count, color: PURPOSE_COLORS[p.purpose] }))}
-              centerLabel={String(data.totalBookings)}
-              centerSubLabel="events"
-            />
-            <div className="space-y-2">
-              {data.purposeBreakdown.map((p) => (
-                <div key={p.purpose} className="flex items-center gap-2 text-[12px]">
-                  <span className="h-2 w-2 rounded-[3px]" style={{ background: PURPOSE_COLORS[p.purpose] }} />
-                  <span className="text-muted-foreground">{p.purpose}</span>
-                  <span className="ml-auto pl-4 font-semibold tabular-nums">{p.count}</span>
-                </div>
-              ))}
+          <CardContent className="flex h-full flex-col items-center justify-center gap-8 py-6 sm:flex-row">
+            <div className="animate-fade-in shrink-0">
+              <DonutChart
+                data={data.purposeBreakdown.map((p) => ({ label: p.purpose, value: p.count, color: PURPOSE_COLORS[p.purpose] }))}
+                size={210}
+                thickness={22}
+                centerLabel={String(data.totalBookings)}
+                centerSubLabel="events"
+              />
+            </div>
+            <div className="w-full max-w-[260px] space-y-3.5">
+              {data.purposeBreakdown
+                .slice()
+                .sort((a, b) => b.count - a.count)
+                .map((p, i) => (
+                  <div key={p.purpose}>
+                    <div className="mb-1.5 flex items-center justify-between text-[12px]">
+                      <span className="inline-flex items-center gap-1.5 font-medium">
+                        <span className="h-2 w-2 rounded-[3px]" style={{ background: PURPOSE_COLORS[p.purpose] }} />
+                        {p.purpose}
+                      </span>
+                      <span className="tabular-nums text-muted-foreground">
+                        <span className="font-semibold text-foreground">{p.count}</span> · {Math.round((p.count / Math.max(data.totalBookings, 1)) * 100)}%
+                      </span>
+                    </div>
+                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                      <div
+                        className="chart-bar-h h-full rounded-full"
+                        style={{
+                          width: `${(p.count / Math.max(data.totalBookings, 1)) * 100}%`,
+                          background: PURPOSE_COLORS[p.purpose],
+                          animationDelay: `${i * 70}ms`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
             </div>
           </CardContent>
         </Card>
