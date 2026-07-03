@@ -3,6 +3,23 @@ services:
     name: saratoga-villa
     runtime: node
     plan: free
+    branch: main
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+
+  - type: web
+    name: saratoga-villa-test
+    runtime: node
+    plan: free
+    branch: test
     buildCommand: npm ci && npm run build
     startCommand: npm start
     healthCheckPath: /api/health
