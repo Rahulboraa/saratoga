@@ -200,7 +200,7 @@ export default function BookingSheet({
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
       <SheetContent
         side="right"
-        width="lg"
+        size=""
         className="flex w-full flex-col gap-0 p-0 sm:max-w-3xl"
       >
         <SheetHeader className="border-b px-6 py-5">
