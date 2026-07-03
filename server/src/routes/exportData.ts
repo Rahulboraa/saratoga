@@ -84,9 +84,10 @@ exportRouter.get('/leads', requireRole('admin', 'manager'), async (req, res) => 
 })
 
 exportRouter.get('/visitors', requireRole('admin', 'manager'), async (req, res) => {
-  const { date, q } = req.query as Record<string, string | undefined>
+  const { date, from, to, q } = req.query as Record<string, string | undefined>
   const filter: Record<string, unknown> = {}
   if (date) filter.date = date
+  else if (from || to) filter.date = { ...(from ? { $gte: from } : {}), ...(to ? { $lte: to } : {}) }
   if (q) {
     const rx = new RegExp(escapeRegex(q), 'i')
     filter.$or = [{ name: rx }, { phone: rx }, { purpose: rx }]

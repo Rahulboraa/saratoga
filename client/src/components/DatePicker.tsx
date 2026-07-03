@@ -91,3 +91,59 @@ export function TimeSelect({ value, onChange, allowEmpty = false, className }: {
     </Select>
   )
 }
+
+export interface DateRange {
+  from: string
+  to: string
+}
+
+export function DateRangePicker({ value, onChange, placeholder = 'All dates', className }: {
+  value: DateRange | null
+  onChange: (range: DateRange | null) => void
+  placeholder?: string
+  className?: string
+}) {
+  const label = value
+    ? value.from === value.to || !value.to
+      ? fmtDate(value.from)
+      : `${fmtDate(value.from)} – ${fmtDate(value.to)}`
+    : placeholder
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          className={cn('justify-start px-3 font-normal', !value && 'text-muted-foreground', className)}
+        >
+          <CalendarIcon className="size-5 text-muted-foreground" />
+          {label}
+          {value && (
+            <span
+              role="button"
+              tabIndex={0}
+              className="ml-auto rounded-sm p-0.5 hover:bg-accent"
+              onClick={(e) => { e.stopPropagation(); onChange(null) }}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); onChange(null) } }}
+            >
+              <X className="size-3.5 text-muted-foreground" />
+            </span>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          mode="range"
+          numberOfMonths={2}
+          selected={value ? { from: toDate(value.from), to: value.to ? toDate(value.to) : undefined } : undefined}
+          defaultMonth={value ? toDate(value.from) : undefined}
+          onSelect={(r) => {
+            if (!r?.from) return onChange(null)
+            onChange({ from: toYmd(r.from), to: r.to ? toYmd(r.to) : toYmd(r.from) })
+          }}
+        />
+      </PopoverContent>
+    </Popover>
+  )
+}
