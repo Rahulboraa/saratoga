@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import type { ColumnDef } from '@tanstack/react-table'
 import { api } from '@/lib/api'
-import { fmtMoney, fmtDate, fmtMonth, todayYmd, STATUS_VARIANT } from '@/lib/format'
+import { fmtMoney, fmtDate, fmtMonth, todayYmd, STATUS_VARIANT, chartWindow } from '@/lib/format'
 import { EXPENSE_CATS, type Expense, type ExpensePayment, type ExpenseSummary } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -405,7 +405,7 @@ export default function Expenses() {
         <Card>
           <CardHeader><CardTitle className="text-[15px]">Monthly P&L</CardTitle></CardHeader>
           <CardContent>
-            <PLChart data={plSeries} />
+            <PLChart data={chartWindow(summary?.plSeries ?? []).map((p) => ({ ...p, label: fmtMonth(p.month) }))} />
           </CardContent>
         </Card>
       </div>

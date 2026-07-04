@@ -29,6 +29,18 @@ export function currentMonth() {
   return todayYmd().slice(0, 7)
 }
 
+export function chartWindow<T extends { month: string }>(rows: T[], back = 6, fwd = 1): T[] {
+  const [y, m] = currentMonth().split('-').map(Number)
+  const shift = (n: number) => {
+    const d = new Date(y, m - 1 + n, 1)
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+  }
+  const from = shift(-back)
+  const to = shift(fwd)
+  const win = rows.filter((r) => r.month >= from && r.month <= to)
+  return win.length ? win : rows.slice(-(back + fwd + 1))
+}
+
 export function nowHm() {
   return new Date().toTimeString().slice(0, 5)
 }

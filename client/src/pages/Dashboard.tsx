@@ -7,7 +7,7 @@ import { todayYmd } from '@/lib/format'
 import { RevenueChart, PLChart, CountChart, TrendChart, DonutChart } from '@/components/charts'
 import { api, apiDownload } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
-import { fmtMoney, fmtLakh, fmtDate, fmtMonth, PURPOSE_COLORS } from '@/lib/format'
+import { fmtMoney, fmtLakh, fmtDate, fmtMonth, PURPOSE_COLORS, chartWindow } from '@/lib/format'
 import StatCard from '@/components/StatCard'
 import { PageHeader } from '@/components/PageHeader'
 import MonthCalendar from '@/components/MonthCalendar'
@@ -41,8 +41,8 @@ export default function Dashboard() {
     )
   }
 
-  const series = (data.monthlySeries ?? []).map((p) => ({ ...p, label: fmtMonth(p.month) }))
-  const countSeries = data.bookingsPerMonth.map((p) => ({ ...p, label: fmtMonth(p.month) }))
+  const series = chartWindow(data.monthlySeries ?? []).map((p) => ({ ...p, label: fmtMonth(p.month) }))
+  const countSeries = chartWindow(data.bookingsPerMonth).map((p) => ({ ...p, label: fmtMonth(p.month) }))
 
   return (
     <div>
@@ -129,22 +129,40 @@ export default function Dashboard() {
       )}
 
       <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-5">
-        {data.purposeBreakdown.map((p) => (
-          <Card key={p.purpose} className="py-3">
-            <CardContent className="px-4">
-              <div className="flex items-center gap-1.5 text-[13px] font-medium">
-                <span className="h-1.5 w-1.5 rounded-full" style={{ background: PURPOSE_COLORS[p.purpose] }} />
-                {p.purpose}
-              </div>
-              <div className="text-xs text-muted-foreground">{p.count} events</div>
-              {p.booked !== undefined && (
-                <div className="mt-1 text-xs text-muted-foreground">
-                  {fmtLakh(p.booked)} booked · {fmtLakh(p.collected ?? 0)} in
+        {data.purposeBreakdown.map((p) => {
+          const color = PURPOSE_COLORS[p.purpose]
+          return (
+            <Card key={p.purpose} className="py-3">
+              <CardContent className="px-4">
+                <div className="flex items-center gap-2 text-[13px] font-medium">
+                  <span
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md"
+                    style={{ background: `color-mix(in oklch, ${color}, white 85%)` }}
+                  >
+                    <span className="h-2 w-2 rounded-full" style={{ background: color }} />
+                  </span>
+                  {p.purpose}
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+                <div className="mt-1.5 text-[17px] font-semibold leading-tight" style={{ color }}>
+                  {p.count} <span className="text-xs font-medium text-muted-foreground">events</span>
+                </div>
+                {p.booked !== undefined && (
+                  <>
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      {fmtLakh(p.booked)} booked · {fmtLakh(p.collected ?? 0)} in
+                    </div>
+                    <div className="mt-2 h-1 overflow-hidden rounded-full" style={{ background: `color-mix(in oklch, ${color}, white 88%)` }}>
+                      <div
+                        className="chart-bar-h h-full rounded-full"
+                        style={{ width: `${p.booked > 0 ? Math.min(Math.round(((p.collected ?? 0) / p.booked) * 100), 100) : 0}%`, background: color }}
+                      />
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
 
       <div className="mb-8 grid gap-6 lg:grid-cols-2">

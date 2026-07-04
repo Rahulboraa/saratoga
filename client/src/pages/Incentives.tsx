@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { IncentiveTrendChart } from '@/components/charts'
-import { fmtMoney, fmtMonth } from '@/lib/format'
+import { fmtMoney, fmtMonth, chartWindow } from '@/lib/format'
 import type { IncentiveStats } from '@/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -77,7 +77,7 @@ export default function Incentives() {
           {trend.length === 0 ? (
             <EmptyState icon={Coins} message="No incentive data yet" description="Incentives apply from April 2026 onward." />
           ) : (
-            <IncentiveTrendChart data={trend} />
+            <IncentiveTrendChart data={chartWindow(data.trend).map((t) => ({ ...t, label: fmtMonth(t.month) }))} />
           )}
         </CardContent>
       </Card>
