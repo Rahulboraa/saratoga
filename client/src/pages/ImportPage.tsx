@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import toast from 'react-hot-toast'
 import { Download, CheckCircle2, Upload } from 'lucide-react'
 import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'

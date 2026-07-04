@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { CalendarDays, IndianRupee, Wallet, AlertCircle, CalendarClock, Layers, TriangleAlert, Download } from 'lucide-react'
 import { useState } from 'react'
-import { toast } from 'sonner'
+import toast from 'react-hot-toast'
 import { Button } from '@/components/ui/button'
 import { todayYmd } from '@/lib/format'
 import { RevenueChart, PLChart, CountChart, TrendChart, DonutChart } from '@/components/charts'
@@ -134,16 +134,16 @@ export default function Dashboard() {
           return (
             <Card key={p.purpose} className="py-3">
               <CardContent className="px-4">
-                <div className="flex items-center gap-2 text-[13px] font-medium">
+                <div className="flex items-center gap-2 text-[13px] font-medium text-muted-foreground">
                   <span
-                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md"
-                    style={{ background: `color-mix(in oklch, ${color}, white 85%)` }}
+                    className="flex h-5 w-5 shrink-0 items-center justify-center rounded-[6px]"
+                    style={{ background: `color-mix(in oklch, ${color}, white 88%)` }}
                   >
-                    <span className="h-2 w-2 rounded-full" style={{ background: color }} />
+                    <span className="h-1.5 w-1.5 rounded-full" style={{ background: color }} />
                   </span>
                   {p.purpose}
                 </div>
-                <div className="mt-1.5 text-[17px] font-semibold leading-tight" style={{ color }}>
+                <div className="mt-1.5 text-[15px] font-semibold leading-tight">
                   {p.count} <span className="text-xs font-medium text-muted-foreground">events</span>
                 </div>
                 {p.booked !== undefined && (
@@ -151,10 +151,10 @@ export default function Dashboard() {
                     <div className="mt-1 text-xs text-muted-foreground">
                       {fmtLakh(p.booked)} booked · {fmtLakh(p.collected ?? 0)} in
                     </div>
-                    <div className="mt-2 h-1 overflow-hidden rounded-full" style={{ background: `color-mix(in oklch, ${color}, white 88%)` }}>
+                    <div className="mt-2.5 h-[3px] overflow-hidden rounded-full bg-muted">
                       <div
                         className="chart-bar-h h-full rounded-full"
-                        style={{ width: `${p.booked > 0 ? Math.min(Math.round(((p.collected ?? 0) / p.booked) * 100), 100) : 0}%`, background: color }}
+                        style={{ width: `${p.booked > 0 ? Math.min(Math.round(((p.collected ?? 0) / p.booked) * 100), 100) : 0}%`, background: `color-mix(in oklch, ${color}, white 25%)` }}
                       />
                     </div>
                   </>

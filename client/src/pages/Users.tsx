@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Trash2 } from 'lucide-react'
-import { toast } from 'sonner'
+import toast from 'react-hot-toast'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import type { ManagedUser, Role } from '@/types'

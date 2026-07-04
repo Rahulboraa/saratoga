@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Trash2, Wallet } from 'lucide-react'
-import { toast } from 'sonner'
+import toast from 'react-hot-toast'
 import { api } from '@/lib/api'
 import { fmtMoney, fmtDate, todayYmd } from '@/lib/format'
 import type { Booking, Payment } from '@/types'

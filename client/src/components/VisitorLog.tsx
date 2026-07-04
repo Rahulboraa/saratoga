@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { Pencil, Trash2, Users2, ChevronLeft, ChevronRight, CornerDownRight } from 'lucide-react'
-import { toast } from 'sonner'
+import toast from 'react-hot-toast'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { fmtDate, nowHm } from '@/lib/format'

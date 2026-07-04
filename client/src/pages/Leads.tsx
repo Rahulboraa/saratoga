@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { Pencil, Trash2, CheckCircle2, PhoneCall, CalendarClock, AlertCircle, UserX, Lock, TriangleAlert, CircleAlert } from 'lucide-react'
-import { toast } from 'sonner'
+import toast from 'react-hot-toast'
 import type { ColumnDef } from '@tanstack/react-table'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'

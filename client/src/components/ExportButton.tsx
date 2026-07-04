@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Download } from 'lucide-react'
-import { toast } from 'sonner'
+import toast from 'react-hot-toast'
 import { apiDownload } from '@/lib/api'
 import { todayYmd } from '@/lib/format'
 import { Button } from '@/components/ui/button'
