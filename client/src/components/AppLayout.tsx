@@ -12,7 +12,7 @@ import {
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
-import InstallPrompt from '@/components/InstallPrompt'
+import InstallButton from '@/components/InstallPrompt'
 import SearchPalette, { openSearchPalette } from '@/components/SearchPalette'
 import { Search } from 'lucide-react'
 
@@ -214,6 +214,7 @@ export default function AppLayout() {
           </SheetContent>
         </Sheet>
         <Brand />
+        <div className="ml-auto"><InstallButton /></div>
       </header>
 
       <main className="min-h-screen bg-slate-50/50 md:pl-[260px]">
@@ -224,7 +225,6 @@ export default function AppLayout() {
       </main>
 
       <BottomNav onMore={() => setOpen(true)} />
-      <InstallPrompt />
       <SearchPalette />
     </div>
   )
