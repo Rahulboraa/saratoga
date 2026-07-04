@@ -220,7 +220,7 @@ function ExpensePayPanel({ expense, onClose }: { expense: Expense; onClose: () =
               </div>
             </form>
           ) : (
-            <Button onClick={() => { setPayDate(todayYmd()); setShowForm(true) }}>+ Record payment</Button>
+            <Button onClick={() => { setPayDate(todayYmd()); setShowForm(true) }}>Record payment</Button>
           )}
 
           {payments.length === 0 ? (
@@ -354,7 +354,7 @@ export default function Expenses() {
               if (cat !== 'all') p.set('cat', cat)
               return <ExportButton path="/export/expenses" name="expenses" params={p} />
             })()}
-            <Button onClick={() => { setEditing(null); setSheetOpen(true) }}>+ Add expense</Button>
+            <Button onClick={() => { setEditing(null); setSheetOpen(true) }}>Add expense</Button>
           </>
         }
       />

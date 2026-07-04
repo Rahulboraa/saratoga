@@ -85,7 +85,7 @@ export default function VisitorLog({ embedded = false }: { embedded?: boolean })
       {embedded ? (
         <SectionHeader
           title="Visitor Log"
-          actions={<Button size="sm" onClick={() => { setEditing(null); setDialogOpen(true) }}>+ Log visitor</Button>}
+          actions={<Button size="sm" onClick={() => { setEditing(null); setDialogOpen(true) }}>Log visitor</Button>}
         />
       ) : (
         <PageHeader
@@ -99,7 +99,7 @@ export default function VisitorLog({ embedded = false }: { embedded?: boolean })
                 if (range) { p.set('from', range.from); p.set('to', range.to) }
                 return <ExportButton path="/export/visitors" name="visitors" params={p} />
               })()}
-              <Button onClick={() => { setEditing(null); setDialogOpen(true) }}>+ Log visitor</Button>
+              <Button onClick={() => { setEditing(null); setDialogOpen(true) }}>Log visitor</Button>
             </>
           }
         />

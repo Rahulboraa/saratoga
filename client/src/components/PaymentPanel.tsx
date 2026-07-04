@@ -125,7 +125,7 @@ export default function PaymentPanel({ booking, onClose }: { booking: Booking | 
               </div>
             </form>
           ) : (
-            <Button onClick={() => { setPayDate(todayYmd()); setShowForm(true) }}>+ Record payment</Button>
+            <Button onClick={() => { setPayDate(todayYmd()); setShowForm(true) }}>Record payment</Button>
           )}
 
           {payments.length === 0 ? (

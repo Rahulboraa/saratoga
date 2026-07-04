@@ -91,7 +91,7 @@ export default function Users() {
       <PageHeader
         title="Users"
         description="Team access, roles and passwords"
-        actions={<Button onClick={() => setAddOpen(true)}>+ Add user</Button>}
+        actions={<Button onClick={() => setAddOpen(true)}>Add user</Button>}
       />
 
       {isLoading ? (

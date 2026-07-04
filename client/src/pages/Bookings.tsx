@@ -169,7 +169,7 @@ export default function Bookings() {
               if (purpose !== 'all') p.set('purpose', purpose)
               return <ExportButton path="/export/bookings" name="bookings" params={p} />
             })()}
-            {canEdit && <Button onClick={() => { setEditing(null); setSheetOpen(true) }}>+ New booking</Button>}
+            {canEdit && <Button onClick={() => { setEditing(null); setSheetOpen(true) }}>New booking</Button>}
           </>
         }
       />

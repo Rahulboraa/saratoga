@@ -246,7 +246,7 @@ export default function Leads() {
             {isManager && (
               <Button variant="outline" onClick={() => setShowReport((s) => !s)}>Executive report</Button>
             )}
-            <Button onClick={() => { setEditing(null); setSheetOpen(true) }}>+ Log call</Button>
+            <Button onClick={() => { setEditing(null); setSheetOpen(true) }}>Log call</Button>
           </>
         }
       />
