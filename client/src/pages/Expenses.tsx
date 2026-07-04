@@ -373,8 +373,20 @@ export default function Expenses() {
             {(() => {
               const cats = (summary?.categories ?? []).slice().sort((a, b) => b.amount - a.amount)
               const max = Math.max(...cats.map((c) => c.amount), 1)
+              const total = Math.max(cats.reduce((s, c) => s + c.amount, 0), 1)
               const palette = ['hsl(230 80% 62%)', 'hsl(262 83% 58%)', 'hsl(199 89% 48%)', 'hsl(158 64% 42%)', 'hsl(11 84% 60%)', 'hsl(28 90% 50%)', 'hsl(330 70% 55%)', 'hsl(230 30% 60%)', 'hsl(180 50% 40%)', 'hsl(250 20% 65%)']
-              return cats.map((c, i) => (
+              return [
+                <div key="strip" className="mb-2 flex h-3.5 gap-[3px] overflow-hidden rounded-full">
+                  {cats.map((c, i) => (
+                    <div
+                      key={c.cat}
+                      title={`${c.cat}: ${Math.round((c.amount / total) * 100)}%`}
+                      className="chart-bar-h h-full transition-all hover:brightness-110 first:rounded-l-full last:rounded-r-full"
+                      style={{ width: `${(c.amount / total) * 100}%`, background: palette[i % palette.length], animationDelay: `${i * 40}ms` }}
+                    />
+                  ))}
+                </div>,
+                ...cats.map((c, i) => (
                 <div key={c.cat}>
                   <div className="mb-1.5 flex items-center justify-between text-[13px]">
                     <span className="font-medium">{c.cat}</span>
@@ -389,7 +401,7 @@ export default function Expenses() {
                     />
                   </div>
                 </div>
-              ))
+              ))]
             })()}
           </CardContent>
         </Card>

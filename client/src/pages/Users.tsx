@@ -17,6 +17,7 @@ import ConfirmDelete from '@/components/ConfirmDelete'
 import { PageHeader } from '@/components/PageHeader'
 
 const ROLES: Role[] = ['admin', 'manager', 'sales', 'caretaker']
+const roleLabel = (r: string) => r.charAt(0).toUpperCase() + r.slice(1)
 
 export default function Users() {
   const { user: me } = useAuth()
@@ -120,7 +121,7 @@ export default function Users() {
                 >
                   <SelectTrigger className="h-8 w-32"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {ROLES.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                    {ROLES.map((r) => <SelectItem key={r} value={r}>{roleLabel(r)}</SelectItem>)}
                   </SelectContent>
                 </Select>
                 <div className="flex w-20 items-center gap-1.5">
@@ -170,7 +171,7 @@ export default function Users() {
               <Select value={newRole} onValueChange={(v) => setNewRole(v as Role)}>
                 <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {ROLES.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                  {ROLES.map((r) => <SelectItem key={r} value={r}>{roleLabel(r)}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
