@@ -86,7 +86,7 @@ function Bars({ data, series, height = 220, stacked = false, showValues = false,
       <Legend series={series} />
       <div className="relative" style={{ height }}>
         <Ticks max={yMax} fmt={fmt} />
-        <div className="absolute inset-0 flex items-end gap-3 pl-12 pr-1 sm:gap-4">
+        <div className="absolute inset-0 flex items-end gap-2 pl-12 pr-1 sm:gap-3">
           {data.map((d, i) => (
             <div key={i} className="group relative flex h-full flex-1 items-end justify-center gap-1.5">
               <GroupTooltip
@@ -119,15 +119,17 @@ function Bars({ data, series, height = 220, stacked = false, showValues = false,
                   </div>
                 </div>
               ) : (
-                series.map((sr) => {
+                series.map((sr, si) => {
                   const v = Number(d[sr.key]) || 0
                   const pct = v > 0 ? Math.max((v / yMax) * 100, 2) : 0
+                  const prev = si > 0 ? Math.max(((Number(d[series[si - 1].key]) || 0) / yMax) * 100, 2) : -100
+                  const lift = si > 0 && v > 0 && Math.abs(pct - prev) < 7 ? 16 : 3
                   return (
-                    <div key={sr.key} className="relative flex h-full w-full max-w-[26px] items-end justify-center">
+                    <div key={sr.key} className="relative flex h-full w-full max-w-[28px] items-end justify-center">
                       {showValues && v > 0 && (
                         <span
                           className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-semibold tabular-nums text-foreground/75"
-                          style={{ bottom: `calc(${pct}% + 3px)` }}
+                          style={{ bottom: `calc(${pct}% + ${lift}px)` }}
                         >
                           {fmt(v)}
                         </span>
@@ -144,7 +146,7 @@ function Bars({ data, series, height = 220, stacked = false, showValues = false,
           ))}
         </div>
       </div>
-      <div className="mt-2 flex gap-3 pl-12 pr-1 sm:gap-4">
+      <div className="mt-2 flex gap-2 pl-12 pr-1 sm:gap-3">
         {data.map((d, i) => (
           <div key={i} className="flex-1 truncate text-center text-[10px] font-medium text-muted-foreground" title={d.label}>
             {d.label}
@@ -202,7 +204,7 @@ export function PLChart({ data }: { data: MoneyPoint[] }) {
       />
       <div className="mt-2.5 flex items-center gap-1.5 border-t border-dashed border-border/60 pt-2">
         <span className="w-[42px] shrink-0 text-right text-[10px] font-medium text-muted-foreground">Profit</span>
-        <div className="flex flex-1 gap-3 pr-1 sm:gap-4">
+        <div className="flex flex-1 gap-2 pr-1 sm:gap-3">
           {rows.map((d, i) => {
             const p = d.profit ?? 0
             return (
@@ -255,7 +257,7 @@ export function CountChart({ data }: { data: { label: string; count: number }[] 
     <div className="w-full">
       <div className="relative" style={{ height: 220 }}>
         <Ticks max={max} fmt={(n) => String(n)} />
-        <div className="absolute inset-0 flex items-end gap-3 pl-12 pr-1 sm:gap-4">
+        <div className="absolute inset-0 flex items-end gap-2 pl-12 pr-1 sm:gap-3">
           {data.map((d, i) => (
             <div key={i} className="group relative flex h-full flex-1 flex-col items-center justify-end">
               <GroupTooltip label={d.label} rows={[{ color: i === current ? C.violet : C.track, label: 'Bookings', value: String(d.count) }]} />
@@ -276,7 +278,7 @@ export function CountChart({ data }: { data: { label: string; count: number }[] 
           ))}
         </div>
       </div>
-      <div className="mt-2 flex gap-3 pl-12 pr-1 sm:gap-4">
+      <div className="mt-2 flex gap-2 pl-12 pr-1 sm:gap-3">
         {data.map((d, i) => (
           <div key={i} className="flex-1 truncate text-center text-[10px] font-medium text-muted-foreground" title={d.label}>
             {d.label}
