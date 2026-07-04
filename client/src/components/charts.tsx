@@ -24,7 +24,7 @@ function Legend({ series }: { series: Series[] }) {
     <div className="mb-4 flex flex-wrap justify-end gap-x-5 gap-y-1.5">
       {series.map((s) => (
         <span key={s.key} className="inline-flex items-center gap-2 text-[13px] font-medium text-foreground/80">
-          <span className="h-3 w-3 rounded-[4px]" style={{ background: s.color }} />
+          <span className="h-2.5 w-2.5 rounded-full" style={{ background: s.color }} />
           {s.label}
         </span>
       ))}
@@ -96,7 +96,7 @@ function Bars({ data, series, height = 220, stacked = false, showValues = false,
                 }))}
               />
               {stacked ? (
-                <div className="relative flex h-full w-full max-w-[32px] items-end justify-center">
+                <div className="relative flex h-full w-full max-w-[38px] items-end justify-center">
                   {showValues && groupTotal(d) > 0 && (
                     <span
                       className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-semibold tabular-nums text-foreground/75"
@@ -105,7 +105,7 @@ function Bars({ data, series, height = 220, stacked = false, showValues = false,
                       {fmt(groupTotal(d))}
                     </span>
                   )}
-                  <div className="chart-bar flex h-full w-full flex-col-reverse overflow-hidden rounded-t-[5px]" style={{ animationDelay: `${i * 45}ms` }}>
+                  <div className="chart-bar flex h-full w-full flex-col-reverse overflow-hidden rounded-[7px] rounded-b-[3px]" style={{ animationDelay: `${i * 45}ms` }}>
                     {series.map((sr) => {
                       const v = Number(d[sr.key]) || 0
                       return (
@@ -123,7 +123,7 @@ function Bars({ data, series, height = 220, stacked = false, showValues = false,
                   const v = Number(d[sr.key]) || 0
                   const pct = v > 0 ? Math.max((v / yMax) * 100, 2) : 0
                   return (
-                    <div key={sr.key} className="relative flex h-full w-full max-w-[26px] items-end justify-center">
+                    <div key={sr.key} className="relative flex h-full w-full max-w-[30px] items-end justify-center">
                       {showValues && v > 0 && (
                         <span
                           className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-semibold tabular-nums text-foreground/75"
@@ -133,7 +133,7 @@ function Bars({ data, series, height = 220, stacked = false, showValues = false,
                         </span>
                       )}
                       <div
-                        className="chart-bar w-full cursor-help rounded-t-[5px] transition-all group-hover:brightness-105 group-hover:saturate-125"
+                        className="chart-bar w-full cursor-help rounded-[6px] rounded-b-[2px] transition-all group-hover:brightness-105 group-hover:saturate-125"
                         style={barStyle(sr.color, pct, i)}
                       />
                     </div>
@@ -156,18 +156,20 @@ function Bars({ data, series, height = 220, stacked = false, showValues = false,
 }
 
 const C = {
-  indigoSoft: 'hsl(230 75% 85%)',
-  indigo: 'hsl(230 80% 62%)',
-  violet: 'hsl(262 83% 58%)',
-  electric: 'hsl(199 89% 48%)',
-  crimson: 'hsl(0 72% 62%)',
-  lavender: 'hsl(255 35% 88%)',
+  blue: 'hsl(217 91% 60%)',
+  blueSoft: 'hsl(215 70% 88%)',
+  violet: 'hsl(248 85% 66%)',
+  teal: 'hsl(173 66% 42%)',
+  green: 'hsl(152 60% 44%)',
+  orange: 'hsl(25 95% 53%)',
+  red: 'hsl(0 79% 63%)',
+  track: 'hsl(220 16% 92%)',
 }
 
 function barStyle(color: string, heightPct: number, index: number): CSSProperties {
   return {
     height: `${heightPct}%`,
-    background: `linear-gradient(to top, ${color}, color-mix(in oklch, ${color}, white 18%))`,
+    background: `linear-gradient(to top, ${color}, color-mix(in oklch, ${color}, white 24%))`,
     animationDelay: `${index * 45}ms`,
   }
 }
@@ -178,8 +180,8 @@ export function RevenueChart({ data }: { data: MoneyPoint[] }) {
       data={data}
       showValues
       series={[
-        { key: 'booked', label: 'Booked', color: C.indigoSoft },
-        { key: 'collected', label: 'Collected', color: C.indigo },
+        { key: 'booked', label: 'Booked', color: C.blueSoft },
+        { key: 'collected', label: 'Collected', color: C.blue },
       ]}
     />
   )
@@ -194,8 +196,8 @@ export function PLChart({ data }: { data: MoneyPoint[] }) {
         data={rows}
         showValues
         series={[
-          { key: 'revenue', label: 'Revenue', color: C.indigo },
-          { key: 'expenses', label: 'Expenses', color: C.crimson },
+          { key: 'revenue', label: 'Revenue', color: C.blue },
+          { key: 'expenses', label: 'Expenses', color: C.orange },
         ]}
       />
       <div className="mt-2.5 flex items-center gap-1.5 border-t border-dashed border-border/60 pt-2">
@@ -226,8 +228,8 @@ export function TrendChart({ data }: { data: MoneyPoint[] }) {
       stacked
       showValues
       series={[
-        { key: 'collected', label: 'Collected', color: C.indigo },
-        { key: 'pending', label: 'Pending', color: C.lavender },
+        { key: 'collected', label: 'Collected', color: C.blue },
+        { key: 'pending', label: 'Pending', color: C.track },
       ]}
     />
   )
@@ -239,8 +241,8 @@ export function IncentiveTrendChart({ data }: { data: { label: string; deepak: n
       data={data as unknown as MoneyPoint[]}
       showValues
       series={[
-        { key: 'deepak', label: 'Deepak', color: C.indigo },
-        { key: 'akhil', label: 'Akhil', color: C.electric },
+        { key: 'deepak', label: 'Deepak', color: C.blue },
+        { key: 'akhil', label: 'Akhil', color: C.teal },
       ]}
     />
   )
@@ -248,6 +250,7 @@ export function IncentiveTrendChart({ data }: { data: { label: string; deepak: n
 
 export function CountChart({ data }: { data: { label: string; count: number }[] }) {
   const max = Math.max(...data.map((d) => d.count), 1)
+  const current = data.length - 1
   return (
     <div className="w-full">
       <div className="relative" style={{ height: 220 }}>
@@ -255,13 +258,19 @@ export function CountChart({ data }: { data: { label: string; count: number }[] 
         <div className="absolute inset-0 flex items-end gap-1.5 pl-12">
           {data.map((d, i) => (
             <div key={i} className="group relative flex h-full flex-1 flex-col items-center justify-end">
-              <GroupTooltip label={d.label} rows={[{ color: C.violet, label: 'Bookings', value: String(d.count) }]} />
-              <span className="mb-1 text-[10px] font-semibold tabular-nums text-foreground/75">
+              <GroupTooltip label={d.label} rows={[{ color: i === current ? C.violet : C.track, label: 'Bookings', value: String(d.count) }]} />
+              <span className={cn('mb-1 text-[10px] font-semibold tabular-nums', i === current ? 'text-foreground' : 'text-foreground/60')}>
                 {d.count}
               </span>
               <div
-                className="chart-bar w-full max-w-[34px] cursor-help rounded-t-[5px] transition-all group-hover:brightness-105 group-hover:saturate-125"
-                style={barStyle(C.violet, d.count > 0 ? Math.max((d.count / max) * 100, 2) : 0, i)}
+                className="chart-bar w-full max-w-[36px] cursor-help rounded-[7px] rounded-b-[3px] transition-all group-hover:brightness-[1.03]"
+                style={{
+                  height: `${d.count > 0 ? Math.max((d.count / max) * 100, 2) : 0}%`,
+                  animationDelay: `${i * 45}ms`,
+                  background: i === current
+                    ? `repeating-linear-gradient(135deg, ${C.violet} 0 5px, color-mix(in oklch, ${C.violet}, white 22%) 5px 9px)`
+                    : `linear-gradient(to top, ${C.track}, color-mix(in oklch, ${C.track}, white 30%))`,
+                }}
               />
             </div>
           ))}

@@ -373,35 +373,31 @@ export default function Expenses() {
             {(() => {
               const cats = (summary?.categories ?? []).slice().sort((a, b) => b.amount - a.amount)
               const max = Math.max(...cats.map((c) => c.amount), 1)
-              const total = Math.max(cats.reduce((s, c) => s + c.amount, 0), 1)
-              const palette = ['hsl(230 80% 62%)', 'hsl(262 83% 58%)', 'hsl(199 89% 48%)', 'hsl(158 64% 42%)', 'hsl(11 84% 60%)', 'hsl(28 90% 50%)', 'hsl(330 70% 55%)', 'hsl(230 30% 60%)', 'hsl(180 50% 40%)', 'hsl(250 20% 65%)']
-              return [
-                <div key="strip" className="mb-2 flex h-3.5 gap-[3px] overflow-hidden rounded-full">
-                  {cats.map((c, i) => (
-                    <div
-                      key={c.cat}
-                      title={`${c.cat}: ${Math.round((c.amount / total) * 100)}%`}
-                      className="chart-bar-h h-full transition-all hover:brightness-110 first:rounded-l-full last:rounded-r-full"
-                      style={{ width: `${(c.amount / total) * 100}%`, background: palette[i % palette.length], animationDelay: `${i * 40}ms` }}
-                    />
-                  ))}
-                </div>,
-                ...cats.map((c, i) => (
-                <div key={c.cat}>
-                  <div className="mb-1.5 flex items-center justify-between text-[13px]">
-                    <span className="font-medium">{c.cat}</span>
-                    <span className="tabular-nums text-muted-foreground">
-                      {c.count} · <span className="font-semibold text-foreground">{fmtMoney(c.amount)}</span>
-                    </span>
+              const palette = ['hsl(217 91% 60%)', 'hsl(248 85% 66%)', 'hsl(173 66% 42%)', 'hsl(152 60% 44%)', 'hsl(25 95% 53%)', 'hsl(0 79% 63%)', 'hsl(330 77% 60%)', 'hsl(199 89% 48%)', 'hsl(43 90% 50%)', 'hsl(220 15% 60%)']
+              const stripes = (color: string) => `repeating-linear-gradient(90deg, ${color} 0 4px, transparent 4px 8px)`
+              return cats.map((c, i) => {
+                const color = palette[i % palette.length]
+                return (
+                  <div key={c.cat}>
+                    <div className="mb-1.5 flex items-center justify-between text-[13px]">
+                      <span className="font-medium">{c.cat}</span>
+                      <span className="tabular-nums text-muted-foreground">
+                        {c.count} · <span className="font-semibold text-foreground">{fmtMoney(c.amount)}</span>
+                      </span>
+                    </div>
+                    <div className="flex h-5 w-full">
+                      <div
+                        className="chart-bar-h h-full"
+                        style={{ width: `${(c.amount / max) * 100}%`, background: stripes(color), animationDelay: `${i * 50}ms` }}
+                      />
+                      <div
+                        className="h-full flex-1"
+                        style={{ background: stripes(`color-mix(in oklch, ${color}, white 82%)`) }}
+                      />
+                    </div>
                   </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="chart-bar-h h-full rounded-full"
-                      style={{ width: `${(c.amount / max) * 100}%`, background: palette[i % palette.length], animationDelay: `${i * 60}ms` }}
-                    />
-                  </div>
-                </div>
-              ))]
+                )
+              })
             })()}
           </CardContent>
         </Card>
