@@ -16,7 +16,14 @@ import { searchRouter } from './routes/search.js'
 import { requireAuth } from './middleware/auth.js'
 import { errorHandler } from './middleware/error.js'
 
-const clientDist = path.resolve(fileURLToPath(import.meta.url), '../../../client/dist')
+function resolveClientDist() {
+  try {
+    return path.resolve(fileURLToPath(import.meta.url), '../../../client/dist')
+  } catch {
+    return path.resolve(process.cwd(), 'client/dist')
+  }
+}
+const clientDist = resolveClientDist()
 
 export function createApp() {
   const app = express()

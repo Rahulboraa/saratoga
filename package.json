@@ -1,6 +1,7 @@
 {
   "name": "saratoga-villa",
   "private": true,
+  "type": "module",
   "workspaces": [
     "server",
     "client"
