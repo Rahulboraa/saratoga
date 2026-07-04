@@ -21,10 +21,10 @@ export interface MoneyPoint {
 
 function Legend({ series }: { series: Series[] }) {
   return (
-    <div className="mb-3 flex flex-wrap justify-end gap-x-4 gap-y-1">
+    <div className="mb-4 flex flex-wrap justify-end gap-x-5 gap-y-1.5">
       {series.map((s) => (
-        <span key={s.key} className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
-          <span className="h-2 w-2 rounded-[3px]" style={{ background: s.color }} />
+        <span key={s.key} className="inline-flex items-center gap-2 text-[13px] font-medium text-foreground/80">
+          <span className="h-3 w-3 rounded-[4px]" style={{ background: s.color }} />
           {s.label}
         </span>
       ))}
@@ -50,7 +50,7 @@ function Ticks({ max, fmt }: { max: number; fmt: (n: number) => string }) {
 
 function GroupTooltip({ label, rows }: { label: string; rows: { color: string; label: string; value: string }[] }) {
   return (
-    <div className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg border border-border/60 bg-card px-3 py-2 text-[11px] text-card-foreground opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+    <div className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg border border-border/60 bg-card px-3.5 py-2.5 text-[12px] text-card-foreground opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
       <div className="mb-1 font-semibold">{label}</div>
       {rows.map((r, i) => (
         <div key={i} className="flex items-center gap-1.5">
@@ -248,6 +248,7 @@ export function CountChart({ data }: { data: { label: string; count: number }[] 
         <div className="absolute inset-0 flex items-end gap-1.5 pl-12">
           {data.map((d, i) => (
             <div key={i} className="group relative flex h-full flex-1 flex-col items-center justify-end">
+              <GroupTooltip label={d.label} rows={[{ color: C.violet, label: 'Bookings', value: String(d.count) }]} />
               <span className="mb-1 text-[10px] font-medium tabular-nums text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
                 {d.count}
               </span>

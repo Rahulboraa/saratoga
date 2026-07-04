@@ -179,10 +179,10 @@ export default function Bookings() {
           placeholder="Search guest or phone…"
           value={q}
           onChange={(e) => { setQ(e.target.value); resetPage() }}
-          className="h-10 w-full sm:w-64"
+          className="h-9 w-full sm:w-64"
         />
         <Select value={month} onValueChange={(v) => { setMonth(v); resetPage() }}>
-          <SelectTrigger className="h-10 w-[calc(50%-6px)] sm:w-64"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-9 w-[calc(50%-6px)] sm:w-64"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All months</SelectItem>
             {(data?.months ?? []).map((m) => <SelectItem key={m} value={m}>{fmtMonth(m)}</SelectItem>)}
@@ -190,7 +190,7 @@ export default function Bookings() {
         </Select>
         {isAdmin && (
           <Select value={status} onValueChange={(v) => { setStatus(v); resetPage() }}>
-            <SelectTrigger className="h-10 w-[calc(50%-6px)] sm:w-64"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-9 w-[calc(50%-6px)] sm:w-64"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All status</SelectItem>
               <SelectItem value="paid">Paid</SelectItem>
@@ -200,7 +200,7 @@ export default function Bookings() {
           </Select>
         )}
         <Select value={purpose} onValueChange={(v) => { setPurpose(v); resetPage() }}>
-          <SelectTrigger className="h-10 w-[calc(50%-6px)] sm:w-64"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-9 w-[calc(50%-6px)] sm:w-64"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All types</SelectItem>
             {PURPOSES.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
