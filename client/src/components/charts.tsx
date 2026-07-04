@@ -68,97 +68,81 @@ interface BarsProps {
   series: Series[]
   height?: number
   stacked?: boolean
-  line?: Series
+  showValues?: boolean
   fmt?: (n: number) => string
   tooltipFmt?: (n: number) => string
 }
 
-function Bars({ data, series, height = 220, stacked = false, line, fmt = fmtLakh, tooltipFmt = fmtMoney }: BarsProps) {
+function Bars({ data, series, height = 220, stacked = false, showValues = false, fmt = fmtLakh, tooltipFmt = fmtMoney }: BarsProps) {
   const groupTotal = (d: MoneyPoint) =>
     stacked
       ? series.reduce((s, sr) => s + (Number(d[sr.key]) || 0), 0)
       : Math.max(...series.map((sr) => Number(d[sr.key]) || 0))
-  const max = Math.max(...data.map(groupTotal), ...(line ? data.map((d) => Number(d[line.key]) || 0) : []), 1)
-
-  const linePoints = line
-    ? data.map((d, i) => {
-        const v = Math.max(Number(d[line.key]) || 0, 0)
-        return `${((i + 0.5) / data.length) * 100},${100 - (v / max) * 100}`
-      }).join(' ')
-    : ''
+  const max = Math.max(...data.map(groupTotal), 1)
+  const yMax = showValues ? max * 1.14 : max
 
   return (
     <div className="w-full">
-      <Legend series={line ? [...series, line] : series} />
+      <Legend series={series} />
       <div className="relative" style={{ height }}>
-        <Ticks max={max} fmt={fmt} />
+        <Ticks max={yMax} fmt={fmt} />
         <div className="absolute inset-0 flex items-end gap-1.5 pl-12">
           {data.map((d, i) => (
             <div key={i} className="group relative flex h-full flex-1 items-end justify-center gap-1">
               <GroupTooltip
                 label={d.label}
-                rows={[...series, ...(line ? [line] : [])].map((sr) => ({
+                rows={series.map((sr) => ({
                   color: sr.color, label: sr.label, value: tooltipFmt(Number(d[sr.key]) || 0),
                 }))}
               />
               {stacked ? (
-                <div className="chart-bar flex h-full w-full max-w-[32px] flex-col-reverse overflow-hidden rounded-t-[5px]" style={{ animationDelay: `${i * 45}ms` }}>
-                  {series.map((sr) => {
-                    const v = Number(d[sr.key]) || 0
-                    return (
-                      <div
-                        key={sr.key}
-                        className="w-full cursor-help transition-all group-hover:brightness-105 group-hover:saturate-125"
-                        style={{ height: `${(v / max) * 100}%`, background: `linear-gradient(to top, ${sr.color}, color-mix(in oklch, ${sr.color}, white 12%))` }}
-                      />
-                    )
-                  })}
+                <div className="relative flex h-full w-full max-w-[32px] items-end justify-center">
+                  {showValues && groupTotal(d) > 0 && (
+                    <span
+                      className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-semibold tabular-nums text-foreground/75"
+                      style={{ bottom: `calc(${(groupTotal(d) / yMax) * 100}% + 3px)` }}
+                    >
+                      {fmt(groupTotal(d))}
+                    </span>
+                  )}
+                  <div className="chart-bar flex h-full w-full flex-col-reverse overflow-hidden rounded-t-[5px]" style={{ animationDelay: `${i * 45}ms` }}>
+                    {series.map((sr) => {
+                      const v = Number(d[sr.key]) || 0
+                      return (
+                        <div
+                          key={sr.key}
+                          className="w-full cursor-help transition-all group-hover:brightness-105 group-hover:saturate-125"
+                          style={{ height: `${(v / yMax) * 100}%`, background: `linear-gradient(to top, ${sr.color}, color-mix(in oklch, ${sr.color}, white 12%))` }}
+                        />
+                      )
+                    })}
+                  </div>
                 </div>
               ) : (
                 series.map((sr) => {
                   const v = Number(d[sr.key]) || 0
+                  const pct = v > 0 ? Math.max((v / yMax) * 100, 2) : 0
                   return (
-                    <div
-                      key={sr.key}
-                      className="chart-bar w-full max-w-[26px] cursor-help rounded-t-[5px] transition-all group-hover:brightness-105 group-hover:saturate-125"
-                      style={barStyle(sr.color, v > 0 ? Math.max((v / max) * 100, 2) : 0, i)}
-                    />
+                    <div key={sr.key} className="relative flex h-full w-full max-w-[26px] items-end justify-center">
+                      {showValues && v > 0 && (
+                        <span
+                          className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-semibold tabular-nums text-foreground/75"
+                          style={{ bottom: `calc(${pct}% + 3px)` }}
+                        >
+                          {fmt(v)}
+                        </span>
+                      )}
+                      <div
+                        className="chart-bar w-full cursor-help rounded-t-[5px] transition-all group-hover:brightness-105 group-hover:saturate-125"
+                        style={barStyle(sr.color, pct, i)}
+                      />
+                    </div>
                   )
                 })
               )}
             </div>
           ))}
         </div>
-        {line && (
-          <div className="chart-line pointer-events-none absolute inset-0 pl-12">
-            <div className="relative h-full">
-              <svg className="absolute inset-0 h-full w-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
-                <polyline
-                  points={linePoints}
-                  fill="none"
-                  stroke={line.color}
-                  strokeWidth="2"
-                  vectorEffect="non-scaling-stroke"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              {data.map((d, i) => {
-                const v = Math.max(Number(d[line.key]) || 0, 0)
-                return (
-                  <span
-                    key={i}
-                    className="absolute h-2 w-2 -translate-x-1/2 translate-y-1/2 rounded-full border-2 border-background"
-                    style={{
-                      left: `${((i + 0.5) / data.length) * 100}%`,
-                      bottom: `${(v / max) * 100}%`,
-                      background: line.color,
-                    }}
-                  />
-                )
-              })}
-            </div>
-          </div>
-        )}
       </div>
       <div className="mt-2 flex gap-1.5 pl-12">
         {data.map((d, i) => (
@@ -192,6 +176,7 @@ export function RevenueChart({ data }: { data: MoneyPoint[] }) {
   return (
     <Bars
       data={data}
+      showValues
       series={[
         { key: 'booked', label: 'Booked', color: C.indigoSoft },
         { key: 'collected', label: 'Collected', color: C.indigo },
@@ -200,88 +185,35 @@ export function RevenueChart({ data }: { data: MoneyPoint[] }) {
   )
 }
 
-function smoothPath(pts: { x: number; y: number }[]): string {
-  if (pts.length < 2) return ''
-  let d = `M ${pts[0].x} ${pts[0].y}`
-  for (let i = 0; i < pts.length - 1; i++) {
-    const p0 = pts[Math.max(i - 1, 0)]
-    const p1 = pts[i]
-    const p2 = pts[i + 1]
-    const p3 = pts[Math.min(i + 2, pts.length - 1)]
-    d += ` C ${p1.x + (p2.x - p0.x) / 6} ${p1.y + (p2.y - p0.y) / 6}, ${p2.x - (p3.x - p1.x) / 6} ${p2.y - (p3.y - p1.y) / 6}, ${p2.x} ${p2.y}`
-  }
-  return d
-}
-
 export function PLChart({ data }: { data: MoneyPoint[] }) {
   const rows = data.map((d) => ({ ...d, revenue: d.revenue ?? d.collected ?? 0 }))
-  const series = [
-    { key: 'revenue', label: 'Revenue', color: C.indigo },
-    { key: 'expenses', label: 'Expenses', color: C.crimson },
-    { key: 'profit', label: 'Profit', color: C.electric },
-  ]
-  const max = Math.max(...rows.flatMap((d) => [d.revenue ?? 0, d.expenses ?? 0, Math.max(d.profit ?? 0, 0)]), 1)
-  const pt = (v: number, i: number) => ({ x: ((i + 0.5) / rows.length) * 100, y: 100 - (Math.max(v, 0) / max) * 100 })
-  const revenuePts = rows.map((d, i) => pt(d.revenue ?? 0, i))
-  const expensePts = rows.map((d, i) => pt(d.expenses ?? 0, i))
-  const profitPts = rows.map((d, i) => pt(Math.max(d.profit ?? 0, 0), i))
   if (!rows.length) return <div className="flex h-[220px] items-center justify-center text-sm text-muted-foreground">No data yet</div>
-  const area = (pts: { x: number; y: number }[]) =>
-    pts.length < 2
-      ? `M ${pts[0].x - 4} ${pts[0].y} L ${pts[0].x + 4} ${pts[0].y} L ${pts[0].x + 4} 100 L ${pts[0].x - 4} 100 Z`
-      : `${smoothPath(pts)} L ${pts[pts.length - 1].x} 100 L ${pts[0].x} 100 Z`
-
   return (
     <div className="w-full">
-      <Legend series={series} />
-      <div className="relative" style={{ height: 220 }}>
-        <Ticks max={max} fmt={fmtLakh} />
-        <div className="absolute inset-0 pl-12">
-          <div className="relative h-full">
-            <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="pl-rev" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0" stopColor={C.indigo} stopOpacity="0.28" />
-                  <stop offset="1" stopColor={C.indigo} stopOpacity="0.02" />
-                </linearGradient>
-                <linearGradient id="pl-exp" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0" stopColor={C.crimson} stopOpacity="0.22" />
-                  <stop offset="1" stopColor={C.crimson} stopOpacity="0.02" />
-                </linearGradient>
-              </defs>
-              <path d={area(revenuePts)} fill="url(#pl-rev)" className="chart-line" />
-              <path d={smoothPath(revenuePts)} fill="none" stroke={C.indigo} strokeWidth="2.5" vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
-              <path d={area(expensePts)} fill="url(#pl-exp)" className="chart-line" />
-              <path d={smoothPath(expensePts)} fill="none" stroke={C.crimson} strokeWidth="2.5" vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
-              <path d={profitPts.length < 2 ? `M ${profitPts[0].x - 4} ${profitPts[0].y} L ${profitPts[0].x + 4} ${profitPts[0].y}` : smoothPath(profitPts)} fill="none" stroke={C.electric} strokeWidth="2.5" strokeDasharray="6 5" vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
-            </svg>
-            {rows.map((d, i) => (
-              <span
+      <Bars
+        data={rows}
+        showValues
+        series={[
+          { key: 'revenue', label: 'Revenue', color: C.indigo },
+          { key: 'expenses', label: 'Expenses', color: C.crimson },
+        ]}
+      />
+      <div className="mt-2.5 flex items-center gap-1.5 border-t border-dashed border-border/60 pt-2">
+        <span className="w-[42px] shrink-0 text-right text-[10px] font-medium text-muted-foreground">Profit</span>
+        <div className="flex flex-1 gap-1.5">
+          {rows.map((d, i) => {
+            const p = d.profit ?? 0
+            return (
+              <div
                 key={i}
-                className="absolute h-2.5 w-2.5 -translate-x-1/2 translate-y-1/2 rounded-full border-2 border-background shadow-sm"
-                style={{ left: `${((i + 0.5) / rows.length) * 100}%`, bottom: `${(Math.max(d.profit ?? 0, 0) / max) * 100}%`, background: C.electric }}
-              />
-            ))}
-            <div className="absolute inset-0 flex">
-              {rows.map((d, i) => (
-                <div key={i} className="group relative h-full flex-1">
-                  <GroupTooltip
-                    label={d.label}
-                    rows={series.map((sr) => ({ color: sr.color, label: sr.label, value: fmtMoney(Number(d[sr.key as 'revenue' | 'expenses' | 'profit']) || 0) }))}
-                  />
-                  <div className="absolute inset-y-0 left-1/2 hidden w-px -translate-x-1/2 bg-border group-hover:block" />
-                </div>
-              ))}
-            </div>
-          </div>
+                className={cn('flex-1 truncate text-center text-[11px] font-semibold tabular-nums', p >= 0 ? 'text-emerald-600' : 'text-red-600')}
+                title={fmtMoney(p)}
+              >
+                {p < 0 ? '-' : ''}{fmtLakh(Math.abs(p))}
+              </div>
+            )
+          })}
         </div>
-      </div>
-      <div className="mt-2 flex gap-1.5 pl-12">
-        {rows.map((d, i) => (
-          <div key={i} className="flex-1 truncate text-center text-[10px] font-medium text-muted-foreground" title={d.label}>
-            {d.label}
-          </div>
-        ))}
       </div>
     </div>
   )
@@ -292,6 +224,7 @@ export function TrendChart({ data }: { data: MoneyPoint[] }) {
     <Bars
       data={data}
       stacked
+      showValues
       series={[
         { key: 'collected', label: 'Collected', color: C.indigo },
         { key: 'pending', label: 'Pending', color: C.lavender },
@@ -304,6 +237,7 @@ export function IncentiveTrendChart({ data }: { data: { label: string; deepak: n
   return (
     <Bars
       data={data as unknown as MoneyPoint[]}
+      showValues
       series={[
         { key: 'deepak', label: 'Deepak', color: C.indigo },
         { key: 'akhil', label: 'Akhil', color: C.electric },
@@ -322,7 +256,7 @@ export function CountChart({ data }: { data: { label: string; count: number }[] 
           {data.map((d, i) => (
             <div key={i} className="group relative flex h-full flex-1 flex-col items-center justify-end">
               <GroupTooltip label={d.label} rows={[{ color: C.violet, label: 'Bookings', value: String(d.count) }]} />
-              <span className="mb-1 text-[10px] font-medium tabular-nums text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+              <span className="mb-1 text-[10px] font-semibold tabular-nums text-foreground/75">
                 {d.count}
               </span>
               <div
