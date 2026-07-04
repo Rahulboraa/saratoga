@@ -66,7 +66,7 @@ export default function ImportPage() {
 
       <Card>
         <CardContent className="space-y-5 px-6 py-6">
-          <div className="flex flex-wrap items-end gap-4">
+          <div className="flex flex-wrap items-end gap-3">
             <div className="space-y-2">
               <Label>Data type</Label>
               <Select value={type} onValueChange={(v) => { setType(v); setResult(null) }}>
@@ -85,24 +85,22 @@ export default function ImportPage() {
                 onChange={(e) => { setFile(e.target.files?.[0] ?? null); setResult(null) }}
               />
             </div>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <Button size="lg" onClick={() => run.mutate()} disabled={!file || run.isPending}>
+            <Button className="h-10" onClick={() => run.mutate()} disabled={!file || run.isPending}>
               <Upload className="size-5" /> {run.isPending ? 'Importing…' : 'Import'}
             </Button>
             <Button
               variant="outline"
-              size="lg"
+              className="h-10"
               onClick={() => {
                 const blob = new Blob([TEMPLATE_COLS[type].join(',') + '\n'], { type: 'text/csv' })
                 const a = document.createElement('a')
                 a.href = URL.createObjectURL(blob)
-                a.download = `${type}-template.csv`
+                a.download = `${type}-sample.csv`
                 a.click()
                 URL.revokeObjectURL(a.href)
               }}
             >
-              <Download className="size-5" /> Template
+              <Download className="size-5" /> Download sample file
             </Button>
           </div>
           <p className="text-[12px] text-muted-foreground">
