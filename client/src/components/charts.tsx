@@ -50,7 +50,7 @@ function Ticks({ max, fmt }: { max: number; fmt: (n: number) => string }) {
 
 function GroupTooltip({ label, rows }: { label: string; rows: { color: string; label: string; value: string }[] }) {
   return (
-    <div className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg border border-border/60 bg-card px-3.5 py-2.5 text-[12px] text-card-foreground opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+    <div className="pointer-events-none absolute -top-1 left-1/2 z-50 -translate-x-1/2 whitespace-nowrap rounded-lg border border-border/60 bg-card px-3.5 py-2.5 text-[12px] text-card-foreground opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
       <div className="mb-1 font-semibold">{label}</div>
       {rows.map((r, i) => (
         <div key={i} className="flex items-center gap-1.5">

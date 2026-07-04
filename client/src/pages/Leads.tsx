@@ -301,20 +301,15 @@ export default function Leads() {
       )}
 
       {overdueLeads.length > 0 && (
-        <Card className="mb-6 py-0">
-          <CardContent className="px-5 py-4">
-            <div className="mb-3 flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
-                <AlertCircle className="size-5" strokeWidth={2} />
-              </span>
-              <div>
-                <div className="text-[13px] font-semibold">Overdue follow-ups</div>
-                <div className="text-[12px] text-muted-foreground">{overdueLeads.length} lead{overdueLeads.length > 1 ? 's' : ''} waiting for a call back</div>
-              </div>
+        <Card className="mb-6 border-destructive/25 bg-destructive/5 py-4">
+          <CardContent className="px-5">
+            <div className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-destructive">
+              <AlertCircle className="size-5" />
+              {overdueLeads.length} overdue follow-up{overdueLeads.length > 1 ? 's' : ''} waiting for a call back
             </div>
-            <div className="divide-y border-t">
+            <div className="space-y-1">
               {overdueLeads.map((l) => (
-                <div key={l.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-[13px]">
+                <div key={l.id} className="flex flex-wrap items-center justify-between gap-2 py-1 text-[13px]">
                   <span>
                     <span className="font-medium">{l.name}</span>
                     <span className="text-muted-foreground"> · {l.phone} · was due {fmtDate(l.followup)}</span>
@@ -328,20 +323,15 @@ export default function Leads() {
       )}
 
       {isManager && unassignedLeads.length > 0 && (
-        <Card className="mb-6 py-0">
-          <CardContent className="px-5 py-4">
-            <div className="mb-3 flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-warning/15 text-warning">
-                <UserX className="size-5" strokeWidth={2} />
-              </span>
-              <div>
-                <div className="text-[13px] font-semibold">Unassigned leads</div>
-                <div className="text-[12px] text-muted-foreground">{unassignedLeads.length} lead{unassignedLeads.length > 1 ? 's' : ''} need an executive</div>
-              </div>
+        <Card className="mb-6 border-warning/25 bg-warning/5 py-4">
+          <CardContent className="px-5">
+            <div className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-warning">
+              <UserX className="size-5" />
+              {unassignedLeads.length} unassigned lead{unassignedLeads.length > 1 ? 's' : ''} need an executive
             </div>
-            <div className="divide-y border-t">
+            <div className="space-y-1.5">
               {unassignedLeads.slice(0, 5).map((l) => (
-                <div key={l.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-[13px]">
+                <div key={l.id} className="flex flex-wrap items-center justify-between gap-2 py-1 text-[13px]">
                   <span>{l.name} · {l.phone}</span>
                   <Select onValueChange={(v) => assign.mutate({ ids: [l.id], exec: v })}>
                     <SelectTrigger className="h-7 w-36 text-[12px]"><SelectValue placeholder="Assign to…" /></SelectTrigger>
