@@ -76,7 +76,10 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 
 function Brand() {
   return (
-    <span className="text-[17px] font-semibold tracking-tight text-slate-900">Saratoga Villa</span>
+    <span className="flex items-center gap-2.5">
+      <img src="/favicon.svg" alt="" className="h-7 w-7" />
+      <span className="text-[17px] font-semibold tracking-tight text-slate-900">Saratoga Villa</span>
+    </span>
   )
 }
 

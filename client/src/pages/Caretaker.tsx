@@ -17,7 +17,10 @@ export default function Caretaker() {
     <div className="mx-auto min-h-screen max-w-3xl p-4">
       <header className="mb-4 flex items-center justify-between">
         <div>
-          <span className="text-[17px] font-semibold tracking-tight">Saratoga Villa</span>
+          <span className="flex items-center gap-2.5">
+            <img src="/favicon.svg" alt="" className="h-7 w-7" />
+            <span className="text-[17px] font-semibold tracking-tight">Saratoga Villa</span>
+          </span>
           <div className="text-xs text-muted-foreground">Caretaker · {user?.name}</div>
         </div>
         <Button variant="ghost" size="sm" onClick={() => logout()}>

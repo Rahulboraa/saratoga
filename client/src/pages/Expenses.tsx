@@ -366,24 +366,41 @@ export default function Expenses() {
         <StatCard icon={Layers} tint="purple" label="Categories" value={summary?.categories.length ?? 0} />
       </div>
 
-      <div className="mb-8 grid grid-cols-2 gap-x-4 gap-y-5 lg:grid-cols-5">
-        {(summary?.categories ?? []).map((c) => (
-          <Card key={c.cat} className="py-3">
-            <CardContent className="px-4">
-              <div className="text-[13px] font-medium">{c.cat}</div>
-              <div className="text-xs text-muted-foreground">{c.count} expenses</div>
-              <div className="mt-1 text-[15px] font-semibold tabular-nums">{fmtMoney(c.amount)}</div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <div className="mb-6 grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader><CardTitle className="text-[15px]">Spend by category</CardTitle></CardHeader>
+          <CardContent className="flex h-full flex-col justify-center space-y-4 pb-6">
+            {(() => {
+              const cats = (summary?.categories ?? []).slice().sort((a, b) => b.amount - a.amount)
+              const max = Math.max(...cats.map((c) => c.amount), 1)
+              const palette = ['hsl(230 80% 62%)', 'hsl(262 83% 58%)', 'hsl(199 89% 48%)', 'hsl(158 64% 42%)', 'hsl(11 84% 60%)', 'hsl(28 90% 50%)', 'hsl(330 70% 55%)', 'hsl(230 30% 60%)', 'hsl(180 50% 40%)', 'hsl(250 20% 65%)']
+              return cats.map((c, i) => (
+                <div key={c.cat}>
+                  <div className="mb-1.5 flex items-center justify-between text-[13px]">
+                    <span className="font-medium">{c.cat}</span>
+                    <span className="tabular-nums text-muted-foreground">
+                      {c.count} · <span className="font-semibold text-foreground">{fmtMoney(c.amount)}</span>
+                    </span>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="chart-bar-h h-full rounded-full"
+                      style={{ width: `${(c.amount / max) * 100}%`, background: palette[i % palette.length], animationDelay: `${i * 60}ms` }}
+                    />
+                  </div>
+                </div>
+              ))
+            })()}
+          </CardContent>
+        </Card>
 
-      <Card className="mb-6">
-        <CardHeader><CardTitle className="text-[15px]">Monthly P&L</CardTitle></CardHeader>
-        <CardContent>
-          <PLChart data={plSeries} />
-        </CardContent>
-      </Card>
+        <Card>
+          <CardHeader><CardTitle className="text-[15px]">Monthly P&L</CardTitle></CardHeader>
+          <CardContent>
+            <PLChart data={plSeries} />
+          </CardContent>
+        </Card>
+      </div>
 
       <Card>
         <CardHeader><CardTitle className="text-[15px]">P&L by month</CardTitle></CardHeader>
