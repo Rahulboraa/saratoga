@@ -26,6 +26,29 @@ const TEMPLATE_COLS: Record<string, string[]> = {
   leads: ['Name', 'phone_number', 'email', 'state', 'Family_gathering_/party', 'Date', 'Remark 1', 'Assign'],
 }
 
+const TEMPLATE_ROWS: Record<string, string[][]> = {
+  bookings: [
+    ['Rahul Sharma', '9876543210', '2026-07-10', '2026-07-10', '15:00', '22:00', '25', 'Party', 'Direct', '20000', '15000', '5000', '3000', '2000', '0', '5000', 'Birthday party'],
+    ['Priya Verma', '9812345678', '2026-07-12', '2026-07-13', '11:00', '10:00', '8', 'Shoot', 'Airbnb', '18000', '0', '0', '0', '0', '0', '0', 'Music video shoot'],
+  ],
+  payments: [
+    ['Rahul Sharma', '2026-07-10', '10000', 'UPI', 'Rajound Paytm', 'Deepak', 'Advance'],
+    ['Priya Verma', '2026-07-12', '18000', 'Cash', '', 'Akhil', 'Full payment'],
+  ],
+  expenses: [
+    ['2026-07-01', 'Salary', 'July staff salary', '60000', '', ''],
+    ['2026-07-03', 'Catering', 'Sharma party food', '12000', 'Anmol Caterers', ''],
+  ],
+  visitors: [
+    ['2026-07-05', 'Rohit Gupta', '9811122233', 'Venue visit', '11:00', '12:00', 'Interested for August'],
+    ['2026-07-06', 'Neha Singh', '9822233445', 'Enquiry', '16:30', '17:00', 'Asked for weekend rates'],
+  ],
+  leads: [
+    ['Neha Singh', '9822233445', '', 'Delhi', 'Party', '2026-07-04', 'Asked for weekend rates', 'Deepak'],
+    ['Aman Gupta', '9833344556', '', 'UP', 'Pre-wedding', '2026-07-05', 'Wants August dates', 'Simran'],
+  ],
+}
+
 interface RunResult {
   total: number
   inserted: number
@@ -92,7 +115,8 @@ export default function ImportPage() {
               variant="outline"
               className="h-10"
               onClick={() => {
-                const blob = new Blob([TEMPLATE_COLS[type].join(',') + '\n'], { type: 'text/csv' })
+                const rows = [TEMPLATE_COLS[type], ...TEMPLATE_ROWS[type]]
+                const blob = new Blob([rows.map((r) => r.join(',')).join('\n') + '\n'], { type: 'text/csv' })
                 const a = document.createElement('a')
                 a.href = URL.createObjectURL(blob)
                 a.download = `${type}-sample.csv`
