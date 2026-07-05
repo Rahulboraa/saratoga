@@ -8,12 +8,41 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import type { CalendarBooking } from '@/types'
 
-const DOW = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 function shiftMonth(ym: string, delta: number) {
   const [y, m] = ym.split('-').map(Number)
   const d = new Date(y, m - 1 + delta, 1)
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+}
+
+function fmtTime(hm: string | undefined) {
+  if (!hm) return ''
+  const [h, m] = hm.split(':').map(Number)
+  const ampm = h >= 12 ? 'pm' : 'am'
+  const h12 = h % 12 === 0 ? 12 : h % 12
+  return m ? `${h12}:${String(m).padStart(2, '0')}${ampm}` : `${h12}${ampm}`
+}
+
+function EventChip({ b, date }: { b: CalendarBooking; date: string }) {
+  const color = PURPOSE_COLORS[b.purpose] ?? PURPOSE_COLORS.Other
+  const isCheckin = date === b.checkinDate
+  const isCheckout = date === (b.checkoutDate || b.checkinDate) && date !== b.checkinDate
+  return (
+    <span
+      className={cn(
+        'block w-full truncate rounded-[4px] px-1.5 py-px text-left text-[10.5px] font-medium leading-[15px]',
+        isCheckout && 'opacity-75',
+      )}
+      style={{
+        background: `color-mix(in oklch, ${color}, white ${isCheckout ? '90%' : '84%'})`,
+        color: `color-mix(in oklch, ${color}, black 45%)`,
+      }}
+    >
+      {b.guest}
+      {isCheckin && b.checkinTime ? ` · ${fmtTime(b.checkinTime)}` : isCheckout ? ` · out ${fmtTime(b.checkoutTime)}` : ''}
+    </span>
+  )
 }
 
 export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: string, bookings: CalendarBooking[]) => void }) {
@@ -43,6 +72,8 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
     }
   }
   const eventCount = new Set(bookings.map((b) => b.id)).size
+  const leading = first.getDay()
+  const totalCells = Math.ceil((leading + daysInMonth) / 7) * 7
 
   return (
     <Card className="h-full">
@@ -64,70 +95,68 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-7">
-          {DOW.map((d) => (
-            <div key={d} className="pb-2 text-center text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{d}</div>
-          ))}
-          {Array.from({ length: first.getDay() }).map((_, i) => <div key={`sp${i}`} />)}
-          {Array.from({ length: daysInMonth }).map((_, i) => {
-            const date = `${month}-${String(i + 1).padStart(2, '0')}`
-            const dayBookings = byDate.get(date) ?? []
-            const hasOverlap = dayBookings.some((b) => b.overlap)
-            const isToday = date === today
-            const busy = dayBookings.length > 0
-            return (
-              <button
-                key={date}
-                type="button"
-                onClick={() => onSelectDate?.(date, dayBookings)}
-                title={dayBookings.map((b) => b.guest).join(', ') || undefined}
-                className={cn(
-                  'group relative flex h-11 flex-col items-center justify-center rounded-lg transition-colors md:h-12',
-                  onSelectDate ? 'cursor-pointer hover:bg-accent' : busy && 'hover:bg-accent/60',
-                )}
-              >
-                <span
+        <div className="overflow-hidden rounded-lg border border-border/70">
+          <div className="grid grid-cols-7 border-b border-border/70 bg-muted/40">
+            {DOW.map((d) => (
+              <div key={d} className="py-1.5 text-center text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{d}</div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7">
+            {Array.from({ length: totalCells }).map((_, i) => {
+              const dayNum = i - leading + 1
+              if (dayNum < 1 || dayNum > daysInMonth) {
+                return <div key={`sp${i}`} className={cn('min-h-20 bg-muted/20 md:min-h-24', i % 7 !== 0 && 'border-l border-border/50', i >= 7 && 'border-t border-border/50')} />
+              }
+              const date = `${month}-${String(dayNum).padStart(2, '0')}`
+              const dayBookings = byDate.get(date) ?? []
+              const hasOverlap = dayBookings.some((b) => b.overlap)
+              const isToday = date === today
+              const maxChips = 3
+              return (
+                <button
+                  key={date}
+                  type="button"
+                  onClick={() => onSelectDate?.(date, dayBookings)}
                   className={cn(
-                    'flex size-8 items-center justify-center rounded-full text-[13px] transition-colors',
-                    isToday && 'bg-primary font-semibold text-primary-foreground shadow-sm',
-                    !isToday && hasOverlap && 'bg-destructive/10 font-semibold text-destructive',
-                    !isToday && !hasOverlap && busy && 'bg-primary/10 font-semibold text-primary',
-                    !isToday && !busy && 'text-foreground/80',
+                    'flex min-h-20 flex-col gap-0.5 p-1 text-left align-top transition-colors md:min-h-24',
+                    i % 7 !== 0 && 'border-l border-border/50',
+                    i >= 7 && 'border-t border-border/50',
+                    onSelectDate ? 'cursor-pointer hover:bg-accent/50' : 'cursor-default',
+                    isToday && 'bg-primary/[0.04]',
                   )}
                 >
-                  {i + 1}
-                </span>
-                <span className="absolute bottom-0.5 flex gap-0.5">
-                  {dayBookings.slice(0, 3).map((b) => (
+                  <span className="flex items-center justify-between px-0.5">
                     <span
-                      key={b.id}
-                      className="h-1 w-1 rounded-full"
-                      style={{ background: PURPOSE_COLORS[b.purpose] ?? PURPOSE_COLORS.Other }}
-                    />
+                      className={cn(
+                        'flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-medium',
+                        isToday ? 'bg-primary text-primary-foreground' : 'text-foreground/70',
+                      )}
+                    >
+                      {dayNum}
+                    </span>
+                    {hasOverlap && <span className="h-1.5 w-1.5 rounded-full bg-destructive" title="Overlapping bookings" />}
+                  </span>
+                  {dayBookings.slice(0, maxChips).map((b) => (
+                    <EventChip key={b.id} b={b} date={date} />
                   ))}
-                </span>
-              </button>
-            )
-          })}
+                  {dayBookings.length > maxChips && (
+                    <span className="px-1 text-[10px] font-medium text-muted-foreground">+{dayBookings.length - maxChips} more</span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
         </div>
-        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 border-t pt-3">
-          <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
-            <span className="flex size-4 items-center justify-center rounded-full bg-primary/10">
-              <span className="size-1.5 rounded-full bg-primary" />
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 pt-1">
+          {Object.entries(PURPOSE_COLORS).map(([purpose, color]) => (
+            <span key={purpose} className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: color }} />
+              {purpose}
             </span>
-            Booked
-          </span>
+          ))}
           <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
-            <span className="flex size-4 items-center justify-center rounded-full bg-destructive/10">
-              <span className="size-1.5 rounded-full bg-destructive" />
-            </span>
+            <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
             Overlap
-          </span>
-          <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
-            <span className="flex size-4 items-center justify-center rounded-full bg-primary">
-              <span className="size-1.5 rounded-full bg-white" />
-            </span>
-            Today
           </span>
         </div>
       </CardContent>
