@@ -71,7 +71,7 @@ function TodayView() {
 
       {upcoming.length > 0 && (
         <section>
-          <h2 className="mb-2 text-[15px] font-bold text-foreground/80">Coming days</h2>
+          <h2 className="mb-2 text-[15px] font-bold text-foreground/80">Upcoming</h2>
           <Card className="py-1">
             <CardContent className="divide-y px-4">
               {upcoming.map(({ date, list }) => (
