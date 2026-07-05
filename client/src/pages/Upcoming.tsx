@@ -87,17 +87,14 @@ async function shareUpcoming(rows: Booking[]) {
     await navigator.share({ files: [file], title: 'Upcoming bookings' }).catch(() => {})
     return
   }
-  try {
-    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
-    toast.success('Image copied — paste it in WhatsApp (Cmd+V)')
-  } catch {
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(blob)
-    a.download = file.name
-    a.click()
-    URL.revokeObjectURL(a.href)
-    toast.success('Image downloaded — ready to share')
-  }
+  const lines = rows.map((b) => {
+    const range = b.checkoutDate && b.checkoutDate !== b.checkinDate
+      ? `${shortDate(b.checkinDate)} → ${shortDate(b.checkoutDate)}`
+      : shortDate(b.checkinDate)
+    return `• ${range} · *${b.guest}* · ${b.checkinTime || '—'}${b.checkoutTime ? ` → ${b.checkoutTime}` : ''}`
+  })
+  const text = `*Saratoga Villa · Upcoming bookings*\n_${fmtDate(todayYmd())} · next ${rows.length}_\n\n${lines.join('\n')}`
+  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
 }
 
 export default function Upcoming() {
