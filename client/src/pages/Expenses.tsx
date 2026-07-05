@@ -421,18 +421,51 @@ export default function Expenses() {
                 <TableHead className="text-right">Expenses</TableHead>
                 <TableHead className="text-right">Profit / Loss</TableHead>
                 <TableHead className="text-right">Margin</TableHead>
+                <TableHead className="text-right">Cumulative Profit</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {plSeries.map((p) => (
-                <TableRow key={p.month}>
-                  <TableCell>{p.label}</TableCell>
-                  <TableCell className="text-right tabular-nums">{fmtMoney(p.revenue)}</TableCell>
-                  <TableCell className="text-right tabular-nums">{fmtMoney(p.expenses)}</TableCell>
-                  <TableCell className={`text-right font-medium tabular-nums ${p.profit >= 0 ? 'text-success' : 'text-destructive'}`}>{fmtMoney(p.profit)}</TableCell>
-                  <TableCell className="text-right tabular-nums">{p.margin}%</TableCell>
+              {(() => {
+                let cum = 0
+                return plSeries.map((p) => {
+                  cum += p.profit
+                  return (
+                    <TableRow key={p.month}>
+                      <TableCell>{p.label}</TableCell>
+                      <TableCell className="text-right tabular-nums">{fmtMoney(p.revenue)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{fmtMoney(p.expenses)}</TableCell>
+                      <TableCell className={`text-right font-medium tabular-nums ${p.profit >= 0 ? 'text-success' : 'text-destructive'}`}>{fmtMoney(p.profit)}</TableCell>
+                      <TableCell className="text-right">
+                        <span className="inline-flex items-center justify-end gap-2">
+                          <span className="tabular-nums">{p.margin}%</span>
+                          <span className="h-1.5 w-12 overflow-hidden rounded-full bg-muted">
+                            <span
+                              className="block h-full rounded-full"
+                              style={{
+                                width: `${Math.min(Math.max(p.margin, 0), 100)}%`,
+                                background: p.margin >= 0 ? 'hsl(152 60% 44%)' : 'hsl(0 79% 63%)',
+                              }}
+                            />
+                          </span>
+                        </span>
+                      </TableCell>
+                      <TableCell className={`text-right font-medium tabular-nums ${cum >= 0 ? 'text-success' : 'text-destructive'}`}>{fmtMoney(cum)}</TableCell>
+                    </TableRow>
+                  )
+                })
+              })()}
+              {plSeries.length > 0 && (
+                <TableRow className="border-t-2 font-semibold">
+                  <TableCell>Total</TableCell>
+                  <TableCell className="text-right tabular-nums">{fmtMoney(plSeries.reduce((s, p) => s + p.revenue, 0))}</TableCell>
+                  <TableCell className="text-right tabular-nums">{fmtMoney(plSeries.reduce((s, p) => s + p.expenses, 0))}</TableCell>
+                  <TableCell className={`text-right tabular-nums ${plSeries.reduce((s, p) => s + p.profit, 0) >= 0 ? 'text-success' : 'text-destructive'}`}>{fmtMoney(plSeries.reduce((s, p) => s + p.profit, 0))}</TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    {(() => { const rev = plSeries.reduce((s, p) => s + p.revenue, 0); return rev > 0 ? `${Math.round((plSeries.reduce((s, p) => s + p.profit, 0) / rev) * 100)}%` : '—' })()}
+                  </TableCell>
+                  <TableCell className={`text-right tabular-nums ${plSeries.reduce((s, p) => s + p.profit, 0) >= 0 ? 'text-success' : 'text-destructive'}`}>{fmtMoney(plSeries.reduce((s, p) => s + p.profit, 0))}</TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </CardContent>

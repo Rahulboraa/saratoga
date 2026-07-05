@@ -53,6 +53,9 @@ interface FormValues {
   cleaning: number;
   license: number;
   security: number;
+  advance: number | string;
+  advanceDest: string;
+  advanceMethod: string;
 }
 
 const MONEY_FIELDS = [
@@ -83,6 +86,9 @@ function toForm(b?: Booking | null): FormValues {
     cleaning: b?.breakdown?.cleaning ?? 0,
     license: b?.breakdown?.license ?? 0,
     security: b?.breakdown?.security ?? 0,
+    advance: "",
+    advanceDest: "",
+    advanceMethod: "none",
   };
 }
 
@@ -139,13 +145,33 @@ export default function BookingSheet({
   ];
 
   const save = useMutation({
-    mutationFn: (payload: Record<string, unknown>) =>
-      booking
-        ? api<Booking>(`/bookings/${booking.id}`, {
+    mutationFn: async ({
+      payload,
+      advance,
+    }: {
+      payload: Record<string, unknown>;
+      advance?: { amount: number; dest: string; method: string };
+    }) => {
+      const saved = booking
+        ? await api<Booking>(`/bookings/${booking.id}`, {
             method: "PATCH",
             body: payload,
           })
-        : api<Booking>("/bookings", { body: payload }),
+        : await api<Booking>("/bookings", { body: payload });
+      if (!booking && advance && advance.amount > 0) {
+        await api(`/bookings/${saved.id}/payments`, {
+          body: {
+            date: todayYmd(),
+            amount: advance.amount,
+            method: advance.method,
+            dest: advance.dest,
+            by: "",
+            notes: "Advance",
+          },
+        });
+      }
+      return saved;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["bookings"] });
       queryClient.invalidateQueries({ queryKey: ["calendar"] });
@@ -191,9 +217,19 @@ export default function BookingSheet({
     return base;
   }
 
-  const onSubmit = handleSubmit((v) => save.mutate(buildPayload(v, false)));
+  const advanceOf = (v: FormValues) =>
+    isAdmin && !booking
+      ? {
+          amount: +v.advance || 0,
+          dest: v.advanceDest,
+          method: v.advanceMethod === "none" ? "" : v.advanceMethod,
+        }
+      : undefined;
+  const onSubmit = handleSubmit((v) =>
+    save.mutate({ payload: buildPayload(v, false), advance: advanceOf(v) }),
+  );
   const onSubmitForced = handleSubmit((v) =>
-    save.mutate(buildPayload(v, true)),
+    save.mutate({ payload: buildPayload(v, true), advance: advanceOf(v) }),
   );
 
   return (
@@ -293,12 +329,7 @@ export default function BookingSheet({
                   </SelectContent>
                 </Select>
               </div>
-              {isAdmin && (
-                <div className="space-y-2">
-                  <Label>Payment destination</Label>
-                  <Input {...register("dest")} placeholder="HDFC / Paytm ID" />
-                </div>
-              )}
+
             </div>
 
             {isAdmin && (
@@ -335,6 +366,42 @@ export default function BookingSheet({
                     </div>
                   </div>
                 </div>
+                {!booking && (
+                  <>
+                    <Separator />
+                    <div>
+                      <div className="mb-1 text-[13px] font-semibold">Advance payment</div>
+                      <p className="mb-4 text-[12px] text-muted-foreground">
+                        Recorded as the first payment against this booking.
+                      </p>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-5 sm:grid-cols-3">
+                        <div className="space-y-2">
+                          <Label>Amount</Label>
+                          <Input type="number" min="0" {...register("advance")} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Received in</Label>
+                          <Input {...register("advanceDest")} placeholder="HDFC / Paytm" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Method</Label>
+                          <Select
+                            value={watch("advanceMethod")}
+                            onValueChange={(v) => setValue("advanceMethod", v)}
+                          >
+                            <SelectTrigger className="w-full"><SelectValue placeholder="—" /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">—</SelectItem>
+                              <SelectItem value="UPI">UPI</SelectItem>
+                              <SelectItem value="Cash">Cash</SelectItem>
+                              <SelectItem value="Bank transfer">Bank transfer</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
               </>
             )}
 

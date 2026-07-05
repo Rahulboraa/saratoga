@@ -117,7 +117,7 @@ let n = 0
 for (const { _sheetAmount, ...b } of bookings) {
   void _sheetAmount
   const doc = await Booking.findOne({ legacyId: b.legacyId })
-  if (doc) { doc.set(b); await doc.save() } else { await Booking.create(b) }
+  if (doc) { doc.set(b); await doc.save() } else { await Booking.create(b as Parameters<typeof Booking.create>[0]) }
   n++
 }
 console.log('bookings upserted:', n)

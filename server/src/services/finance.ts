@@ -24,7 +24,11 @@ export function statusOf(amount: number, collected: number) {
   return 'partial'
 }
 
-export function withFinance(doc: { _id: unknown; amount: number; legacyReceived?: number }, sums: Map<string, number>) {
+export function withFinance(
+  doc: { _id: unknown; amount: number; legacyReceived?: number; breakdown?: { license?: number; security?: number } | null },
+  sums: Map<string, number>,
+) {
   const collected = (doc.legacyReceived ?? 0) + (sums.get(String(doc._id)) ?? 0)
-  return { collected, due: doc.amount - collected, status: statusOf(doc.amount, collected) }
+  const payable = doc.amount + (doc.breakdown?.license ?? 0) + (doc.breakdown?.security ?? 0)
+  return { collected, due: payable - collected, status: statusOf(payable, collected) }
 }

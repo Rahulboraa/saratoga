@@ -51,7 +51,7 @@ export default function PaymentPanel({ booking, onClose }: { booking: Booking | 
   if (!booking) return null
 
   const paid = booking.collected ?? payments.reduce((s, p) => s + p.amount, 0)
-  const amount = booking.amount ?? 0
+  const amount = (booking.amount ?? 0) + (booking.breakdown?.license ?? 0) + (booking.breakdown?.security ?? 0)
   const due = amount - paid
   const pct = amount > 0 ? Math.min(Math.round((paid / amount) * 100), 100) : 0
 
@@ -75,7 +75,7 @@ export default function PaymentPanel({ booking, onClose }: { booking: Booking | 
         <div className="flex-1 space-y-6 overflow-y-auto px-6 py-6">
           <div className="grid grid-cols-3 gap-2 text-center">
             <div className="rounded-lg border border-border/60 p-2 shadow-sm">
-              <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Bill</div>
+              <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Total payable</div>
               <div className="text-[15px] font-semibold tabular-nums">{fmtMoney(amount)}</div>
             </div>
             <div className="rounded-lg border border-border/60 p-2 shadow-sm">
