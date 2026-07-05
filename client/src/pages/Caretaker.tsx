@@ -25,9 +25,9 @@ function addDays(ymd: string, n: number) {
   return `${nd.getFullYear()}-${String(nd.getMonth() + 1).padStart(2, '0')}-${String(nd.getDate()).padStart(2, '0')}`
 }
 
-function hindiDate(ymd: string) {
+function prettyDate(ymd: string) {
   const [y, m, d] = ymd.split('-').map(Number)
-  return new Date(y, m - 1, d).toLocaleDateString('hi-IN', { weekday: 'long', day: 'numeric', month: 'long' })
+  return new Date(y, m - 1, d).toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
 function onDate(b: CalendarBooking, date: string) {
@@ -52,22 +52,22 @@ function GuestCard({ b, date }: { b: CalendarBooking; date: string }) {
       <div className="mt-2 flex flex-wrap items-center gap-2">
         {arriving && (
           <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-[14px] font-bold text-emerald-700">
-            <ArrowDown className="size-5" /> आना {fmt12(b.checkinTime)}
+            <ArrowDown className="size-5" /> In {fmt12(b.checkinTime)}
           </span>
         )}
         {leaving && (
           <span className="inline-flex items-center gap-1 rounded-lg bg-orange-50 px-2.5 py-1.5 text-[14px] font-bold text-orange-700">
-            <ArrowUp className="size-5" /> जाना {fmt12(b.checkoutTime)}
+            <ArrowUp className="size-5" /> Out {fmt12(b.checkoutTime)}
           </span>
         )}
         {!arriving && !leaving && (
           <span className="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-2.5 py-1.5 text-[14px] font-bold text-blue-700">
-            रुके हुए हैं
+            Staying
           </span>
         )}
         {b.pax && (
           <span className="inline-flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1.5 text-[13px] font-semibold text-foreground/70">
-            <Users className="size-4" /> {/^\d+$/.test(b.pax.trim()) ? `${b.pax.trim()} लोग` : b.pax}
+            <Users className="size-4" /> {/^\d+$/.test(b.pax.trim()) ? `${b.pax.trim()} guests` : b.pax}
           </span>
         )}
       </div>
@@ -95,10 +95,10 @@ function TodayView() {
     <div className="space-y-6">
       <section>
         <h2 className="mb-2 flex items-baseline gap-2 text-[19px] font-bold">
-          आज <span className="text-[13px] font-medium text-muted-foreground">{hindiDate(today)}</span>
+          Today <span className="text-[13px] font-medium text-muted-foreground">{prettyDate(today)}</span>
         </h2>
         {todayList.length === 0 ? (
-          <Card className="py-6"><CardContent className="text-center text-[15px] font-medium text-muted-foreground">आज कोई booking नहीं है</CardContent></Card>
+          <Card className="py-6"><CardContent className="text-center text-[15px] font-medium text-muted-foreground">No bookings today</CardContent></Card>
         ) : (
           <div className="space-y-2.5">
             {todayList.map((b) => <GuestCard key={b.id} b={b} date={today} />)}
@@ -108,10 +108,10 @@ function TodayView() {
 
       <section>
         <h2 className="mb-2 flex items-baseline gap-2 text-[17px] font-bold">
-          कल <span className="text-[13px] font-medium text-muted-foreground">{hindiDate(tomorrow)}</span>
+          Tomorrow <span className="text-[13px] font-medium text-muted-foreground">{prettyDate(tomorrow)}</span>
         </h2>
         {tomorrowList.length === 0 ? (
-          <p className="text-[14px] text-muted-foreground">कल कोई booking नहीं है</p>
+          <p className="text-[14px] text-muted-foreground">No bookings tomorrow</p>
         ) : (
           <div className="space-y-2.5">
             {tomorrowList.map((b) => <GuestCard key={b.id} b={b} date={tomorrow} />)}
@@ -121,12 +121,12 @@ function TodayView() {
 
       {upcoming.length > 0 && (
         <section>
-          <h2 className="mb-2 text-[15px] font-bold text-foreground/80">आगे के दिन</h2>
+          <h2 className="mb-2 text-[15px] font-bold text-foreground/80">Coming days</h2>
           <Card className="py-1">
             <CardContent className="divide-y px-4">
               {upcoming.map(({ date, list }) => (
                 <div key={date} className="flex items-center gap-3 py-2.5">
-                  <div className="w-24 shrink-0 text-[13px] font-semibold">{hindiDate(date).split(',')[1]?.trim() ?? fmtDate(date)}</div>
+                  <div className="w-24 shrink-0 text-[13px] font-semibold">{prettyDate(date).split(',')[1]?.trim() ?? fmtDate(date)}</div>
                   <div className="min-w-0 flex-1 text-[14px]">
                     {list.map((b) => b.guest).join(', ')}
                   </div>
@@ -161,9 +161,9 @@ export default function Caretaker() {
 
       <Tabs defaultValue="today">
         <TabsList className="h-11 w-full">
-          <TabsTrigger value="today" className="flex-1 text-[14px]"><Sun className="size-5" /> आज</TabsTrigger>
-          <TabsTrigger value="calendar" className="flex-1 text-[14px]"><CalendarDays className="size-5" /> कैलेंडर</TabsTrigger>
-          <TabsTrigger value="visitors" className="flex-1 text-[14px]"><ClipboardList className="size-5" /> विज़िटर</TabsTrigger>
+          <TabsTrigger value="today" className="flex-1 text-[14px]"><Sun className="size-5" /> Today</TabsTrigger>
+          <TabsTrigger value="calendar" className="flex-1 text-[14px]"><CalendarDays className="size-5" /> Calendar</TabsTrigger>
+          <TabsTrigger value="visitors" className="flex-1 text-[14px]"><ClipboardList className="size-5" /> Visitors</TabsTrigger>
         </TabsList>
         <TabsContent value="today" className="mt-4">
           <TodayView />
@@ -175,7 +175,7 @@ export default function Caretaker() {
               <CardContent className="px-4">
                 <div className="mb-2 text-sm font-semibold">{fmtDate(selected.date)}</div>
                 {selected.bookings.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">इस दिन कोई booking नहीं है</p>
+                  <p className="text-sm text-muted-foreground">No bookings this day</p>
                 ) : (
                   <div className="space-y-2.5">
                     {selected.bookings.map((b) => <GuestCard key={b.id} b={b} date={selected.date} />)}
