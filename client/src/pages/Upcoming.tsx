@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
-import { CalendarClock, Share2 } from 'lucide-react'
+import { CalendarClock, Share2, Copy, Download } from 'lucide-react'
 import type { ColumnDef } from '@tanstack/react-table'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import EmptyState from '@/components/EmptyState'
 import { DataTable, type Paged } from '@/components/DataTable'
 import { PageHeader } from '@/components/PageHeader'
@@ -24,7 +25,7 @@ function shortDate(ymd: string) {
   return new Date(y, m - 1, d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
 }
 
-async function shareUpcoming(rows: Booking[]) {
+async function generateImage(rows: Booking[]) {
   const W = 720
   const rowH = 36
   const top = 78
@@ -81,18 +82,8 @@ async function shareUpcoming(rows: Booking[]) {
   })
 
   const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'))
-  if (!blob) return
-  const file = new File([blob], `upcoming-bookings-${todayYmd()}.png`, { type: 'image/png' })
-  if (navigator.canShare?.({ files: [file] })) {
-    await navigator.share({ files: [file], title: 'Upcoming bookings' }).catch(() => {})
-    return
-  }
-  const a = document.createElement('a')
-  a.href = URL.createObjectURL(blob)
-  a.download = file.name
-  a.click()
-  URL.revokeObjectURL(a.href)
-  toast.success('Image downloaded — attach it in WhatsApp with the + button (paste mat karna)')
+  if (!blob) return null
+  return { blob, dataUrl: canvas.toDataURL('image/png') }
 }
 
 export default function Upcoming() {
@@ -105,6 +96,7 @@ export default function Upcoming() {
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(20)
   const [sharing, setSharing] = useState(false)
+  const [shareImg, setShareImg] = useState<{ blob: Blob; dataUrl: string } | null>(null)
 
   const params = new URLSearchParams({ page: String(page), limit: String(limit) })
   if (q) params.set('q', q)
@@ -200,7 +192,14 @@ export default function Upcoming() {
               try {
                 const res = await api<Paged<Booking>>(`/bookings/upcoming?limit=20&page=1${q ? `&q=${encodeURIComponent(q)}` : ''}${purpose !== 'all' ? `&purpose=${purpose}` : ''}`)
                 if (res.rows.length === 0) return void toast.error('No upcoming bookings to share')
-                await shareUpcoming(res.rows)
+                const img = await generateImage(res.rows)
+                if (!img) return
+                const file = new File([img.blob], `upcoming-bookings-${todayYmd()}.png`, { type: 'image/png' })
+                if (navigator.canShare?.({ files: [file] })) {
+                  await navigator.share({ files: [file], title: 'Upcoming bookings' }).catch(() => {})
+                } else {
+                  setShareImg(img)
+                }
               } finally {
                 setSharing(false)
               }
@@ -255,6 +254,44 @@ export default function Upcoming() {
           </Card>
         )}
       />
+
+      <Dialog open={!!shareImg} onOpenChange={(o) => !o && setShareImg(null)}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader><DialogTitle>Share upcoming bookings</DialogTitle></DialogHeader>
+          {shareImg && (
+            <img src={shareImg.dataUrl} alt="Upcoming bookings" className="max-h-[55vh] w-full rounded-lg border object-contain" />
+          )}
+          <DialogFooter className="flex-row justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (!shareImg) return
+                const a = document.createElement('a')
+                a.href = shareImg.dataUrl
+                a.download = `upcoming-bookings-${todayYmd()}.png`
+                a.click()
+                toast.success('Downloaded — WhatsApp me + button se attach karna')
+              }}
+            >
+              <Download className="size-5" /> Download
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!shareImg) return
+                try {
+                  const html = new Blob([`<img src="${shareImg.dataUrl}" alt="Upcoming bookings">`], { type: 'text/html' })
+                  await navigator.clipboard.write([new ClipboardItem({ 'image/png': shareImg.blob, 'text/html': html })])
+                  toast.success('Copied — WhatsApp me paste kar (2 dikhen to ek X kar dena)')
+                } catch {
+                  toast.error('Copy failed — Download use kar le')
+                }
+              }}
+            >
+              <Copy className="size-5" /> Copy image
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
