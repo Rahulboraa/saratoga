@@ -195,7 +195,8 @@ export default function Upcoming() {
                 const img = await generateImage(res.rows)
                 if (!img) return
                 const file = new File([img.blob], `upcoming-bookings-${todayYmd()}.png`, { type: 'image/png' })
-                if (navigator.canShare?.({ files: [file] })) {
+                const isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent)
+                if (isMobile && navigator.canShare?.({ files: [file] })) {
                   await navigator.share({ files: [file], title: 'Upcoming bookings' }).catch(() => {})
                 } else {
                   setShareImg(img)
