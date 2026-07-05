@@ -102,7 +102,7 @@ export default function SearchPalette() {
               {res.bookings.length > 0 && (
                 <Section title="Bookings">
                   {res.bookings.map((b) => (
-                    <Row key={b.id} icon={CalendarDays} label={b.guest} subLabel={`${fmtDate(b.checkinDate)} · ${b.purpose}${b.phone ? ` · ${b.phone}` : ''}`} onClick={() => go('/bookings')} />
+                    <Row key={b.id} icon={CalendarDays} label={b.guest} subLabel={`${fmtDate(b.checkinDate)} · ${b.purpose}${b.phone ? ` · ${b.phone}` : ''}`} onClick={() => go(`/bookings?focus=${b.id}`)} />
                   ))}
                 </Section>
               )}

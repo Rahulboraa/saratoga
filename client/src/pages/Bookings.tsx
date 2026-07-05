@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
+import { useSearchParams } from 'react-router-dom'
 import { Pencil, Trash2, Wallet, CalendarDays } from 'lucide-react'
 import toast from 'react-hot-toast'
 import type { ColumnDef } from '@tanstack/react-table'
@@ -38,6 +39,23 @@ export default function Bookings() {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editing, setEditing] = useState<Booking | null>(null)
   const [payFor, setPayFor] = useState<string | null>(null)
+  const [external, setExternal] = useState<Booking | null>(null)
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  useEffect(() => {
+    const focus = searchParams.get('focus')
+    if (!focus) return
+    setSearchParams({}, { replace: true })
+    api<Booking>(`/bookings/${focus}`)
+      .then((b) => {
+        setExternal(b)
+        if (isAdmin) setPayFor(b.id)
+        else if (canEdit) { setEditing(b); setSheetOpen(true) }
+        else setQ(b.guest)
+      })
+      .catch(() => toast.error('Booking not found'))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const params = new URLSearchParams({ page: String(page), limit: String(limit) })
   if (q) params.set('q', q)
@@ -62,7 +80,7 @@ export default function Bookings() {
   })
 
   const resetPage = () => setPage(1)
-  const payBooking = payFor ? (data?.rows ?? []).find((b) => b.id === payFor) ?? null : null
+  const payBooking = payFor ? (data?.rows ?? []).find((b) => b.id === payFor) ?? (external?.id === payFor ? external : null) : null
 
   const actions = (b: Booking) => (
     <div className="flex justify-end gap-1">

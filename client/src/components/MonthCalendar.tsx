@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { ChevronLeft, ChevronRight, ArrowDown, ArrowUp, Users } from 'lucide-react'
 import { api } from '@/lib/api'
+import { useAuth } from '@/lib/auth'
 import { currentMonth, todayYmd, fmtDate, PURPOSE_COLORS } from '@/lib/format'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -17,13 +19,17 @@ function fmt12(hm?: string) {
   return `${h12}:${String(m).padStart(2, '0')} ${ampm}`
 }
 
-export function DayBookingCard({ b, date }: { b: CalendarBooking; date: string }) {
+export function DayBookingCard({ b, date, onOpen }: { b: CalendarBooking; date: string; onOpen?: () => void }) {
   const color = PURPOSE_COLORS[b.purpose] ?? PURPOSE_COLORS.Other
   const arriving = b.checkinDate === date
   const leaving = (b.checkoutDate || b.checkinDate) === date
   const multiDay = b.checkoutDate && b.checkoutDate !== b.checkinDate
   return (
-    <div className="rounded-xl border border-border/70 bg-card p-3.5 shadow-sm">
+    <div
+      className={cn('rounded-xl border border-border/70 bg-card p-3.5 shadow-sm', onOpen && 'cursor-pointer transition-colors hover:border-primary/40 hover:bg-accent/40')}
+      onClick={onOpen}
+      role={onOpen ? 'button' : undefined}
+    >
       <div className="flex items-center justify-between gap-2">
         <span className="truncate text-[16px] font-bold">{b.guest}</span>
         <span
@@ -104,6 +110,9 @@ function EventChip({ b, date }: { b: CalendarBooking; date: string }) {
 export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: string, bookings: CalendarBooking[]) => void }) {
   const [month, setMonth] = useState(currentMonth())
   const [selected, setSelected] = useState<string | null>(null)
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const canOpen = user?.role === 'admin' || user?.role === 'manager'
   const { data: bookings = [] } = useQuery({
     queryKey: ['calendar', month],
     queryFn: () => api<CalendarBooking[]>(`/bookings/calendar?month=${month}`),
@@ -228,7 +237,9 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
             </SheetDescription>
           </SheetHeader>
           <div className="flex-1 space-y-2.5 overflow-y-auto px-5 py-4">
-            {selected && (byDate.get(selected) ?? []).map((b) => <DayBookingCard key={b.id} b={b} date={selected} />)}
+            {selected && (byDate.get(selected) ?? []).map((b) => (
+              <DayBookingCard key={b.id} b={b} date={selected} onOpen={canOpen ? () => navigate(`/bookings?focus=${b.id}`) : undefined} />
+            ))}
             {selected && (byDate.get(selected) ?? []).length === 0 && (
               <p className="pt-4 text-center text-sm text-muted-foreground">No bookings this day</p>
             )}

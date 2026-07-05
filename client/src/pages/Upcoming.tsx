@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { CalendarClock } from 'lucide-react'
 import type { ColumnDef } from '@tanstack/react-table'
@@ -18,6 +19,8 @@ import { cn } from '@/lib/utils'
 export default function Upcoming() {
   const { user } = useAuth()
   const isAdmin = user?.role === 'admin'
+  const canOpen = isAdmin || user?.role === 'manager'
+  const navigate = useNavigate()
   const [q, setQ] = useState('')
   const [purpose, setPurpose] = useState('all')
   const [page, setPage] = useState(1)
@@ -57,7 +60,12 @@ export default function Upcoming() {
       header: 'Guest',
       cell: ({ row: { original: b } }) => (
         <div>
-          <div className="font-medium">{b.guest}</div>
+          <div
+            className={cn('font-medium', canOpen && 'cursor-pointer underline-offset-2 hover:text-primary hover:underline')}
+            onClick={canOpen ? () => navigate(`/bookings?focus=${b.id}`) : undefined}
+          >
+            {b.guest}
+          </div>
           {b.phone && <div className="text-[11px] text-muted-foreground">{b.phone}</div>}
         </div>
       ),
