@@ -34,7 +34,7 @@ export function DayBookingCard({ b, date, onOpen }: { b: CalendarBooking; date: 
         <span className="truncate text-[16px] font-bold">{b.guest}</span>
         <span
           className="shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
-          style={{ background: `color-mix(in oklch, ${color}, white 85%)`, color: `color-mix(in oklch, ${color}, black 40%)` }}
+          style={{ background: `color-mix(in oklch, ${color}, var(--background) 85%)`, color: `color-mix(in oklch, ${color}, var(--foreground) 40%)` }}
         >
           {b.purpose}
         </span>
@@ -46,17 +46,17 @@ export function DayBookingCard({ b, date, onOpen }: { b: CalendarBooking; date: 
       )}
       <div className="mt-2 flex flex-wrap items-center gap-2">
         {arriving && (
-          <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-[13px] font-bold text-emerald-700">
+          <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-[13px] font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
             <ArrowDown className="size-4" /> In {fmt12(b.checkinTime)}
           </span>
         )}
         {leaving && (
-          <span className="inline-flex items-center gap-1 rounded-lg bg-orange-50 px-2.5 py-1.5 text-[13px] font-bold text-orange-700">
+          <span className="inline-flex items-center gap-1 rounded-lg bg-orange-50 px-2.5 py-1.5 text-[13px] font-bold text-orange-700 dark:bg-orange-950 dark:text-orange-300">
             <ArrowUp className="size-4" /> Out {fmt12(b.checkoutTime)}
           </span>
         )}
         {!arriving && !leaving && (
-          <span className="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-2.5 py-1.5 text-[13px] font-bold text-blue-700">
+          <span className="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-2.5 py-1.5 text-[13px] font-bold text-blue-700 dark:bg-blue-950 dark:text-blue-300">
             Staying
           </span>
         )}
@@ -97,8 +97,8 @@ function EventChip({ b, date }: { b: CalendarBooking; date: string }) {
         isCheckout && 'opacity-75',
       )}
       style={{
-        background: `color-mix(in oklch, ${color}, white ${isCheckout ? '90%' : '84%'})`,
-        color: `color-mix(in oklch, ${color}, black 45%)`,
+        background: `color-mix(in oklch, ${color}, var(--background) ${isCheckout ? '90%' : '84%'})`,
+        color: `color-mix(in oklch, ${color}, var(--foreground) 45%)`,
       }}
     >
       {b.guest}

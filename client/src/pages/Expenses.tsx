@@ -392,7 +392,7 @@ export default function Expenses() {
                       />
                       <div
                         className="h-full flex-1"
-                        style={{ background: stripes(`color-mix(in oklch, ${color}, white 82%)`) }}
+                        style={{ background: stripes(`color-mix(in oklch, ${color}, var(--background) 82%)`) }}
                       />
                     </div>
                   </div>

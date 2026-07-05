@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent } from '@/components/ui/card'
 import MonthCalendar, { DayBookingCard } from '@/components/MonthCalendar'
+import ThemeToggle from '@/components/ThemeToggle'
 import VisitorLog from '@/components/VisitorLog'
 
 function addDays(ymd: string, n: number) {
@@ -103,9 +104,12 @@ export default function Caretaker() {
           </span>
           <div className="text-xs text-muted-foreground">Caretaker · {user?.name}</div>
         </div>
-        <Button variant="ghost" size="sm" onClick={() => logout()}>
-          Log out
-        </Button>
+        <div className="flex items-center gap-1">
+          <ThemeToggle />
+          <Button variant="ghost" size="sm" onClick={() => logout()}>
+            Log out
+          </Button>
+        </div>
       </header>
 
       <Tabs defaultValue="today">

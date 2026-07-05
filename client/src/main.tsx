@@ -20,7 +20,7 @@ createRoot(document.getElementById('root')!).render(
           <Toaster
             position="top-center"
             toastOptions={{
-              style: { fontSize: '13px', borderRadius: '10px', border: '1px solid hsl(214.3 31.8% 91.4%)', boxShadow: '0 4px 12px rgb(0 0 0 / 0.08)', padding: '10px 14px', color: 'hsl(222.2 84% 4.9%)' },
+              style: { fontSize: '13px', borderRadius: '10px', border: '1px solid var(--border)', boxShadow: '0 4px 12px rgb(0 0 0 / 0.08)', padding: '10px 14px', background: 'var(--popover)', color: 'var(--popover-foreground)' },
               success: { iconTheme: { primary: 'hsl(152 60% 44%)', secondary: 'white' } },
               error: { iconTheme: { primary: 'hsl(0 79% 63%)', secondary: 'white' } },
             }}

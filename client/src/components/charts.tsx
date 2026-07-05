@@ -165,7 +165,7 @@ const C = {
   green: 'hsl(152 60% 44%)',
   orange: 'hsl(25 95% 53%)',
   red: 'hsl(0 79% 63%)',
-  track: 'hsl(220 16% 92%)',
+  track: 'var(--muted)',
 }
 
 function barStyle(color: string, heightPct: number, index: number): CSSProperties {

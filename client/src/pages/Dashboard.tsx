@@ -137,7 +137,7 @@ export default function Dashboard() {
                 <div className="flex items-center gap-2 text-[13px] font-medium text-muted-foreground">
                   <span
                     className="flex h-5 w-5 shrink-0 items-center justify-center rounded-[6px]"
-                    style={{ background: `color-mix(in oklch, ${color}, white 88%)` }}
+                    style={{ background: `color-mix(in oklch, ${color}, var(--background) 88%)` }}
                   >
                     <span className="h-1.5 w-1.5 rounded-full" style={{ background: color }} />
                   </span>
