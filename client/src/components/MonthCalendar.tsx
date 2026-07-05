@@ -31,7 +31,7 @@ function EventChip({ b, date }: { b: CalendarBooking; date: string }) {
   return (
     <span
       className={cn(
-        'block w-full truncate rounded-[4px] px-1.5 py-px text-left text-[10.5px] font-medium leading-[15px]',
+        'block w-full break-words rounded-[4px] px-1.5 py-0.5 text-left text-[10.5px] font-medium leading-[13px]',
         isCheckout && 'opacity-75',
       )}
       style={{
