@@ -85,7 +85,12 @@ async function shareUpcoming(rows: Booking[]) {
   const file = new File([blob], `upcoming-bookings-${todayYmd()}.png`, { type: 'image/png' })
   if (navigator.canShare?.({ files: [file] })) {
     await navigator.share({ files: [file], title: 'Upcoming bookings' }).catch(() => {})
-  } else {
+    return
+  }
+  try {
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+    toast.success('Image copied — paste it in WhatsApp (Cmd+V)')
+  } catch {
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
     a.download = file.name
