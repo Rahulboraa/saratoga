@@ -325,9 +325,17 @@ export default function Leads() {
       {isManager && unassignedLeads.length > 0 && (
         <Card className="mb-6 border-warning/25 bg-warning/5 py-4">
           <CardContent className="px-5">
-            <div className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-warning">
+            <div className="mb-2 flex flex-wrap items-center gap-2 text-[13px] font-semibold text-warning">
               <UserX className="size-5" />
               {unassignedLeads.length} unassigned lead{unassignedLeads.length > 1 ? 's' : ''} need an executive
+              {unassignedLeads.length > 1 && (
+                <Select onValueChange={(v) => assign.mutate({ ids: unassignedLeads.map((l) => l.id), exec: v })}>
+                  <SelectTrigger className="ml-auto h-7 w-44 bg-background text-[12px] font-medium text-foreground"><SelectValue placeholder="Assign all to…" /></SelectTrigger>
+                  <SelectContent>
+                    {execs.map((u) => <SelectItem key={u.username} value={u.username}>{u.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
             <div className="space-y-1.5">
               {unassignedLeads.slice(0, 5).map((l) => (
