@@ -271,7 +271,7 @@ export default function Upcoming() {
                 a.href = shareImg.dataUrl
                 a.download = `upcoming-bookings-${todayYmd()}.png`
                 a.click()
-                toast.success('Downloaded — WhatsApp me + button se attach karna')
+                toast.success('Downloaded — attach it in WhatsApp')
               }}
             >
               <Download className="size-5" /> Download
@@ -281,9 +281,9 @@ export default function Upcoming() {
                 if (!shareImg) return
                 try {
                   await navigator.clipboard.write([new ClipboardItem({ 'image/png': shareImg.blob })])
-                  toast.success('Copied — WhatsApp me paste kar')
+                  toast.success('Image copied — paste it in WhatsApp')
                 } catch {
-                  toast.error('Copy failed — Download use kar le')
+                  toast.error('Copy failed — use Download instead')
                 }
               }}
             >
