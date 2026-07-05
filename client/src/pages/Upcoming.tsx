@@ -104,6 +104,7 @@ export default function Upcoming() {
   const [purpose, setPurpose] = useState('all')
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(20)
+  const [sharing, setSharing] = useState(false)
 
   const params = new URLSearchParams({ page: String(page), limit: String(limit) })
   if (q) params.set('q', q)
@@ -193,13 +194,19 @@ export default function Upcoming() {
         actions={
           <Button
             variant="outline"
+            disabled={sharing}
             onClick={async () => {
-              const res = await api<Paged<Booking>>(`/bookings/upcoming?limit=20&page=1${q ? `&q=${encodeURIComponent(q)}` : ''}${purpose !== 'all' ? `&purpose=${purpose}` : ''}`)
-              if (res.rows.length === 0) return toast.error('No upcoming bookings to share')
-              await shareUpcoming(res.rows)
+              setSharing(true)
+              try {
+                const res = await api<Paged<Booking>>(`/bookings/upcoming?limit=20&page=1${q ? `&q=${encodeURIComponent(q)}` : ''}${purpose !== 'all' ? `&purpose=${purpose}` : ''}`)
+                if (res.rows.length === 0) return void toast.error('No upcoming bookings to share')
+                await shareUpcoming(res.rows)
+              } finally {
+                setSharing(false)
+              }
             }}
           >
-            <Share2 className="size-5" /> Share
+            <Share2 className="size-5" /> {sharing ? 'Preparing…' : 'Share'}
           </Button>
         }
       />
