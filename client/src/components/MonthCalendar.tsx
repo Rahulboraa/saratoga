@@ -1,12 +1,68 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ArrowDown, ArrowUp, Users } from 'lucide-react'
 import { api } from '@/lib/api'
-import { currentMonth, todayYmd, PURPOSE_COLORS } from '@/lib/format'
+import { currentMonth, todayYmd, fmtDate, PURPOSE_COLORS } from '@/lib/format'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 import type { CalendarBooking } from '@/types'
+
+function fmt12(hm?: string) {
+  if (!hm) return ''
+  const [h, m] = hm.split(':').map(Number)
+  const ampm = h >= 12 ? 'PM' : 'AM'
+  const h12 = h % 12 === 0 ? 12 : h % 12
+  return `${h12}:${String(m).padStart(2, '0')} ${ampm}`
+}
+
+export function DayBookingCard({ b, date }: { b: CalendarBooking; date: string }) {
+  const color = PURPOSE_COLORS[b.purpose] ?? PURPOSE_COLORS.Other
+  const arriving = b.checkinDate === date
+  const leaving = (b.checkoutDate || b.checkinDate) === date
+  const multiDay = b.checkoutDate && b.checkoutDate !== b.checkinDate
+  return (
+    <div className="rounded-xl border border-border/70 bg-card p-3.5 shadow-sm">
+      <div className="flex items-center justify-between gap-2">
+        <span className="truncate text-[16px] font-bold">{b.guest}</span>
+        <span
+          className="shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
+          style={{ background: `color-mix(in oklch, ${color}, white 85%)`, color: `color-mix(in oklch, ${color}, black 40%)` }}
+        >
+          {b.purpose}
+        </span>
+      </div>
+      {multiDay && (
+        <div className="mt-1 text-[12px] text-muted-foreground">
+          {fmtDate(b.checkinDate)} → {fmtDate(b.checkoutDate)}
+        </div>
+      )}
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        {arriving && (
+          <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-[13px] font-bold text-emerald-700">
+            <ArrowDown className="size-4" /> In {fmt12(b.checkinTime)}
+          </span>
+        )}
+        {leaving && (
+          <span className="inline-flex items-center gap-1 rounded-lg bg-orange-50 px-2.5 py-1.5 text-[13px] font-bold text-orange-700">
+            <ArrowUp className="size-4" /> Out {fmt12(b.checkoutTime)}
+          </span>
+        )}
+        {!arriving && !leaving && (
+          <span className="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-2.5 py-1.5 text-[13px] font-bold text-blue-700">
+            Staying
+          </span>
+        )}
+        {b.pax && (
+          <span className="inline-flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1.5 text-[12px] font-semibold text-foreground/70">
+            <Users className="size-4" /> {/^\d+$/.test(b.pax.trim()) ? `${b.pax.trim()} guests` : b.pax}
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
 
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -47,6 +103,7 @@ function EventChip({ b, date }: { b: CalendarBooking; date: string }) {
 
 export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: string, bookings: CalendarBooking[]) => void }) {
   const [month, setMonth] = useState(currentMonth())
+  const [selected, setSelected] = useState<string | null>(null)
   const { data: bookings = [] } = useQuery({
     queryKey: ['calendar', month],
     queryFn: () => api<CalendarBooking[]>(`/bookings/calendar?month=${month}`),
@@ -116,12 +173,12 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
                 <button
                   key={date}
                   type="button"
-                  onClick={() => onSelectDate?.(date, dayBookings)}
+                  onClick={() => { setSelected(date); onSelectDate?.(date, dayBookings) }}
                   className={cn(
                     'flex min-h-20 flex-col gap-0.5 p-1 text-left align-top transition-colors md:min-h-24',
                     i % 7 !== 0 && 'border-l border-border/50',
                     i >= 7 && 'border-t border-border/50',
-                    onSelectDate ? 'cursor-pointer hover:bg-accent/50' : 'cursor-default',
+                    'cursor-pointer hover:bg-accent/50',
                     isToday && 'bg-primary/[0.04]',
                   )}
                 >
@@ -160,6 +217,24 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
           </span>
         </div>
       </CardContent>
+      <Sheet open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
+        <SheetContent side="right" size="sm" className="flex w-full flex-col gap-0 p-0">
+          <SheetHeader className="border-b px-5 py-4">
+            <SheetTitle>{selected ? fmtDate(selected) : ''}</SheetTitle>
+            <SheetDescription>
+              {selected
+                ? `${(byDate.get(selected) ?? []).length || 'No'} booking${(byDate.get(selected) ?? []).length === 1 ? '' : 's'} this day`
+                : ''}
+            </SheetDescription>
+          </SheetHeader>
+          <div className="flex-1 space-y-2.5 overflow-y-auto px-5 py-4">
+            {selected && (byDate.get(selected) ?? []).map((b) => <DayBookingCard key={b.id} b={b} date={selected} />)}
+            {selected && (byDate.get(selected) ?? []).length === 0 && (
+              <p className="pt-4 text-center text-sm text-muted-foreground">No bookings this day</p>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </Card>
   )
 }

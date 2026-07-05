@@ -1,23 +1,14 @@
-import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/lib/auth'
 import { api } from '@/lib/api'
-import { fmtDate, currentMonth, todayYmd, PURPOSE_COLORS } from '@/lib/format'
+import { fmtDate, currentMonth, todayYmd } from '@/lib/format'
 import type { CalendarBooking } from '@/types'
-import { Sun, CalendarDays, ClipboardList, ArrowDown, ArrowUp, Users } from 'lucide-react'
+import { Sun, CalendarDays, ClipboardList } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent } from '@/components/ui/card'
-import MonthCalendar from '@/components/MonthCalendar'
+import MonthCalendar, { DayBookingCard } from '@/components/MonthCalendar'
 import VisitorLog from '@/components/VisitorLog'
-
-function fmt12(hm?: string) {
-  if (!hm) return ''
-  const [h, m] = hm.split(':').map(Number)
-  const ampm = h >= 12 ? 'PM' : 'AM'
-  const h12 = h % 12 === 0 ? 12 : h % 12
-  return `${h12}:${String(m).padStart(2, '0')} ${ampm}`
-}
 
 function addDays(ymd: string, n: number) {
   const [y, m, d] = ymd.split('-').map(Number)
@@ -32,47 +23,6 @@ function prettyDate(ymd: string) {
 
 function onDate(b: CalendarBooking, date: string) {
   return b.checkinDate <= date && date <= (b.checkoutDate || b.checkinDate)
-}
-
-function GuestCard({ b, date }: { b: CalendarBooking; date: string }) {
-  const color = PURPOSE_COLORS[b.purpose] ?? PURPOSE_COLORS.Other
-  const arriving = b.checkinDate === date
-  const leaving = (b.checkoutDate || b.checkinDate) === date
-  return (
-    <div className="rounded-xl border border-border/70 bg-card p-3.5 shadow-sm">
-      <div className="flex items-center justify-between gap-2">
-        <span className="truncate text-[17px] font-bold">{b.guest}</span>
-        <span
-          className="shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
-          style={{ background: `color-mix(in oklch, ${color}, white 85%)`, color: `color-mix(in oklch, ${color}, black 40%)` }}
-        >
-          {b.purpose}
-        </span>
-      </div>
-      <div className="mt-2 flex flex-wrap items-center gap-2">
-        {arriving && (
-          <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-[14px] font-bold text-emerald-700">
-            <ArrowDown className="size-5" /> In {fmt12(b.checkinTime)}
-          </span>
-        )}
-        {leaving && (
-          <span className="inline-flex items-center gap-1 rounded-lg bg-orange-50 px-2.5 py-1.5 text-[14px] font-bold text-orange-700">
-            <ArrowUp className="size-5" /> Out {fmt12(b.checkoutTime)}
-          </span>
-        )}
-        {!arriving && !leaving && (
-          <span className="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-2.5 py-1.5 text-[14px] font-bold text-blue-700">
-            Staying
-          </span>
-        )}
-        {b.pax && (
-          <span className="inline-flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1.5 text-[13px] font-semibold text-foreground/70">
-            <Users className="size-4" /> {/^\d+$/.test(b.pax.trim()) ? `${b.pax.trim()} guests` : b.pax}
-          </span>
-        )}
-      </div>
-    </div>
-  )
 }
 
 function TodayView() {
@@ -101,7 +51,7 @@ function TodayView() {
           <Card className="py-6"><CardContent className="text-center text-[15px] font-medium text-muted-foreground">No bookings today</CardContent></Card>
         ) : (
           <div className="space-y-2.5">
-            {todayList.map((b) => <GuestCard key={b.id} b={b} date={today} />)}
+            {todayList.map((b) => <DayBookingCard key={b.id} b={b} date={today} />)}
           </div>
         )}
       </section>
@@ -114,7 +64,7 @@ function TodayView() {
           <p className="text-[14px] text-muted-foreground">No bookings tomorrow</p>
         ) : (
           <div className="space-y-2.5">
-            {tomorrowList.map((b) => <GuestCard key={b.id} b={b} date={tomorrow} />)}
+            {tomorrowList.map((b) => <DayBookingCard key={b.id} b={b} date={tomorrow} />)}
           </div>
         )}
       </section>
@@ -142,7 +92,6 @@ function TodayView() {
 
 export default function Caretaker() {
   const { user, logout } = useAuth()
-  const [selected, setSelected] = useState<{ date: string; bookings: CalendarBooking[] } | null>(null)
 
   return (
     <div className="mx-auto min-h-screen max-w-3xl p-4">
@@ -168,22 +117,8 @@ export default function Caretaker() {
         <TabsContent value="today" className="mt-4">
           <TodayView />
         </TabsContent>
-        <TabsContent value="calendar" className="mt-4 space-y-3">
-          <MonthCalendar onSelectDate={(date, bookings) => setSelected({ date, bookings })} />
-          {selected && (
-            <Card className="py-3">
-              <CardContent className="px-4">
-                <div className="mb-2 text-sm font-semibold">{fmtDate(selected.date)}</div>
-                {selected.bookings.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No bookings this day</p>
-                ) : (
-                  <div className="space-y-2.5">
-                    {selected.bookings.map((b) => <GuestCard key={b.id} b={b} date={selected.date} />)}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
+        <TabsContent value="calendar" className="mt-4">
+          <MonthCalendar />
         </TabsContent>
         <TabsContent value="visitors" className="mt-4">
           <VisitorLog embedded />
