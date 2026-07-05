@@ -279,9 +279,8 @@ export default function Upcoming() {
               onClick={async () => {
                 if (!shareImg) return
                 try {
-                  const html = new Blob([`<img src="${shareImg.dataUrl}" alt="Upcoming bookings">`], { type: 'text/html' })
-                  await navigator.clipboard.write([new ClipboardItem({ 'image/png': shareImg.blob, 'text/html': html })])
-                  toast.success('Copied — WhatsApp me paste kar (2 dikhen to ek X kar dena)')
+                  await navigator.clipboard.write([new ClipboardItem({ 'image/png': shareImg.blob })])
+                  toast.success('Copied — WhatsApp me paste kar')
                 } catch {
                   toast.error('Copy failed — Download use kar le')
                 }
