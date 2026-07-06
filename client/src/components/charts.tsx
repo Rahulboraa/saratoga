@@ -94,7 +94,7 @@ function Bars({ data, series, height = 220, stacked = false, showValues = false,
             <div key={i} className="group relative flex h-full flex-1 items-end justify-center gap-2.5">
               {groupLabel && groupTotal(d) > 0 && (
                 <span
-                  className="pointer-events-none absolute left-1/2 z-10 -translate-x-1/2 whitespace-nowrap text-[9px] font-semibold tabular-nums text-foreground/75"
+                  className="pointer-events-none absolute left-1/2 z-10 -translate-x-1/2 whitespace-nowrap text-[10px] font-semibold tabular-nums text-foreground/75"
                   style={{ bottom: `calc(${(groupTotal(d) / yMax) * 100}% + 3px)` }}
                 >
                   {fmt(groupTotal(d))}
@@ -159,7 +159,7 @@ function Bars({ data, series, height = 220, stacked = false, showValues = false,
       </div>
       <div className="mt-2 flex gap-2 pl-12 pr-1 sm:gap-3">
         {data.map((d, i) => (
-          <div key={i} className={cn('flex-1 truncate text-center font-medium text-muted-foreground', dense ? 'text-[9px]' : 'text-[10px]')} title={d.label}>
+          <div key={i} className={cn('flex-1 truncate text-center font-medium text-muted-foreground', dense ? 'text-[10.5px]' : 'text-[10px]')} title={d.label}>
             {dense ? d.label.split("'")[0] : d.label}
           </div>
         ))}
@@ -222,7 +222,7 @@ export function PLChart({ data }: { data: MoneyPoint[] }) {
             return (
               <div
                 key={i}
-                className={cn('flex-1 truncate text-center font-semibold tabular-nums', dense ? 'text-[9px]' : 'text-[11px]', p >= 0 ? 'text-emerald-600' : 'text-red-600')}
+                className={cn('flex-1 whitespace-nowrap text-center font-semibold tabular-nums', dense ? 'text-[10px]' : 'text-[11px]', p >= 0 ? 'text-emerald-600' : 'text-red-600')}
                 title={fmtMoney(p)}
               >
                 {p < 0 ? '-' : ''}{fmtLakh(Math.abs(p))}
@@ -292,7 +292,7 @@ export function CountChart({ data }: { data: { label: string; count: number }[] 
       </div>
       <div className="mt-2 flex gap-2 pl-12 pr-1 sm:gap-3">
         {data.map((d, i) => (
-          <div key={i} className={cn('flex-1 truncate text-center font-medium text-muted-foreground', data.length > 8 ? 'text-[9px]' : 'text-[10px]')} title={d.label}>
+          <div key={i} className={cn('flex-1 truncate text-center font-medium text-muted-foreground', data.length > 8 ? 'text-[10.5px]' : 'text-[10px]')} title={d.label}>
             {data.length > 8 ? d.label.split("'")[0] : d.label}
           </div>
         ))}
