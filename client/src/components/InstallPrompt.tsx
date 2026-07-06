@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
-import { Download } from 'lucide-react'
+import { Download, Share } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface BeforeInstallPromptEvent extends Event {
@@ -55,7 +55,7 @@ export default function InstallButton() {
           deferredPrompt = null
           force((n) => n + 1)
         } else {
-          toast('Tap the Share button, then "Add to Home Screen"', { icon: '📲', duration: 5000 })
+          toast('Tap the Share button, then "Add to Home Screen"', { icon: <Share className="size-5 text-primary" />, duration: 5000 })
         }
       }}
     >
