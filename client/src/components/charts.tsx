@@ -81,7 +81,8 @@ function Bars({ data, series, height = 220, stacked = false, showValues = false,
   const max = Math.max(...data.map(groupTotal), 1)
   const dense = data.length > 8
   const labels = showValues && !dense
-  const yMax = labels ? max * 1.18 : max
+  const groupLabel = showValues && dense
+  const yMax = showValues ? max * 1.18 : max
 
   return (
     <div className="w-full">
@@ -91,6 +92,14 @@ function Bars({ data, series, height = 220, stacked = false, showValues = false,
         <div className="absolute inset-0 flex items-end gap-2 pl-12 pr-1 sm:gap-3">
           {data.map((d, i) => (
             <div key={i} className="group relative flex h-full flex-1 items-end justify-center gap-2.5">
+              {groupLabel && groupTotal(d) > 0 && (
+                <span
+                  className="pointer-events-none absolute left-1/2 z-10 -translate-x-1/2 whitespace-nowrap text-[9px] font-semibold tabular-nums text-foreground/75"
+                  style={{ bottom: `calc(${(groupTotal(d) / yMax) * 100}% + 3px)` }}
+                >
+                  {fmt(groupTotal(d))}
+                </span>
+              )}
               <GroupTooltip
                 label={d.label}
                 rows={series.map((sr) => ({
