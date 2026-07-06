@@ -48,9 +48,10 @@ function Ticks({ max, fmt }: { max: number; fmt: (n: number) => string }) {
   )
 }
 
-function GroupTooltip({ label, rows }: { label: string; rows: { color: string; label: string; value: string }[] }) {
+function GroupTooltip({ label, rows, align = 'center' }: { label: string; rows: { color: string; label: string; value: string }[]; align?: 'left' | 'center' | 'right' }) {
+  const pos = align === 'left' ? 'left-0' : align === 'right' ? 'right-0' : 'left-1/2 -translate-x-1/2'
   return (
-    <div className="pointer-events-none absolute -top-1 left-1/2 z-50 -translate-x-1/2 whitespace-nowrap rounded-lg border border-border/60 bg-card px-3.5 py-2.5 text-[12px] text-card-foreground opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+    <div className={cn('pointer-events-none absolute -top-1 z-50 whitespace-nowrap rounded-lg border border-border/60 bg-card px-3.5 py-2.5 text-[12px] text-card-foreground opacity-0 shadow-lg transition-opacity group-hover:opacity-100', pos)}>
       <div className="mb-1 font-semibold">{label}</div>
       {rows.map((r, i) => (
         <div key={i} className="flex items-center gap-1.5">
@@ -101,6 +102,7 @@ function Bars({ data, series, height = 220, stacked = false, showValues = false,
                 </span>
               )}
               <GroupTooltip
+                align={i < 2 ? 'left' : i > data.length - 3 ? 'right' : 'center'}
                 label={d.label}
                 rows={series.map((sr) => ({
                   color: sr.color, label: sr.label, value: tooltipFmt(Number(d[sr.key]) || 0),
@@ -272,7 +274,7 @@ export function CountChart({ data }: { data: { label: string; count: number }[] 
         <div className="absolute inset-0 flex items-end gap-2 pl-12 pr-1 sm:gap-3">
           {data.map((d, i) => (
             <div key={i} className="group relative flex h-full flex-1 flex-col items-center justify-end">
-              <GroupTooltip label={d.label} rows={[{ color: i === current ? C.violet : C.track, label: 'Bookings', value: String(d.count) }]} />
+              <GroupTooltip align={i < 2 ? 'left' : i > data.length - 3 ? 'right' : 'center'} label={d.label} rows={[{ color: i === current ? C.violet : C.track, label: 'Bookings', value: String(d.count) }]} />
               <span className={cn('mb-1 text-[10px] font-semibold tabular-nums', i === current ? 'text-foreground' : 'text-foreground/60')}>
                 {d.count}
               </span>
