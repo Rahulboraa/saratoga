@@ -134,7 +134,6 @@ function TopBar() {
         <span className="font-medium text-foreground">{PAGE_LABELS[key] ?? 'Dashboard'}</span>
       </nav>
       <div className="flex flex-1 items-center justify-end gap-2">
-        <ThemeToggle />
         <button
           type="button"
           onClick={openSearchPalette}
