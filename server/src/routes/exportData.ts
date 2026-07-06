@@ -26,9 +26,10 @@ function sendSheet(res: Response, name: string, rows: Record<string, unknown>[])
   res.send(buf)
 }
 
-exportRouter.get('/bookings', requireRole('admin'), async (req, res) => {
-  const { month, status, purpose, q } = req.query as Record<string, string | undefined>
+exportRouter.get('/bookings', requireRole('admin', 'manager'), async (req, res) => {
+  const { month, status, purpose, q, upcoming } = req.query as Record<string, string | undefined>
   const filter: Record<string, unknown> = {}
+  if (upcoming) filter.checkinDate = { $gte: new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }) }
   if (month) filter.checkinDate = { $regex: `^${escapeRegex(month)}` }
   if (purpose) filter.purpose = purpose
   if (q) {

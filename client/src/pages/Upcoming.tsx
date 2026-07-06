@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import EmptyState from '@/components/EmptyState'
 import { DataTable, type Paged } from '@/components/DataTable'
 import { PageHeader } from '@/components/PageHeader'
+import ExportButton from '@/components/ExportButton'
 import { cn } from '@/lib/utils'
 
 
@@ -26,7 +27,7 @@ function shortDate(ymd: string) {
 }
 
 async function generateImage(rows: Booking[]) {
-  const W = 780
+  const W = 860
   const rowH = 36
   const top = 78
   const H = top + 34 + rows.length * rowH + 26
@@ -47,13 +48,14 @@ async function generateImage(rows: Booking[]) {
   font('400 12px')
   ctx.fillText(`${fmtDate(todayYmd())} · next ${rows.length} booking${rows.length === 1 ? '' : 's'}`, 28, 56)
 
-  const col = { date: 28, guest: 240, phone: 490, ci: 620, co: 700 }
+  const col = { date: 28, guest: 210, phone: 420, source: 560, ci: 700, co: 780 }
   ctx.fillStyle = '#94a3b8'
   font('600 10.5px')
   const headerY = top + 8
   ctx.fillText('DATE', col.date, headerY)
   ctx.fillText('GUEST', col.guest, headerY)
   ctx.fillText('PHONE', col.phone, headerY)
+  ctx.fillText('SOURCE', col.source, headerY)
   ctx.fillText('IN', col.ci, headerY)
   ctx.fillText('OUT', col.co, headerY)
 
@@ -79,6 +81,9 @@ async function generateImage(rows: Booking[]) {
     ctx.fillStyle = '#334155'
     font('400 13px')
     ctx.fillText(b.phone || '—', col.phone, y)
+    let src = b.source || '—'
+    while (ctx.measureText(src).width > col.ci - col.source - 16 && src.length > 3) src = src.slice(0, -1)
+    ctx.fillText(src === (b.source || '—') ? src : `${src}…`, col.source, y)
     ctx.fillText(b.checkinTime || '—', col.ci, y)
     ctx.fillText(b.checkoutTime || '—', col.co, y)
   })
@@ -186,6 +191,13 @@ export default function Upcoming() {
         title="Upcoming"
         description="Next events at the villa, soonest first"
         actions={
+          <div className="flex gap-2">
+          {canOpen && (() => {
+            const p = new URLSearchParams({ upcoming: '1' })
+            if (q) p.set('q', q)
+            if (purpose !== 'all') p.set('purpose', purpose)
+            return <ExportButton path="/export/bookings" name="upcoming-bookings" params={p} />
+          })()}
           <Button
             variant="outline"
             disabled={sharing}
@@ -210,6 +222,7 @@ export default function Upcoming() {
           >
             <Share2 className="size-5" /> {sharing ? 'Preparing…' : 'Share'}
           </Button>
+          </div>
         }
       />
 
