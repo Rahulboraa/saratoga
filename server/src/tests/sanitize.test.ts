@@ -30,7 +30,14 @@ describe('serializeBooking', () => {
     expect(out.dest).toBe('HDFC')
   })
 
-  it.each(['manager', 'sales', 'caretaker'] as const)('strips all financial keys for %s', (role) => {
+  it('gives manager all booking financial fields', () => {
+    const out = serializeBooking(booking, 'manager')
+    expect(out.amount).toBe(15)
+    expect(out.collected).toBe(10)
+    expect(out.due).toBeDefined()
+  })
+
+  it.each(['sales', 'caretaker'] as const)('strips all financial keys for %s', (role) => {
     const out = serializeBooking(booking, role)
     expect(assertNoFinancialKeys(out)).toEqual([])
     expect(out.guest).toBe('G')

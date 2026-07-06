@@ -19,7 +19,7 @@ const BOOKING_COMMON = [
 const BOOKING_ADMIN = [...BOOKING_COMMON, 'dest', 'breakdown', 'amount', 'collected', 'due', 'status']
 
 export function serializeBooking(doc: Doc, role: Role) {
-  return { ...base(doc), ...pick(doc, role === 'admin' ? BOOKING_ADMIN : BOOKING_COMMON) }
+  return { ...base(doc), ...pick(doc, role === 'admin' || role === 'manager' ? BOOKING_ADMIN : BOOKING_COMMON) }
 }
 
 const CALENDAR_KEYS = ['guest', 'checkinDate', 'checkoutDate', 'checkinTime', 'checkoutTime', 'pax', 'purpose', 'overlap']

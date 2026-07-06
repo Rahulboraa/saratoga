@@ -5,7 +5,7 @@ import { paymentSchema } from '../validation/schemas.js'
 import { serializePayment } from '../lib/sanitize.js'
 
 export const paymentsRouter = Router()
-paymentsRouter.use(requireRole('admin'))
+paymentsRouter.use(requireRole('admin', 'manager'))
 
 paymentsRouter.patch('/:id', async (req, res) => {
   const body = paymentSchema.partial().parse(req.body)

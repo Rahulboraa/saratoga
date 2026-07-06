@@ -28,6 +28,7 @@ export default function Bookings() {
   const { user } = useAuth()
   const isAdmin = user?.role === 'admin'
   const canEdit = isAdmin || user?.role === 'manager'
+  const canMoney = canEdit
   const queryClient = useQueryClient()
 
   const [q, setQ] = useState('')
@@ -49,7 +50,7 @@ export default function Bookings() {
     api<Booking>(`/bookings/${focus}`)
       .then((b) => {
         setExternal(b)
-        if (isAdmin) setPayFor(b.id)
+        if (canMoney) setPayFor(b.id)
         else if (canEdit) { setEditing(b); setSheetOpen(true) }
         else setQ(b.guest)
       })
@@ -60,7 +61,7 @@ export default function Bookings() {
   const params = new URLSearchParams({ page: String(page), limit: String(limit) })
   if (q) params.set('q', q)
   if (month !== 'all') params.set('month', month)
-  if (isAdmin && status !== 'all') params.set('status', status)
+  if (canMoney && status !== 'all') params.set('status', status)
   if (purpose !== 'all') params.set('purpose', purpose)
 
   const { data, isLoading } = useQuery({
@@ -84,7 +85,7 @@ export default function Bookings() {
 
   const actions = (b: Booking) => (
     <div className="flex justify-end gap-1">
-      {isAdmin && (
+      {canMoney && (
         <Button variant="ghost" size="icon-sm" title="Payments" onClick={() => setPayFor(b.id)}>
           <Wallet className="size-5" />
         </Button>
@@ -132,7 +133,7 @@ export default function Bookings() {
         </div>
       ),
     },
-    ...(isAdmin
+    ...(canMoney
       ? ([
           {
             id: 'amount',
@@ -162,7 +163,7 @@ export default function Bookings() {
       header: 'Pax',
       cell: ({ row: { original: b } }) => <span className="block max-w-28 truncate">{b.pax || '—'}</span>,
     },
-    ...(isAdmin
+    ...(canMoney
       ? ([{
           id: 'status',
           header: 'Status',
@@ -206,7 +207,7 @@ export default function Bookings() {
             {(data?.months ?? []).map((m) => <SelectItem key={m} value={m}>{fmtMonth(m)}</SelectItem>)}
           </SelectContent>
         </Select>
-        {isAdmin && (
+        {canMoney && (
           <Select value={status} onValueChange={(v) => { setStatus(v); resetPage() }}>
             <SelectTrigger className="h-9 w-[calc(50%-6px)] sm:w-64"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -235,7 +236,7 @@ export default function Bookings() {
         onPageChange={setPage}
         onLimitChange={(l) => { setLimit(l); resetPage() }}
         isLoading={isLoading}
-        rowClassName={(b) => cn(b.overlap && 'border-l-2 border-l-destructive', isAdmin && b.status === 'pending' && 'bg-destructive/5')}
+        rowClassName={(b) => cn(b.overlap && 'border-l-2 border-l-destructive', canMoney && b.status === 'pending' && 'bg-destructive/5')}
         empty={<EmptyState icon={CalendarDays} message="No bookings found" description="Try adjusting your search or filters." />}
         renderCard={(b) => (
           <Card className={cn('py-3', b.overlap && 'border-l-2 border-l-destructive')}>
@@ -250,7 +251,7 @@ export default function Bookings() {
                 </div>
                 {purposePill(b)}
               </div>
-              {isAdmin && (
+              {canMoney && (
                 <div className="flex items-center justify-between text-[13px] tabular-nums">
                   <span>{fmtMoney(b.amount)} <span className="text-muted-foreground">bill</span></span>
                   <span className={(b.due ?? 0) > 0 ? 'text-destructive' : 'text-success'}>

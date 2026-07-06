@@ -27,6 +27,7 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
 export default function Dashboard() {
   const { user } = useAuth()
   const isAdmin = user?.role === 'admin'
+  const canMoney = isAdmin || user?.role === 'manager'
   const [exporting, setExporting] = useState(false)
   const { data, isLoading } = useQuery({
     queryKey: ['stats', 'dashboard'],
@@ -70,7 +71,7 @@ export default function Dashboard() {
         )}
       />
       <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-5">
-        {isAdmin ? (
+        {canMoney ? (
           <>
             <StatCard icon={IndianRupee} tint="info" label="Total Booked" value={fmtMoney(data.totalBooked)} hint={`${data.totalBookings} bookings`} />
             <StatCard
@@ -166,14 +167,14 @@ export default function Dashboard() {
       </div>
 
       <div className="mb-8 grid gap-6 lg:grid-cols-2">
-        {isAdmin && (
+        {canMoney && (
           <ChartCard title="Monthly revenue"><RevenueChart data={series} /></ChartCard>
         )}
         {isAdmin && (
           <ChartCard title="Monthly P&L"><PLChart data={series} /></ChartCard>
         )}
         <ChartCard title="Bookings per month"><CountChart data={countSeries} /></ChartCard>
-        {isAdmin && (
+        {canMoney && (
           <ChartCard title="Payment trend"><TrendChart data={series} /></ChartCard>
         )}
         <MonthCalendar />

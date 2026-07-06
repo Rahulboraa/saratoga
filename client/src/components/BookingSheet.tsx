@@ -102,7 +102,7 @@ export default function BookingSheet({
   booking?: Booking | null;
 }) {
   const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || user?.role === "manager";
   const queryClient = useQueryClient();
   const [conflicts, setConflicts] = useState<Conflict[] | null>(null);
   const {

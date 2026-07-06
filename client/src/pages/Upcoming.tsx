@@ -155,7 +155,7 @@ export default function Upcoming() {
       header: 'Pax',
       cell: ({ row: { original: b } }) => <span className="block max-w-28 truncate">{b.pax || '—'}</span>,
     },
-    ...(isAdmin
+    ...(canOpen
       ? ([
           {
             id: 'amount',
@@ -247,7 +247,7 @@ export default function Upcoming() {
                 </div>
                 {purposePill(b)}
               </div>
-              {isAdmin && (
+              {canOpen && (
                 <div className="flex items-center justify-between text-[13px] tabular-nums">
                   <span>{fmtMoney(b.amount)}</span>
                   <Badge variant={STATUS_VARIANT[b.status ?? 'pending']} withDot>{b.status}</Badge>

@@ -2,7 +2,7 @@ import { Router } from 'express'
 import { Booking } from '../models/Booking.js'
 import { Payment } from '../models/Payment.js'
 import { requireRole } from '../middleware/auth.js'
-import { bookingAdminSchema, bookingManagerSchema, paymentSchema } from '../validation/schemas.js'
+import { bookingAdminSchema, paymentSchema } from '../validation/schemas.js'
 import { serializeBooking, serializeCalendarBooking, serializePayment } from '../lib/sanitize.js'
 import { overlaps, overlapIdSet } from '../lib/overlap.js'
 import { paymentSums, withFinance } from '../services/finance.js'
@@ -33,7 +33,7 @@ bookingsRouter.get('/', requireRole('admin', 'manager', 'sales'), async (req, re
     filter.$or = [{ guest: rx }, { phone: rx }]
   }
 
-  const isAdmin = req.user.role === 'admin'
+  const isAdmin = req.user.role !== 'sales'
   const query = Booking.find(filter).sort({ checkinDate: -1, checkinTime: -1 })
   if (!isAdmin) query.select('-breakdown -amount -legacyReceived -dest')
   const bookings = await query
@@ -55,7 +55,7 @@ bookingsRouter.get('/', requireRole('admin', 'manager', 'sales'), async (req, re
 
 bookingsRouter.get('/upcoming', requireRole('admin', 'manager', 'sales'), async (req, res) => {
   const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
-  const isAdmin = req.user.role === 'admin'
+  const isAdmin = req.user.role !== 'sales'
   const { q, purpose } = req.query as Record<string, string | undefined>
   const filter: Record<string, unknown> = { checkinDate: { $gte: today } }
   if (purpose) filter.purpose = purpose
@@ -94,7 +94,7 @@ bookingsRouter.get('/calendar', async (req, res) => {
 })
 
 bookingsRouter.get('/:id', requireRole('admin', 'manager', 'sales'), async (req, res) => {
-  const isAdmin = req.user.role === 'admin'
+  const isAdmin = req.user.role !== 'sales'
   const query = Booking.findById(req.params.id)
   if (!isAdmin) query.select('-breakdown -amount -legacyReceived -dest')
   const booking = await query
@@ -108,7 +108,7 @@ bookingsRouter.get('/:id', requireRole('admin', 'manager', 'sales'), async (req,
 })
 
 bookingsRouter.post('/', requireRole('admin', 'manager'), async (req, res) => {
-  const schema = req.user.role === 'admin' ? bookingAdminSchema : bookingManagerSchema
+  const schema = bookingAdminSchema
   const { allowOverlap, ...body } = schema.parse(req.body)
   if (!allowOverlap) {
     const conflicts = await findConflicts(body)
@@ -124,7 +124,7 @@ bookingsRouter.post('/', requireRole('admin', 'manager'), async (req, res) => {
 })
 
 bookingsRouter.patch('/:id', requireRole('admin', 'manager'), async (req, res) => {
-  const schema = req.user.role === 'admin' ? bookingAdminSchema : bookingManagerSchema
+  const schema = bookingAdminSchema
   const { allowOverlap, ...body } = schema.partial().parse(req.body)
   const booking = await Booking.findById(req.params.id)
   if (!booking) return res.status(404).json({ error: 'Booking not found' })
@@ -146,8 +146,8 @@ bookingsRouter.patch('/:id', requireRole('admin', 'manager'), async (req, res) =
   }
   booking.set(body)
   await booking.save()
-  const sums = req.user.role === 'admin' ? await paymentSums([booking._id]) : new Map<string, number>()
-  const row = { ...booking.toObject(), id: booking.id, ...(req.user.role === 'admin' ? withFinance(booking, sums) : {}) }
+  const sums = req.user.role !== 'sales' ? await paymentSums([booking._id]) : new Map<string, number>()
+  const row = { ...booking.toObject(), id: booking.id, ...(req.user.role !== 'sales' ? withFinance(booking, sums) : {}) }
   res.json(serializeBooking(row, req.user.role))
 })
 
@@ -158,12 +158,12 @@ bookingsRouter.delete('/:id', requireRole('admin'), async (req, res) => {
   res.json({ ok: true })
 })
 
-bookingsRouter.get('/:id/payments', requireRole('admin'), async (req, res) => {
+bookingsRouter.get('/:id/payments', requireRole('admin', 'manager'), async (req, res) => {
   const payments = await Payment.find({ bookingId: req.params.id }).sort({ date: 1 })
   res.json(payments.map((p) => serializePayment(p.toObject())))
 })
 
-bookingsRouter.post('/:id/payments', requireRole('admin'), async (req, res) => {
+bookingsRouter.post('/:id/payments', requireRole('admin', 'manager'), async (req, res) => {
   const booking = await Booking.findById(req.params.id)
   if (!booking) return res.status(404).json({ error: 'Booking not found' })
   const body = paymentSchema.parse(req.body)
