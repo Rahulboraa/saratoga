@@ -7,10 +7,19 @@ import { parseFile, prepareRows, reportMapping, commitRows, IMPORT_TYPES, type I
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } })
 
 export const importsRouter = Router()
-importsRouter.use(requireRole('admin'))
+importsRouter.use(requireRole('admin', 'manager'))
+
+function guardType(role: string, type: ImportType, res: import('express').Response) {
+  if (role !== 'admin' && type !== 'leads') {
+    res.status(403).json({ error: 'Only leads can be imported by managers' })
+    return false
+  }
+  return true
+}
 
 importsRouter.post('/preview', upload.single('file'), async (req, res) => {
   const type = z.enum(IMPORT_TYPES).parse(req.body.type) as ImportType
+  if (!guardType(req.user.role, type, res)) return
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' })
   const rawRows = parseFile(req.file.buffer)
   if (!rawRows.length) return res.status(400).json({ error: 'File has no data rows' })
@@ -30,6 +39,7 @@ importsRouter.post('/preview', upload.single('file'), async (req, res) => {
 
 importsRouter.post('/run', upload.single('file'), async (req, res) => {
   const type = z.enum(IMPORT_TYPES).parse(req.body.type) as ImportType
+  if (!guardType(req.user.role, type, res)) return
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' })
   const rawRows = parseFile(req.file.buffer)
   if (!rawRows.length) return res.status(400).json({ error: 'File has no data rows' })

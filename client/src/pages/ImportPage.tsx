@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PageHeader } from '@/components/PageHeader'
+import { useAuth } from '@/lib/auth'
 
 const TYPES = [
   { value: 'bookings', label: 'Bookings' },
@@ -60,7 +61,10 @@ interface RunResult {
 
 export default function ImportPage() {
   const queryClient = useQueryClient()
-  const [type, setType] = useState('bookings')
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'admin'
+  const types = isAdmin ? TYPES : TYPES.filter((t) => t.value === 'leads')
+  const [type, setType] = useState(isAdmin ? 'bookings' : 'leads')
   const [file, setFile] = useState<File | null>(null)
   const [result, setResult] = useState<RunResult | null>(null)
 
@@ -95,7 +99,7 @@ export default function ImportPage() {
               <Select value={type} onValueChange={(v) => { setType(v); setResult(null) }}>
                 <SelectTrigger className="h-10 w-44"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                  {types.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>

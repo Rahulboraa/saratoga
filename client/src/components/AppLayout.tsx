@@ -65,10 +65,10 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         <p className="mb-2 px-1 text-[12px] font-bold uppercase tracking-wider text-muted-foreground">Main menu</p>
         {NAV_MAIN.map((n) => <NavItem key={n.to} {...n} onNavigate={onNavigate} />)}
       </div>
-      {user?.role === 'admin' && (
+      {(user?.role === 'admin' || user?.role === 'manager') && (
         <div className="px-2 pt-4">
           <p className="mb-2 px-1 text-[12px] font-bold uppercase tracking-wider text-muted-foreground">Administration</p>
-          {NAV_ADMIN.map((n) => <NavItem key={n.to} {...n} onNavigate={onNavigate} />)}
+          {(user?.role === 'admin' ? NAV_ADMIN : NAV_ADMIN.filter((n) => n.to === '/import')).map((n) => <NavItem key={n.to} {...n} onNavigate={onNavigate} />)}
         </div>
       )}
     </nav>

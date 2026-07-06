@@ -38,11 +38,13 @@ export default function App() {
           <Route path="/upcoming" element={<Upcoming />} />
           <Route path="/visitors" element={<Visitors />} />
           <Route path="/leads" element={<Leads />} />
+          <Route element={<RequireRole roles={['admin', 'manager']} />}>
+            <Route path="/import" element={<ImportPage />} />
+          </Route>
           <Route element={<RequireRole roles={['admin']} />}>
             <Route path="/expenses" element={<Expenses />} />
             <Route path="/incentives" element={<Incentives />} />
             <Route path="/users" element={<Users />} />
-            <Route path="/import" element={<ImportPage />} />
           </Route>
         </Route>
       </Route>
