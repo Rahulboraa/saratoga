@@ -88,7 +88,7 @@ function Bars({ data, series, height = 220, stacked = false, showValues = false,
         <Ticks max={yMax} fmt={fmt} />
         <div className="absolute inset-0 flex items-end gap-2 pl-12 pr-1 sm:gap-3">
           {data.map((d, i) => (
-            <div key={i} className="group relative flex h-full flex-1 items-end justify-center gap-1.5">
+            <div key={i} className="group relative flex h-full flex-1 items-end justify-center gap-2.5">
               <GroupTooltip
                 label={d.label}
                 rows={series.map((sr) => ({
@@ -125,7 +125,7 @@ function Bars({ data, series, height = 220, stacked = false, showValues = false,
                   const prev = si > 0 ? Math.max(((Number(d[series[si - 1].key]) || 0) / yMax) * 100, 2) : -100
                   const lift = si > 0 && v > 0 && Math.abs(pct - prev) < 7 ? 16 : 3
                   return (
-                    <div key={sr.key} className="relative flex h-full w-full max-w-[28px] items-end justify-center">
+                    <div key={sr.key} className="relative flex h-full w-full max-w-[24px] items-end justify-center">
                       {showValues && v > 0 && (
                         <span
                           className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-semibold tabular-nums text-foreground/75"

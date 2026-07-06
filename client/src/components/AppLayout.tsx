@@ -89,7 +89,6 @@ function UserFooter() {
   const initials = user?.name?.split(' ').map((p) => p[0]).join('').slice(0, 2).toUpperCase() ?? '?'
   return (
     <div className="border-t border-border bg-background p-3">
-      <div className="mb-1"><ThemeToggleRow /></div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button type="button" className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-accent/60">
@@ -202,6 +201,7 @@ export default function AppLayout() {
           <div className="mb-6"><Brand /></div>
         </div>
         <SidebarNav />
+        <div className="px-3 pb-2"><ThemeToggleRow /></div>
         <UserFooter />
       </aside>
 
@@ -213,6 +213,7 @@ export default function AppLayout() {
           <SheetContent side="left" className="flex w-[280px] flex-col bg-[#f8fafc] p-0 dark:bg-sidebar">
             <SheetTitle className="px-5 pb-1 pt-5 text-left"><Brand /></SheetTitle>
             <SidebarNav onNavigate={() => setOpen(false)} />
+            <div className="px-3 pb-2"><ThemeToggleRow /></div>
             <UserFooter />
           </SheetContent>
         </Sheet>
