@@ -29,7 +29,7 @@ export function currentMonth() {
   return todayYmd().slice(0, 7)
 }
 
-export function chartWindow<T extends { month: string }>(rows: T[], back = 6, fwd = 1): T[] {
+export function chartWindow<T extends { month: string }>(rows: T[], back = 10, fwd = 1): T[] {
   const [y, m] = currentMonth().split('-').map(Number)
   const shift = (n: number) => {
     const d = new Date(y, m - 1 + n, 1)
