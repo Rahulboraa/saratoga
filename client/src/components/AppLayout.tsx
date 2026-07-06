@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import InstallButton from '@/components/InstallPrompt'
-import ThemeToggle from '@/components/ThemeToggle'
+import ThemeToggle, { ThemeToggleRow } from '@/components/ThemeToggle'
 import SearchPalette, { openSearchPalette } from '@/components/SearchPalette'
 import { Search } from 'lucide-react'
 
@@ -89,6 +89,7 @@ function UserFooter() {
   const initials = user?.name?.split(' ').map((p) => p[0]).join('').slice(0, 2).toUpperCase() ?? '?'
   return (
     <div className="border-t border-border bg-background p-3">
+      <div className="mb-1"><ThemeToggleRow /></div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button type="button" className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-accent/60">
