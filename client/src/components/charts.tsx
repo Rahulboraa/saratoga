@@ -79,7 +79,9 @@ function Bars({ data, series, height = 220, stacked = false, showValues = false,
       ? series.reduce((s, sr) => s + (Number(d[sr.key]) || 0), 0)
       : Math.max(...series.map((sr) => Number(d[sr.key]) || 0))
   const max = Math.max(...data.map(groupTotal), 1)
-  const yMax = showValues ? max * 1.18 : max
+  const dense = data.length > 8
+  const labels = showValues && !dense
+  const yMax = labels ? max * 1.18 : max
 
   return (
     <div className="w-full">
@@ -97,7 +99,7 @@ function Bars({ data, series, height = 220, stacked = false, showValues = false,
               />
               {stacked ? (
                 <div className="relative flex h-full w-full max-w-[32px] items-end justify-center">
-                  {showValues && groupTotal(d) > 0 && (
+                  {labels && groupTotal(d) > 0 && (
                     <span
                       className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-semibold tabular-nums text-foreground/75"
                       style={{ bottom: `calc(${(groupTotal(d) / yMax) * 100}% + 3px)` }}
@@ -126,7 +128,7 @@ function Bars({ data, series, height = 220, stacked = false, showValues = false,
                   const lift = si > 0 && v > 0 && Math.abs(pct - prev) < 7 ? 16 : 3
                   return (
                     <div key={sr.key} className="relative flex h-full w-full max-w-[24px] items-end justify-center">
-                      {showValues && v > 0 && (
+                      {labels && v > 0 && (
                         <span
                           className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-semibold tabular-nums text-foreground/75"
                           style={{ bottom: `calc(${pct}% + ${lift}px)` }}
@@ -148,8 +150,8 @@ function Bars({ data, series, height = 220, stacked = false, showValues = false,
       </div>
       <div className="mt-2 flex gap-2 pl-12 pr-1 sm:gap-3">
         {data.map((d, i) => (
-          <div key={i} className="flex-1 truncate text-center text-[10px] font-medium text-muted-foreground" title={d.label}>
-            {d.label}
+          <div key={i} className={cn('flex-1 truncate text-center font-medium text-muted-foreground', dense ? 'text-[9px]' : 'text-[10px]')} title={d.label}>
+            {dense ? d.label.split("'")[0] : d.label}
           </div>
         ))}
       </div>
@@ -191,6 +193,7 @@ export function RevenueChart({ data }: { data: MoneyPoint[] }) {
 
 export function PLChart({ data }: { data: MoneyPoint[] }) {
   const rows = data.map((d) => ({ ...d, revenue: d.revenue ?? d.collected ?? 0 }))
+  const dense = rows.length > 8
   if (!rows.length) return <div className="flex h-[220px] items-center justify-center text-sm text-muted-foreground">No data yet</div>
   return (
     <div className="w-full">
@@ -210,7 +213,7 @@ export function PLChart({ data }: { data: MoneyPoint[] }) {
             return (
               <div
                 key={i}
-                className={cn('flex-1 truncate text-center text-[11px] font-semibold tabular-nums', p >= 0 ? 'text-emerald-600' : 'text-red-600')}
+                className={cn('flex-1 truncate text-center font-semibold tabular-nums', dense ? 'text-[9px]' : 'text-[11px]', p >= 0 ? 'text-emerald-600' : 'text-red-600')}
                 title={fmtMoney(p)}
               >
                 {p < 0 ? '-' : ''}{fmtLakh(Math.abs(p))}
@@ -280,8 +283,8 @@ export function CountChart({ data }: { data: { label: string; count: number }[] 
       </div>
       <div className="mt-2 flex gap-2 pl-12 pr-1 sm:gap-3">
         {data.map((d, i) => (
-          <div key={i} className="flex-1 truncate text-center text-[10px] font-medium text-muted-foreground" title={d.label}>
-            {d.label}
+          <div key={i} className={cn('flex-1 truncate text-center font-medium text-muted-foreground', data.length > 8 ? 'text-[9px]' : 'text-[10px]')} title={d.label}>
+            {data.length > 8 ? d.label.split("'")[0] : d.label}
           </div>
         ))}
       </div>
