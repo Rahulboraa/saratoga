@@ -26,7 +26,7 @@ function shortDate(ymd: string) {
 }
 
 async function generateImage(rows: Booking[]) {
-  const W = 720
+  const W = 780
   const rowH = 36
   const top = 78
   const H = top + 34 + rows.length * rowH + 26
@@ -47,12 +47,13 @@ async function generateImage(rows: Booking[]) {
   font('400 12px')
   ctx.fillText(`${fmtDate(todayYmd())} · next ${rows.length} booking${rows.length === 1 ? '' : 's'}`, 28, 56)
 
-  const col = { date: 28, guest: 268, ci: 560, co: 640 }
+  const col = { date: 28, guest: 240, phone: 490, ci: 620, co: 700 }
   ctx.fillStyle = '#94a3b8'
   font('600 10.5px')
   const headerY = top + 8
   ctx.fillText('DATE', col.date, headerY)
   ctx.fillText('GUEST', col.guest, headerY)
+  ctx.fillText('PHONE', col.phone, headerY)
   ctx.fillText('IN', col.ci, headerY)
   ctx.fillText('OUT', col.co, headerY)
 
@@ -73,10 +74,11 @@ async function generateImage(rows: Booking[]) {
     ctx.fillStyle = '#0f172a'
     font('600 13px')
     let guest = b.guest
-    while (ctx.measureText(guest).width > col.ci - col.guest - 16 && guest.length > 3) guest = guest.slice(0, -1)
+    while (ctx.measureText(guest).width > col.phone - col.guest - 16 && guest.length > 3) guest = guest.slice(0, -1)
     ctx.fillText(guest === b.guest ? guest : `${guest}…`, col.guest, y)
     ctx.fillStyle = '#334155'
     font('400 13px')
+    ctx.fillText(b.phone || '—', col.phone, y)
     ctx.fillText(b.checkinTime || '—', col.ci, y)
     ctx.fillText(b.checkoutTime || '—', col.co, y)
   })
