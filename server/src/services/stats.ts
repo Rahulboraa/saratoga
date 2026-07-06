@@ -85,12 +85,12 @@ export async function dashboardStats(role: Role) {
     conflicts,
     bookingsPerMonth: [...bookingsPerMonth.entries()].sort().map(([month, count]) => ({ month, count })),
     purposeBreakdown: [...purposeBreakdown.values()].map((p) =>
-      role === 'admin' || role === 'manager' ? p : { purpose: p.purpose, count: p.count },
+      role === 'admin' ? p : { purpose: p.purpose, count: p.count },
     ),
     upcoming,
   }
 
-  if (role !== 'admin' && role !== 'manager') return common
+  if (role !== 'admin') return common
 
   const { booked, collected, expensed } = await monthlyFinance()
   const totalBooked = rows.reduce((s, b) => s + b.amount, 0)
@@ -119,9 +119,7 @@ export async function dashboardStats(role: Role) {
     totalCollected,
     outstanding: totalBooked - totalCollected,
     upcomingUnpaid,
-    monthlySeries: role === 'admin'
-      ? monthlySeries
-      : monthlySeries.map(({ month, booked, collected, pending }) => ({ month, booked, collected, pending })),
+    monthlySeries,
   }
 }
 
