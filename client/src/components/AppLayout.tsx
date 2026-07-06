@@ -201,7 +201,7 @@ export default function AppLayout() {
           <div className="mb-6"><Brand /></div>
         </div>
         <SidebarNav />
-        <div className="px-3 pb-2"><ThemeToggleRow /></div>
+        <div className="px-3 pb-4"><ThemeToggleRow /></div>
         <UserFooter />
       </aside>
 
@@ -213,7 +213,7 @@ export default function AppLayout() {
           <SheetContent side="left" className="flex w-[280px] flex-col bg-[#f8fafc] p-0 dark:bg-sidebar">
             <SheetTitle className="px-5 pb-1 pt-5 text-left"><Brand /></SheetTitle>
             <SidebarNav onNavigate={() => setOpen(false)} />
-            <div className="px-3 pb-2"><ThemeToggleRow /></div>
+            <div className="px-3 pb-4"><ThemeToggleRow /></div>
             <UserFooter />
           </SheetContent>
         </Sheet>
