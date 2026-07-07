@@ -348,6 +348,13 @@ export default function Expenses() {
         description="Bills, payments and monthly profit"
         actions={
           <>
+            <Select value={month} onValueChange={(v) => { setMonth(v); resetPage() }}>
+              <SelectTrigger className="h-9 w-40"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All months</SelectItem>
+                {(data?.months ?? []).map((m) => <SelectItem key={m} value={m}>{fmtMonth(m)}</SelectItem>)}
+              </SelectContent>
+            </Select>
             {(() => {
               const p = new URLSearchParams()
               if (month !== 'all') p.set('month', month)
@@ -472,13 +479,6 @@ export default function Expenses() {
       </Card>
 
       <div className="mb-5 mt-8 flex flex-wrap gap-3">
-        <Select value={month} onValueChange={(v) => { setMonth(v); resetPage() }}>
-          <SelectTrigger className="h-10 w-full sm:w-64"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All months</SelectItem>
-            {(data?.months ?? []).map((m) => <SelectItem key={m} value={m}>{fmtMonth(m)}</SelectItem>)}
-          </SelectContent>
-        </Select>
         <Select value={cat} onValueChange={(v) => { setCat(v); resetPage() }}>
           <SelectTrigger className="h-10 w-full sm:w-64"><SelectValue /></SelectTrigger>
           <SelectContent>
