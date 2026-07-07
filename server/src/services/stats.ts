@@ -175,11 +175,18 @@ export async function expenseSummary(month?: string) {
     }
   })
 
+  // Incentive shown as an expense (category + totals). Scoped to the selected month, or summed for all.
+  const incMonths = month ? months.filter((m) => m.startsWith(month.replace(/[^\d-]/g, ''))) : months
+  let incentiveTotal = 0
+  for (const m of incMonths) incentiveTotal += monthIncentive(m, collected.get(m) ?? 0, expensed.get(m) ?? 0).total
+  const categories = [...byCat.values()]
+  if (incentiveTotal > 0) categories.push({ cat: 'Incentive', count: incMonths.filter((m) => monthIncentive(m, collected.get(m) ?? 0, expensed.get(m) ?? 0).total > 0).length, amount: incentiveTotal })
+
   return {
-    totalBill,
-    totalPaid,
+    totalBill: totalBill + incentiveTotal,
+    totalPaid: totalPaid + incentiveTotal,
     totalDue: totalBill - totalPaid,
-    categories: [...byCat.values()].sort((a, b) => b.amount - a.amount),
+    categories: categories.sort((a, b) => b.amount - a.amount),
     plSeries,
   }
 }
