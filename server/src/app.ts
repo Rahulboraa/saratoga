@@ -12,6 +12,7 @@ import { leadsRouter } from './routes/leads.js'
 import { statsRouter } from './routes/stats.js'
 import { importsRouter } from './routes/imports.js'
 import { exportRouter } from './routes/exportData.js'
+import { cronRouter } from './routes/cron.js'
 import { searchRouter } from './routes/search.js'
 import { requireAuth } from './middleware/auth.js'
 import { errorHandler } from './middleware/error.js'
@@ -32,6 +33,7 @@ export function createApp() {
   app.use(express.json({ limit: '2mb' }))
 
   app.get('/api/health', (_req, res) => res.json({ ok: true }))
+  app.use('/api/cron', cronRouter)
   app.use('/api/auth', authRouter)
   app.use('/api/users', requireAuth, usersRouter)
   app.use('/api/bookings', requireAuth, bookingsRouter)
