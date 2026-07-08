@@ -4,7 +4,7 @@ import { useState } from 'react'
 import toast from 'react-hot-toast'
 import { Button } from '@/components/ui/button'
 import { todayYmd } from '@/lib/format'
-import { RevenueChart, PLChart, CountChart, TrendChart, DonutChart } from '@/components/charts'
+import { RevenueChart, PLChart, CountChart, TrendChart, BreakupChart, DonutChart } from '@/components/charts'
 import { api, apiDownload } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { fmtMoney, fmtLakh, fmtDate, fmtMonth, PURPOSE_COLORS, chartWindow } from '@/lib/format'
@@ -175,6 +175,9 @@ export default function Dashboard() {
         <ChartCard title="Bookings per month"><CountChart data={countSeries} /></ChartCard>
         {isAdmin && (
           <ChartCard title="Payment trend"><TrendChart data={series} /></ChartCard>
+        )}
+        {isAdmin && (
+          <ChartCard title="Booking amount breakup"><BreakupChart data={chartWindow(data.bookedBreakup ?? []).map((p) => ({ ...p, label: fmtMonth(p.month) }))} /></ChartCard>
         )}
         <MonthCalendar />
         <Card className="h-full">

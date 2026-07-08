@@ -251,6 +251,23 @@ export function TrendChart({ data }: { data: MoneyPoint[] }) {
   )
 }
 
+export function BreakupChart({ data }: { data: MoneyPoint[] }) {
+  return (
+    <Bars
+      data={data}
+      stacked
+      showValues
+      series={[
+        { key: 'venue', label: 'Venue', color: C.blue },
+        { key: 'catering', label: 'Catering', color: C.violet },
+        { key: 'decor', label: 'Decor', color: C.teal },
+        { key: 'music', label: 'Music', color: C.orange },
+        { key: 'cleaning', label: 'Cleaning', color: C.green },
+      ]}
+    />
+  )
+}
+
 export function IncentiveTrendChart({ data }: { data: { label: string; deepak: number; akhil: number }[] }) {
   return (
     <Bars

@@ -113,6 +113,21 @@ export async function dashboardStats(role: Role) {
     }
   })
 
+  // Month-wise booking amount, split by component (booked, by check-in month)
+  const breakupMap = new Map<string, { venue: number; catering: number; decor: number; music: number; cleaning: number }>()
+  for (const b of rows) {
+    const m = monthOf(b.checkinDate)
+    if (!m) continue
+    if (!breakupMap.has(m)) breakupMap.set(m, { venue: 0, catering: 0, decor: 0, music: 0, cleaning: 0 })
+    const e = breakupMap.get(m)!
+    e.venue += b.breakdown?.venue ?? 0
+    e.catering += b.breakdown?.catering ?? 0
+    e.decor += b.breakdown?.decor ?? 0
+    e.music += b.breakdown?.music ?? 0
+    e.cleaning += b.breakdown?.cleaning ?? 0
+  }
+  const bookedBreakup = months.map((m) => ({ month: m, ...(breakupMap.get(m) ?? { venue: 0, catering: 0, decor: 0, music: 0, cleaning: 0 }) }))
+
   return {
     ...common,
     totalBooked,
@@ -120,6 +135,7 @@ export async function dashboardStats(role: Role) {
     outstanding: totalBooked - totalCollected,
     upcomingUnpaid,
     monthlySeries,
+    bookedBreakup,
   }
 }
 
