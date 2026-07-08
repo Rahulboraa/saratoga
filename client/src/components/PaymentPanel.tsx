@@ -91,6 +91,44 @@ export default function PaymentPanel({ booking, onClose }: { booking: Booking | 
             <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
           </div>
 
+          {booking.breakdown && (
+            <div className="rounded-lg border border-border/60 p-3 shadow-sm">
+              <div className="mb-2 text-[12px] font-semibold text-muted-foreground">Booking amount breakup</div>
+              <div className="space-y-1 text-[13px]">
+                {([
+                  ['Venue rental', booking.breakdown.venue],
+                  ['Catering', booking.breakdown.catering],
+                  ['Decor', booking.breakdown.decor],
+                  ['Music', booking.breakdown.music],
+                  ['Cleaning', booking.breakdown.cleaning],
+                ] as [string, number][]).filter(([, v]) => v > 0).map(([label, v]) => (
+                  <div key={label} className="flex justify-between">
+                    <span className="text-muted-foreground">{label}</span>
+                    <span className="tabular-nums">{fmtMoney(v)}</span>
+                  </div>
+                ))}
+                <div className="flex justify-between border-t pt-1 font-semibold">
+                  <span>Booking amount</span>
+                  <span className="tabular-nums">{fmtMoney(booking.amount ?? 0)}</span>
+                </div>
+                {(booking.breakdown.license > 0 || booking.breakdown.security > 0) && (
+                  <>
+                    {booking.breakdown.license > 0 && (
+                      <div className="flex justify-between text-muted-foreground"><span>+ License</span><span className="tabular-nums">{fmtMoney(booking.breakdown.license)}</span></div>
+                    )}
+                    {booking.breakdown.security > 0 && (
+                      <div className="flex justify-between text-muted-foreground"><span>+ Security deposit</span><span className="tabular-nums">{fmtMoney(booking.breakdown.security)}</span></div>
+                    )}
+                    <div className="flex justify-between border-t pt-1 font-semibold">
+                      <span>Total payable</span>
+                      <span className="tabular-nums">{fmtMoney(amount)}</span>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
           {showForm ? (
             <form onSubmit={onSubmit} className="space-y-3 rounded-lg border border-border/60 p-3 shadow-sm">
               <div className="grid grid-cols-2 gap-x-4 gap-y-5">
