@@ -109,7 +109,7 @@ export async function dashboardStats(role: Role) {
       collected: col,
       pending: Math.max(bk - col, 0),
       expenses: exp + inc.total,
-      profit: col - exp - inc.total,
+      profit: bk - exp - inc.total,
     }
   })
 
@@ -176,18 +176,18 @@ export async function expenseSummary(month?: string) {
   }
 
   const { booked, collected, expensed } = await monthlyFinance()
-  const months = allMonths(collected, expensed)
+  const months = allMonths(booked, collected, expensed)
   const plSeries = months.map((m) => {
-    const rev = collected.get(m) ?? 0
+    const bk = booked.get(m) ?? 0
     const exp = expensed.get(m) ?? 0
-    const inc = monthIncentive(m, booked.get(m) ?? 0, exp)
-    const profit = rev - exp - inc.total
+    const inc = monthIncentive(m, bk, exp)
+    const profit = bk - exp - inc.total
     return {
       month: m,
-      revenue: rev,
+      revenue: bk,
       expenses: exp + inc.total,
       profit,
-      margin: rev > 0 ? Math.round((profit / rev) * 1000) / 10 : 0,
+      margin: bk > 0 ? Math.round((profit / bk) * 1000) / 10 : 0,
     }
   })
 

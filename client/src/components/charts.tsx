@@ -195,15 +195,14 @@ export function RevenueChart({ data }: { data: MoneyPoint[] }) {
       data={data}
       showValues
       series={[
-        { key: 'booked', label: 'Booked', color: C.blueSoft },
-        { key: 'collected', label: 'Revenue', color: C.blue },
+        { key: 'booked', label: 'Booked', color: C.blue },
       ]}
     />
   )
 }
 
 export function PLChart({ data }: { data: MoneyPoint[] }) {
-  const rows = data.map((d) => ({ ...d, revenue: d.revenue ?? d.collected ?? 0 }))
+  const rows = data.map((d) => ({ ...d, revenue: d.revenue ?? d.booked ?? 0 }))
   const dense = rows.length > 8
   if (!rows.length) return <div className="flex h-[220px] items-center justify-center text-sm text-muted-foreground">No data yet</div>
   return (
@@ -212,7 +211,7 @@ export function PLChart({ data }: { data: MoneyPoint[] }) {
         data={rows}
         showValues
         series={[
-          { key: 'revenue', label: 'Revenue', color: C.blue },
+          { key: 'revenue', label: 'Booked', color: C.blue },
           { key: 'expenses', label: 'Expenses', color: C.orange },
         ]}
       />

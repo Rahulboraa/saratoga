@@ -424,7 +424,7 @@ export default function Expenses() {
             <TableHeader>
               <TableRow>
                 <TableHead>Month</TableHead>
-                <TableHead className="text-right">Revenue</TableHead>
+                <TableHead className="text-right">Booked</TableHead>
                 <TableHead className="text-right">Expenses</TableHead>
                 <TableHead className="text-right">Profit / Loss</TableHead>
                 <TableHead className="text-right">Margin</TableHead>

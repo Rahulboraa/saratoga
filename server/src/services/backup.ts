@@ -70,7 +70,7 @@ export async function buildWorkbook(): Promise<Buffer> {
     Notes: l.notes, 'Admin Comment': l.adminComment,
   })))
   add('Incentives', incentives.trend.map((t) => ({
-    Month: t.month, 'Sales Collected': t.sales, Expenses: t.expenses, Profit: t.profit,
+    Month: t.month, 'Booked Sales': t.sales, Expenses: t.expenses, Profit: t.profit,
     Deepak: t.deepak, Akhil: t.akhil, Total: t.total,
   })))
 
