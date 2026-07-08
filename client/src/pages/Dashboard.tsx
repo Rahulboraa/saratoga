@@ -176,38 +176,57 @@ export default function Dashboard() {
         {isAdmin && (
           <ChartCard title="Payment trend"><TrendChart data={series} /></ChartCard>
         )}
-        {isAdmin && (
-          <Card className="h-full">
-            <CardHeader><CardTitle className="text-[15px]">Booking amount breakup</CardTitle></CardHeader>
-            <CardContent className="flex h-full flex-col justify-center space-y-4 pb-6">
-              {(() => {
-                const bb = data.bookedBreakup ?? []
-                const totals = [
-                  { label: 'Venue rental', amount: bb.reduce((s, m) => s + m.venue, 0), color: 'hsl(217 91% 60%)' },
-                  { label: 'Catering', amount: bb.reduce((s, m) => s + m.catering, 0), color: 'hsl(248 85% 66%)' },
-                  { label: 'Decor', amount: bb.reduce((s, m) => s + m.decor, 0), color: 'hsl(173 66% 42%)' },
-                  { label: 'Music', amount: bb.reduce((s, m) => s + m.music, 0), color: 'hsl(25 95% 53%)' },
-                  { label: 'Cleaning', amount: bb.reduce((s, m) => s + m.cleaning, 0), color: 'hsl(152 60% 44%)' },
-                ].filter((t) => t.amount > 0).sort((a, b) => b.amount - a.amount)
-                const max = Math.max(...totals.map((t) => t.amount), 1)
-                const stripes = (color: string) => `repeating-linear-gradient(90deg, ${color} 0 4px, transparent 4px 8px)`
-                if (!totals.length) return <p className="py-8 text-center text-sm text-muted-foreground">No bookings yet</p>
-                return totals.map((t, i) => (
-                  <div key={t.label}>
-                    <div className="mb-1.5 flex items-center justify-between text-[13px]">
-                      <span className="font-medium">{t.label}</span>
-                      <span className="font-semibold tabular-nums">{fmtMoney(t.amount)}</span>
+        {isAdmin && (() => {
+          const bb = data.bookedBreakup ?? []
+          const totals = [
+            { label: 'Venue', amount: bb.reduce((s, m) => s + m.venue, 0), color: 'hsl(217 91% 60%)' },
+            { label: 'Catering', amount: bb.reduce((s, m) => s + m.catering, 0), color: 'hsl(248 85% 66%)' },
+            { label: 'Decor', amount: bb.reduce((s, m) => s + m.decor, 0), color: 'hsl(173 66% 42%)' },
+            { label: 'Music', amount: bb.reduce((s, m) => s + m.music, 0), color: 'hsl(25 95% 53%)' },
+            { label: 'Cleaning', amount: bb.reduce((s, m) => s + m.cleaning, 0), color: 'hsl(152 60% 44%)' },
+          ].filter((t) => t.amount > 0).sort((a, b) => b.amount - a.amount)
+          const grand = totals.reduce((s, t) => s + t.amount, 0)
+          return (
+            <Card className="h-full">
+              <CardHeader><CardTitle className="text-[15px]">Booking amount breakup</CardTitle></CardHeader>
+              <CardContent className="flex h-full flex-col items-center justify-center gap-8 py-6 sm:flex-row">
+                {totals.length === 0 ? (
+                  <p className="py-8 text-center text-sm text-muted-foreground">No bookings yet</p>
+                ) : (
+                  <>
+                    <div className="animate-fade-in shrink-0">
+                      <DonutChart
+                        data={totals.map((t) => ({ label: t.label, value: t.amount, color: t.color }))}
+                        size={210}
+                        thickness={22}
+                        centerLabel={fmtLakh(grand)}
+                        centerSubLabel="booked"
+                      />
                     </div>
-                    <div className="flex h-5 w-full">
-                      <div className="chart-bar-h h-full" style={{ width: `${(t.amount / max) * 100}%`, background: stripes(t.color), animationDelay: `${i * 50}ms` }} />
-                      <div className="h-full flex-1" style={{ background: stripes(`color-mix(in oklch, ${t.color}, var(--background) 82%)`) }} />
+                    <div className="w-full max-w-[260px] space-y-3.5">
+                      {totals.map((t) => (
+                        <div key={t.label}>
+                          <div className="mb-1.5 flex items-center justify-between text-[12px]">
+                            <span className="inline-flex items-center gap-1.5 font-medium">
+                              <span className="h-2 w-2 rounded-[3px]" style={{ background: t.color }} />
+                              {t.label}
+                            </span>
+                            <span className="tabular-nums text-muted-foreground">
+                              <span className="font-semibold text-foreground">{fmtMoney(t.amount)}</span> · {Math.round((t.amount / Math.max(grand, 1)) * 100)}%
+                            </span>
+                          </div>
+                          <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                            <div className="chart-bar-h h-full rounded-full" style={{ width: `${(t.amount / Math.max(grand, 1)) * 100}%`, background: t.color }} />
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                ))
-              })()}
-            </CardContent>
-          </Card>
-        )}
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          )
+        })()}
         <MonthCalendar />
         <Card className="h-full">
           <CardHeader><CardTitle className="text-[15px]">Bookings by type</CardTitle></CardHeader>
