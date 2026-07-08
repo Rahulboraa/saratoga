@@ -196,7 +196,7 @@ export function RevenueChart({ data }: { data: MoneyPoint[] }) {
       showValues
       series={[
         { key: 'booked', label: 'Booked', color: C.blueSoft },
-        { key: 'collected', label: 'Collected', color: C.blue },
+        { key: 'collected', label: 'Revenue', color: C.blue },
       ]}
     />
   )

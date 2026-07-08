@@ -102,7 +102,7 @@ export async function dashboardStats(role: Role) {
     const bk = booked.get(m) ?? 0
     const col = collected.get(m) ?? 0
     const exp = expensed.get(m) ?? 0
-    const inc = monthIncentive(m, col, exp)
+    const inc = monthIncentive(m, bk, exp)
     return {
       month: m,
       booked: bk,
@@ -124,11 +124,11 @@ export async function dashboardStats(role: Role) {
 }
 
 export async function incentiveStats(month?: string) {
-  const { collected, expensed } = await monthlyFinance()
-  const months = allMonths(collected, expensed).filter((m) => m >= INCENTIVE_START)
-  const trend = months.map((m) => monthIncentive(m, collected.get(m) ?? 0, expensed.get(m) ?? 0))
+  const { booked, expensed } = await monthlyFinance()
+  const months = allMonths(booked, expensed).filter((m) => m >= INCENTIVE_START)
+  const trend = months.map((m) => monthIncentive(m, booked.get(m) ?? 0, expensed.get(m) ?? 0))
   const selected = month && month !== 'all'
-    ? monthIncentive(month, collected.get(month) ?? 0, expensed.get(month) ?? 0)
+    ? monthIncentive(month, booked.get(month) ?? 0, expensed.get(month) ?? 0)
     : trend.reduce(
         (acc, t) => ({
           month: 'all', sales: acc.sales + t.sales, expenses: acc.expenses + t.expenses,
@@ -159,12 +159,12 @@ export async function expenseSummary(month?: string) {
     c.amount += e.amount
   }
 
-  const { collected, expensed } = await monthlyFinance()
+  const { booked, collected, expensed } = await monthlyFinance()
   const months = allMonths(collected, expensed)
   const plSeries = months.map((m) => {
     const rev = collected.get(m) ?? 0
     const exp = expensed.get(m) ?? 0
-    const inc = monthIncentive(m, rev, exp)
+    const inc = monthIncentive(m, booked.get(m) ?? 0, exp)
     const profit = rev - exp - inc.total
     return {
       month: m,
@@ -175,12 +175,13 @@ export async function expenseSummary(month?: string) {
     }
   })
 
-  // Incentive shown as an expense (category + totals). Scoped to the selected month, or summed for all.
-  const incMonths = month ? months.filter((m) => m.startsWith(month.replace(/[^\d-]/g, ''))) : months
+  // Incentive shown as an expense (category + totals). Incentive is on BOOKED, so include booked-only months too.
+  const incMonthsAll = allMonths(booked, collected, expensed)
+  const incMonths = month ? incMonthsAll.filter((m) => m.startsWith(month.replace(/[^\d-]/g, ''))) : incMonthsAll
   let incentiveTotal = 0
-  for (const m of incMonths) incentiveTotal += monthIncentive(m, collected.get(m) ?? 0, expensed.get(m) ?? 0).total
+  for (const m of incMonths) incentiveTotal += monthIncentive(m, booked.get(m) ?? 0, expensed.get(m) ?? 0).total
   const categories = [...byCat.values()]
-  if (incentiveTotal > 0) categories.push({ cat: 'Incentive', count: incMonths.filter((m) => monthIncentive(m, collected.get(m) ?? 0, expensed.get(m) ?? 0).total > 0).length, amount: incentiveTotal })
+  if (incentiveTotal > 0) categories.push({ cat: 'Incentive', count: incMonths.filter((m) => monthIncentive(m, booked.get(m) ?? 0, expensed.get(m) ?? 0).total > 0).length, amount: incentiveTotal })
 
   return {
     totalBill: totalBill + incentiveTotal,

@@ -105,7 +105,7 @@ exportRouter.get('/visitors', requireRole('admin', 'manager'), async (req, res) 
 exportRouter.get('/incentives', requireRole('admin'), async (_req, res) => {
   const incentives = await incentiveStats()
   sendSheet(res, 'Incentives', incentives.trend.map((t) => ({
-    Month: t.month, 'Sales Collected': t.sales, Expenses: t.expenses, Profit: t.profit,
+    Month: t.month, 'Booked Sales': t.sales, Expenses: t.expenses, Profit: t.profit,
     Deepak: t.deepak, Akhil: t.akhil, Total: t.total,
   })))
 })

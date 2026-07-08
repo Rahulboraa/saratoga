@@ -32,7 +32,7 @@ export default function Incentives() {
     <div>
       <PageHeader
         title="Incentives"
-        description="Effective April 2026 · Deepak: slab on collected sales · Akhil: 5% of profit above ₹5L"
+        description="Effective April 2026 · Deepak: slab on booked sales · Akhil: 5% of profit above ₹5L"
         actions={<><ExportButton path="/export/incentives" name="incentives" /><Select value={month} onValueChange={setMonth}>
           <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -43,7 +43,7 @@ export default function Incentives() {
       />
 
       <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <StatCard icon={Coins} tint="info" label="Deepak · Sales Incentive" value={fmtMoney(sel.deepak)} hint={`on ${fmtMoney(sel.sales)} collected`} />
+        <StatCard icon={Coins} tint="info" label="Deepak · Sales Incentive" value={fmtMoney(sel.deepak)} hint={`on ${fmtMoney(sel.sales)} booked`} />
         <StatCard icon={TrendingUp} tint="success" label="Akhil · Profit Share" value={fmtMoney(sel.akhil)} hint={`on ${fmtMoney(sel.profit)} profit`} />
       </div>
 
@@ -60,7 +60,7 @@ export default function Incentives() {
             <TableBody>
               <TableRow>
                 <TableCell className="font-medium">Deepak</TableCell>
-                <TableCell>First ₹5L @ 1% · Next ₹5L @ 1.5% · Above ₹10L @ 3% (on monthly collected sales)</TableCell>
+                <TableCell>First ₹5L @ 1% · Next ₹5L @ 1.5% · Above ₹10L @ 3% (on monthly booked sales)</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell className="font-medium">Akhil</TableCell>
@@ -91,7 +91,7 @@ export default function Incentives() {
                 <TableRow>
                   <TableHead className="w-14">S.No</TableHead>
                   <TableHead>Month</TableHead>
-                  <TableHead className="text-right">Sales Collected</TableHead>
+                  <TableHead className="text-right">Booked Sales</TableHead>
                   <TableHead className="text-right">Expenses</TableHead>
                   <TableHead className="text-right">Profit</TableHead>
                   <TableHead className="text-right">Deepak</TableHead>
