@@ -92,9 +92,9 @@ export default function PaymentPanel({ booking, onClose }: { booking: Booking | 
           </div>
 
           {booking.breakdown && (
-            <div className="rounded-lg border border-border/60 p-3 shadow-sm">
-              <div className="mb-2 text-[12px] font-semibold text-muted-foreground">Booking amount breakup</div>
-              <div className="space-y-1 text-[13px]">
+            <div className="rounded-xl border border-border/60 p-5 shadow-sm">
+              <div className="mb-3 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">Booking amount breakup</div>
+              <div className="space-y-2.5 text-[15px]">
                 {([
                   ['Venue rental', booking.breakdown.venue],
                   ['Catering', booking.breakdown.catering],
@@ -107,7 +107,7 @@ export default function PaymentPanel({ booking, onClose }: { booking: Booking | 
                     <span className="tabular-nums">{fmtMoney(v)}</span>
                   </div>
                 ))}
-                <div className="flex justify-between border-t pt-1 font-semibold">
+                <div className="flex justify-between border-t pt-2.5 text-[16px] font-semibold">
                   <span>Booking amount</span>
                   <span className="tabular-nums">{fmtMoney(booking.amount ?? 0)}</span>
                 </div>
@@ -119,7 +119,7 @@ export default function PaymentPanel({ booking, onClose }: { booking: Booking | 
                     {booking.breakdown.security > 0 && (
                       <div className="flex justify-between text-muted-foreground"><span>+ Security deposit</span><span className="tabular-nums">{fmtMoney(booking.breakdown.security)}</span></div>
                     )}
-                    <div className="flex justify-between border-t pt-1 font-semibold">
+                    <div className="flex justify-between border-t pt-2.5 text-[16px] font-semibold">
                       <span>Total payable</span>
                       <span className="tabular-nums">{fmtMoney(amount)}</span>
                     </div>
