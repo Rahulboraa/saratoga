@@ -212,7 +212,7 @@ export default function Dashboard() {
                               {t.label}
                             </span>
                             <span className="tabular-nums text-muted-foreground">
-                              <span className="font-semibold text-foreground">{fmtMoney(t.amount)}</span> · {Math.round((t.amount / Math.max(grand, 1)) * 100)}%
+                              <span className="font-semibold text-foreground">{fmtMoney(t.amount)}</span> · {(() => { const p = (t.amount / Math.max(grand, 1)) * 100; return p > 0 && p < 1 ? '<1%' : `${Math.round(p)}%` })()}
                             </span>
                           </div>
                           <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
