@@ -180,9 +180,9 @@ export default function Dashboard() {
           const bb = data.bookedBreakup ?? []
           const totals = [
             { label: 'Venue', amount: bb.reduce((s, m) => s + m.venue, 0), color: 'hsl(217 91% 60%)' },
-            { label: 'Catering', amount: bb.reduce((s, m) => s + m.catering, 0), color: 'hsl(248 85% 66%)' },
-            { label: 'Decor', amount: bb.reduce((s, m) => s + m.decor, 0), color: 'hsl(173 66% 42%)' },
-            { label: 'Music', amount: bb.reduce((s, m) => s + m.music, 0), color: 'hsl(25 95% 53%)' },
+            { label: 'Catering', amount: bb.reduce((s, m) => s + m.catering, 0), color: 'hsl(270 80% 62%)' },
+            { label: 'Decor', amount: bb.reduce((s, m) => s + m.decor, 0), color: 'hsl(330 77% 58%)' },
+            { label: 'Music', amount: bb.reduce((s, m) => s + m.music, 0), color: 'hsl(30 95% 55%)' },
             { label: 'Cleaning', amount: bb.reduce((s, m) => s + m.cleaning, 0), color: 'hsl(152 60% 44%)' },
           ].filter((t) => t.amount > 0).sort((a, b) => b.amount - a.amount)
           const grand = totals.reduce((s, t) => s + t.amount, 0)
