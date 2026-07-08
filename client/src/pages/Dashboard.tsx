@@ -4,7 +4,7 @@ import { useState } from 'react'
 import toast from 'react-hot-toast'
 import { Button } from '@/components/ui/button'
 import { todayYmd } from '@/lib/format'
-import { RevenueChart, PLChart, CountChart, TrendChart, BreakupChart, DonutChart } from '@/components/charts'
+import { RevenueChart, PLChart, CountChart, TrendChart, DonutChart } from '@/components/charts'
 import { api, apiDownload } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { fmtMoney, fmtLakh, fmtDate, fmtMonth, PURPOSE_COLORS, chartWindow } from '@/lib/format'
@@ -177,7 +177,36 @@ export default function Dashboard() {
           <ChartCard title="Payment trend"><TrendChart data={series} /></ChartCard>
         )}
         {isAdmin && (
-          <ChartCard title="Booking amount breakup"><BreakupChart data={chartWindow(data.bookedBreakup ?? []).map((p) => ({ ...p, label: fmtMonth(p.month) }))} /></ChartCard>
+          <Card className="h-full">
+            <CardHeader><CardTitle className="text-[15px]">Booking amount breakup</CardTitle></CardHeader>
+            <CardContent className="flex h-full flex-col justify-center space-y-4 pb-6">
+              {(() => {
+                const bb = data.bookedBreakup ?? []
+                const totals = [
+                  { label: 'Venue rental', amount: bb.reduce((s, m) => s + m.venue, 0), color: 'hsl(217 91% 60%)' },
+                  { label: 'Catering', amount: bb.reduce((s, m) => s + m.catering, 0), color: 'hsl(248 85% 66%)' },
+                  { label: 'Decor', amount: bb.reduce((s, m) => s + m.decor, 0), color: 'hsl(173 66% 42%)' },
+                  { label: 'Music', amount: bb.reduce((s, m) => s + m.music, 0), color: 'hsl(25 95% 53%)' },
+                  { label: 'Cleaning', amount: bb.reduce((s, m) => s + m.cleaning, 0), color: 'hsl(152 60% 44%)' },
+                ].filter((t) => t.amount > 0).sort((a, b) => b.amount - a.amount)
+                const max = Math.max(...totals.map((t) => t.amount), 1)
+                const stripes = (color: string) => `repeating-linear-gradient(90deg, ${color} 0 4px, transparent 4px 8px)`
+                if (!totals.length) return <p className="py-8 text-center text-sm text-muted-foreground">No bookings yet</p>
+                return totals.map((t, i) => (
+                  <div key={t.label}>
+                    <div className="mb-1.5 flex items-center justify-between text-[13px]">
+                      <span className="font-medium">{t.label}</span>
+                      <span className="font-semibold tabular-nums">{fmtMoney(t.amount)}</span>
+                    </div>
+                    <div className="flex h-5 w-full">
+                      <div className="chart-bar-h h-full" style={{ width: `${(t.amount / max) * 100}%`, background: stripes(t.color), animationDelay: `${i * 50}ms` }} />
+                      <div className="h-full flex-1" style={{ background: stripes(`color-mix(in oklch, ${t.color}, var(--background) 82%)`) }} />
+                    </div>
+                  </div>
+                ))
+              })()}
+            </CardContent>
+          </Card>
         )}
         <MonthCalendar />
         <Card className="h-full">
