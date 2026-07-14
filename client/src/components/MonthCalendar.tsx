@@ -88,21 +88,41 @@ function fmtTime(hm: string | undefined) {
 
 function EventChip({ b, date }: { b: CalendarBooking; date: string }) {
   const color = PURPOSE_COLORS[b.purpose] ?? PURPOSE_COLORS.Other
-  const isCheckin = date === b.checkinDate
-  const isCheckout = date === (b.checkoutDate || b.checkinDate) && date !== b.checkinDate
+  const arriving = date === b.checkinDate
+  const leaving = date === (b.checkoutDate || b.checkinDate)
+  const sameDay = arriving && leaving
+
+  // Occupancy label + how "full" the day is, so a checkout morning doesn't read as sold-out.
+  let label: string
+  let level: 'light' | 'mid' | 'full'
+  if (sameDay) {
+    label = b.checkinTime
+      ? `${fmtTime(b.checkinTime)}${b.checkoutTime ? `–${fmtTime(b.checkoutTime)}` : ''}`
+      : 'Booked'
+    level = 'mid'
+  } else if (arriving) {
+    label = `In ${fmtTime(b.checkinTime)}`
+    level = 'mid'
+  } else if (leaving) {
+    label = `Out ${fmtTime(b.checkoutTime)}`
+    level = 'light'
+  } else {
+    label = 'Full day'
+    level = 'full'
+  }
+
+  const bgMix = level === 'full' ? '72%' : level === 'mid' ? '82%' : '93%'
+  const fgMix = level === 'light' ? '30%' : '48%'
   return (
     <span
-      className={cn(
-        'block w-full break-words rounded-[4px] px-1.5 py-0.5 text-left text-[10.5px] font-medium leading-[13px]',
-        isCheckout && 'opacity-75',
-      )}
+      className={cn('block w-full truncate rounded-[4px] px-1.5 py-0.5 text-left text-[10.5px] font-semibold leading-[14px]', level === 'light' && 'border border-dashed')}
       style={{
-        background: `color-mix(in oklch, ${color}, var(--background) ${isCheckout ? '90%' : '84%'})`,
-        color: `color-mix(in oklch, ${color}, var(--foreground) 45%)`,
+        background: level === 'light' ? 'transparent' : `color-mix(in oklch, ${color}, var(--background) ${bgMix})`,
+        borderColor: level === 'light' ? `color-mix(in oklch, ${color}, var(--background) 55%)` : undefined,
+        color: `color-mix(in oklch, ${color}, var(--foreground) ${fgMix})`,
       }}
     >
-      {b.guest}
-      {isCheckin && b.checkinTime ? ` · ${fmtTime(b.checkinTime)}` : isCheckout ? ` · out ${fmtTime(b.checkoutTime)}` : ''}
+      {label}
     </span>
   )
 }
@@ -220,6 +240,10 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
               {purpose}
             </span>
           ))}
+          <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <span className="h-2.5 w-2.5 rounded-[3px] border border-dashed border-muted-foreground/60" />
+            Checkout · free after
+          </span>
           <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
             <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
             Overlap

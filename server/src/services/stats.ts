@@ -69,8 +69,9 @@ export async function dashboardStats(role: Role) {
       role,
     ))
 
+  // Only surface overlaps that haven't fully passed — a past double-booking isn't actionable.
   const conflicts = rows
-    .filter((b) => overlapIds.has(b.id))
+    .filter((b) => overlapIds.has(b.id) && (b.checkoutDate || b.checkinDate) >= today)
     .sort((a, b) => a.checkinDate.localeCompare(b.checkinDate))
     .map((b) => ({
       id: b.id, guest: b.guest, checkinDate: b.checkinDate, checkoutDate: b.checkoutDate,
@@ -81,7 +82,7 @@ export async function dashboardStats(role: Role) {
     totalBookings: rows.length,
     upcomingCount,
     uniqueDates: uniqueDates.size,
-    overlapCount: overlapIds.size,
+    overlapCount: conflicts.length,
     conflicts,
     bookingsPerMonth: [...bookingsPerMonth.entries()].sort().map(([month, count]) => ({ month, count })),
     purposeBreakdown: [...purposeBreakdown.values()].map((p) =>
