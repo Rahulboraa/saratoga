@@ -216,14 +216,14 @@ export function PLChart({ data }: { data: MoneyPoint[] }) {
         ]}
       />
       <div className="mt-2.5 flex items-center gap-1.5 border-t border-dashed border-border/60 pt-2">
-        <span className="w-[42px] shrink-0 text-right text-[10px] font-medium text-muted-foreground">Profit</span>
+        <span className="w-[42px] shrink-0 text-right text-[11.5px] font-semibold text-muted-foreground">Profit</span>
         <div className="flex flex-1 gap-2 pr-1 sm:gap-3">
           {rows.map((d, i) => {
             const p = d.profit ?? 0
             return (
               <div
                 key={i}
-                className={cn('flex-1 whitespace-nowrap text-center font-semibold tabular-nums', dense ? 'text-[10px]' : 'text-[11px]', p >= 0 ? 'text-emerald-600' : 'text-red-600')}
+                className={cn('flex-1 whitespace-nowrap text-center font-semibold tabular-nums', dense ? 'text-[11.5px]' : 'text-[13px]', p >= 0 ? 'text-emerald-600' : 'text-red-600')}
                 title={fmtMoney(p)}
               >
                 {p < 0 ? '-' : ''}{fmtLakh(Math.abs(p))}
