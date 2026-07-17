@@ -19,15 +19,22 @@ describe('calcDeepak', () => {
 })
 
 describe('calcAkhil', () => {
-  it('is 0 at or below 5L profit', () => {
+  it('is 1.5% on the first 7.5L of booked sales', () => {
     expect(calcAkhil(0)).toBe(0)
-    expect(calcAkhil(500_000)).toBe(0)
     expect(calcAkhil(-200_000)).toBe(0)
+    expect(calcAkhil(500_000)).toBe(7_500)
+    expect(calcAkhil(750_000)).toBe(11_250)
   })
 
-  it('is 5% of profit above 5L', () => {
-    expect(calcAkhil(700_000)).toBe(10_000)
-    expect(calcAkhil(1_500_000)).toBe(50_000)
+  it('adds 2% for 7.5L-15L (sheet examples)', () => {
+    expect(calcAkhil(760_000)).toBe(11_450) // May
+    expect(calcAkhil(860_000)).toBe(13_450) // June
+    expect(calcAkhil(1_160_000)).toBe(19_450) // April
+    expect(calcAkhil(1_500_000)).toBe(26_250)
+  })
+
+  it('adds 3% above 15L', () => {
+    expect(calcAkhil(2_000_000)).toBe(11_250 + 15_000 + 15_000)
   })
 })
 
@@ -40,10 +47,10 @@ describe('monthIncentive', () => {
     expect(out.profit).toBe(1_100_000)
   })
 
-  it('applies from 2026-04', () => {
+  it('applies from 2026-04 (akhil on booked sales)', () => {
     const out = monthIncentive('2026-04', 1_200_000, 100_000)
     expect(out.deepak).toBe(18_500)
-    expect(out.akhil).toBe(30_000)
-    expect(out.total).toBe(48_500)
+    expect(out.akhil).toBe(20_250) // 11,250 + 450000*2%
+    expect(out.total).toBe(38_750)
   })
 })

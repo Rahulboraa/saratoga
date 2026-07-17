@@ -32,7 +32,7 @@ export default function Incentives() {
     <div>
       <PageHeader
         title="Incentives"
-        description="Effective April 2026 · Deepak: slab on booked sales · Akhil: 5% of profit above ₹5L"
+        description="Effective April 2026 · Deepak & Akhil: slab on booked sales"
         actions={<><ExportButton path="/export/incentives" name="incentives" /><Select value={month} onValueChange={setMonth}>
           <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -44,7 +44,7 @@ export default function Incentives() {
 
       <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
         <StatCard icon={Coins} tint="info" label="Deepak · Sales Incentive" value={fmtMoney(sel.deepak)} hint={`on ${fmtMoney(sel.sales)} booked`} />
-        <StatCard icon={TrendingUp} tint="success" label="Akhil · Profit Share" value={fmtMoney(sel.akhil)} hint={`on ${fmtMoney(sel.profit)} profit`} />
+        <StatCard icon={TrendingUp} tint="success" label="Akhil · Sales Incentive" value={fmtMoney(sel.akhil)} hint={`on ${fmtMoney(sel.sales)} booked`} />
       </div>
 
       <Card className="mb-6">
@@ -64,7 +64,7 @@ export default function Incentives() {
               </TableRow>
               <TableRow>
                 <TableCell className="font-medium">Akhil</TableCell>
-                <TableCell>5% of monthly profit above ₹5L threshold (no incentive up to ₹5L)</TableCell>
+                <TableCell>First ₹7.5L @ 1.5% · ₹7.5L–15L @ 2% · Above ₹15L @ 3% (on monthly booked sales)</TableCell>
               </TableRow>
             </TableBody>
           </Table>
