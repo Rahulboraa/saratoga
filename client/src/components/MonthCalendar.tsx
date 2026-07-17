@@ -194,7 +194,9 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
                     <span
                       className={cn(
                         'mt-auto block truncate rounded-[5px] px-1.5 py-1 text-[11px] font-semibold leading-tight',
-                        busy ? 'text-primary' : 'border border-dashed border-border text-muted-foreground',
+                        busy
+                          ? 'text-primary'
+                          : 'border border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
                       )}
                     >
                       {label}
@@ -212,7 +214,7 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
             Booked
           </span>
           <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
-            <span className="h-2.5 w-2.5 rounded-[3px] border border-dashed border-muted-foreground/60" />
+            <span className="h-2.5 w-2.5 rounded-[3px] border border-emerald-500/50 bg-emerald-500/15" />
             Checkout · free after
           </span>
           <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
