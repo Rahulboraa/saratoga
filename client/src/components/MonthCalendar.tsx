@@ -163,7 +163,6 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
               const checkout = dayBookings.filter((b) => date === (b.checkoutDate || b.checkinDate) && date !== b.checkinDate)
               const col = (b?: CalendarBooking) => (b ? (PURPOSE_COLORS[b.purpose] ?? PURPOSE_COLORS.Other) : '#888')
               const tint = (c: string) => `color-mix(in oklch, ${c}, var(--background) 82%)`
-              const first = (b: CalendarBooking) => b.guest.split(' ')[0]
               return (
                 <button
                   key={date}
@@ -201,21 +200,16 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
                       </span>
                     )}
                     <span className="mt-auto flex flex-col gap-0.5">
-                      {full.slice(0, 1).map((b) => (
-                        <span key={b.id} className="flex items-center gap-1 truncate text-[9.5px] font-semibold leading-tight" style={{ color: col(b) }}>
-                          <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: col(b) }} />
-                          <span className="truncate">{first(b)}{full.length > 1 ? ` +${full.length - 1}` : ''}</span>
+                      {full.length > 0 && (
+                        <span className="flex items-center gap-1 text-[9.5px] font-semibold leading-tight" style={{ color: col(full[0]) }}>
+                          <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: col(full[0]) }} />
+                          Booked{full.length > 1 ? ` +${full.length - 1}` : ''}
                         </span>
-                      ))}
+                      )}
                       {checkin.length > 0 && (
-                        <>
-                          <span className="truncate text-[9.5px] font-bold leading-tight" style={{ color: col(checkin[0]) }}>
-                            ↓ In {fmtTime(checkin[0].checkinTime)}
-                          </span>
-                          <span className="truncate text-[9px] leading-tight text-muted-foreground">
-                            {first(checkin[0])}{checkin.length > 1 ? ` +${checkin.length - 1}` : ''}
-                          </span>
-                        </>
+                        <span className="truncate text-[9.5px] font-bold leading-tight" style={{ color: col(checkin[0]) }}>
+                          ↓ In {fmtTime(checkin[0].checkinTime)}{checkin.length > 1 ? ` +${checkin.length - 1}` : ''}
+                        </span>
                       )}
                     </span>
                   </span>
