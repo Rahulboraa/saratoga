@@ -169,7 +169,7 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
                   type="button"
                   onClick={() => { setSelected(date); onSelectDate?.(date, dayBookings) }}
                   className={cn(
-                    'relative flex min-h-[64px] flex-col overflow-hidden p-1 text-left align-top transition-colors md:min-h-24',
+                    'relative flex min-h-[66px] flex-col overflow-hidden p-0.5 text-left align-top transition-colors sm:p-1 md:min-h-24',
                     i % 7 !== 0 && 'border-l border-border/50',
                     i >= 7 && 'border-t border-border/50',
                     'cursor-pointer hover:bg-accent/40',
@@ -193,22 +193,19 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
                     {hasOverlap && <span className="h-1.5 w-1.5 rounded-full bg-destructive" title="Overlapping bookings" />}
                   </span>
 
-                  <span className="relative z-10 mt-0.5 flex flex-1 flex-col">
+                  <span className="relative z-10 mt-0.5 flex flex-1 flex-col leading-none">
                     {checkout.length > 0 && (
-                      <span className="truncate text-[9.5px] font-bold leading-tight" style={{ color: col(checkout[0]) }}>
-                        ↑ Out {fmtTime(checkout[0].checkoutTime)}{checkout.length > 1 ? ` +${checkout.length - 1}` : ''}
+                      <span className="truncate text-[8.5px] font-bold sm:text-[10px]" style={{ color: col(checkout[0]) }}>
+                        ↑ {fmtTime(checkout[0].checkoutTime)}{checkout.length > 1 ? ` +${checkout.length - 1}` : ''}
                       </span>
                     )}
-                    <span className="mt-auto flex flex-col gap-0.5">
+                    <span className="mt-auto flex flex-col gap-1">
                       {full.length > 0 && (
-                        <span className="flex items-center gap-1 text-[9.5px] font-semibold leading-tight" style={{ color: col(full[0]) }}>
-                          <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: col(full[0]) }} />
-                          Booked{full.length > 1 ? ` +${full.length - 1}` : ''}
-                        </span>
+                        <span className="h-1.5 w-1.5 rounded-full" style={{ background: col(full[0]) }} title="Booked" />
                       )}
                       {checkin.length > 0 && (
-                        <span className="truncate text-[9.5px] font-bold leading-tight" style={{ color: col(checkin[0]) }}>
-                          ↓ In {fmtTime(checkin[0].checkinTime)}{checkin.length > 1 ? ` +${checkin.length - 1}` : ''}
+                        <span className="truncate text-[8.5px] font-bold sm:text-[10px]" style={{ color: col(checkin[0]) }}>
+                          ↓ {fmtTime(checkin[0].checkinTime)}{checkin.length > 1 ? ` +${checkin.length - 1}` : ''}
                         </span>
                       )}
                     </span>
@@ -227,11 +224,11 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
           ))}
           <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
             <span className="h-3.5 w-4 rounded-[3px] border border-border" style={{ background: 'linear-gradient(to bottom, color-mix(in oklch, var(--foreground), transparent 78%) 50%, transparent 50%)' }} />
-            Checkout (morning)
+            ↑ Checkout (morning)
           </span>
           <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
             <span className="h-3.5 w-4 rounded-[3px] border border-border" style={{ background: 'linear-gradient(to top, color-mix(in oklch, var(--foreground), transparent 78%) 50%, transparent 50%)' }} />
-            Check-in (evening)
+            ↓ Check-in (evening)
           </span>
           <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
             <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
