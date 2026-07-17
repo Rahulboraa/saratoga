@@ -86,47 +86,6 @@ function fmtTime(hm: string | undefined) {
   return m ? `${h12}:${String(m).padStart(2, '0')}${ampm}` : `${h12}${ampm}`
 }
 
-function EventChip({ b, date }: { b: CalendarBooking; date: string }) {
-  const color = PURPOSE_COLORS[b.purpose] ?? PURPOSE_COLORS.Other
-  const arriving = date === b.checkinDate
-  const leaving = date === (b.checkoutDate || b.checkinDate)
-  const sameDay = arriving && leaving
-
-  // Occupancy label + how "full" the day is, so a checkout morning doesn't read as sold-out.
-  let label: string
-  let level: 'light' | 'mid' | 'full'
-  if (sameDay) {
-    label = b.checkinTime
-      ? `${fmtTime(b.checkinTime)}${b.checkoutTime ? `–${fmtTime(b.checkoutTime)}` : ''}`
-      : 'Booked'
-    level = 'mid'
-  } else if (arriving) {
-    label = `In ${fmtTime(b.checkinTime)}`
-    level = 'mid'
-  } else if (leaving) {
-    label = `Out ${fmtTime(b.checkoutTime)}`
-    level = 'light'
-  } else {
-    label = 'Full day'
-    level = 'full'
-  }
-
-  const bgMix = level === 'full' ? '72%' : level === 'mid' ? '82%' : '93%'
-  const fgMix = level === 'light' ? '30%' : '48%'
-  return (
-    <span
-      className={cn('block w-full truncate rounded-[4px] px-1.5 py-0.5 text-left text-[10.5px] font-semibold leading-[14px]', level === 'light' && 'border border-dashed')}
-      style={{
-        background: level === 'light' ? 'transparent' : `color-mix(in oklch, ${color}, var(--background) ${bgMix})`,
-        borderColor: level === 'light' ? `color-mix(in oklch, ${color}, var(--background) 55%)` : undefined,
-        color: `color-mix(in oklch, ${color}, var(--foreground) ${fgMix})`,
-      }}
-    >
-      {label}
-    </span>
-  )
-}
-
 export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: string, bookings: CalendarBooking[]) => void }) {
   const [month, setMonth] = useState(currentMonth())
   const [selected, setSelected] = useState<string | null>(null)
@@ -197,36 +156,50 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
               const dayBookings = byDate.get(date) ?? []
               const hasOverlap = dayBookings.some((b) => b.overlap)
               const isToday = date === today
-              const maxChips = 3
+              // Availability at a glance: busy (occupied) vs checkout-only (free after morning) vs free.
+              const staying = dayBookings.filter((b) => date === b.checkinDate || (date > b.checkinDate && date < (b.checkoutDate || b.checkinDate)))
+              const checkouts = dayBookings.filter((b) => date === (b.checkoutDate || b.checkinDate) && date !== b.checkinDate)
+              const busy = staying.length > 0
+              const checkoutOnly = !busy && checkouts.length > 0
+              const arrival = staying.find((b) => date === b.checkinDate && b.checkinTime)
+              const label = busy
+                ? (arrival ? `In ${fmtTime(arrival.checkinTime)}` : 'Booked')
+                : checkoutOnly ? `Free after ${fmtTime(checkouts[0].checkoutTime)}` : ''
+              const extra = dayBookings.length - 1
               return (
                 <button
                   key={date}
                   type="button"
                   onClick={() => { setSelected(date); onSelectDate?.(date, dayBookings) }}
                   className={cn(
-                    'flex min-h-20 flex-col gap-0.5 p-1 text-left align-top transition-colors md:min-h-24',
+                    'flex min-h-20 flex-col gap-1 p-1.5 text-left align-top transition-colors md:min-h-24',
                     i % 7 !== 0 && 'border-l border-border/50',
                     i >= 7 && 'border-t border-border/50',
                     'cursor-pointer hover:bg-accent/50',
-                    isToday && 'bg-primary/[0.04]',
                   )}
+                  style={busy ? { background: 'color-mix(in oklch, var(--primary), var(--background) 87%)' } : undefined}
                 >
-                  <span className="flex items-center justify-between px-0.5">
+                  <span className="flex items-center justify-between">
                     <span
                       className={cn(
-                        'flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-medium',
-                        isToday ? 'bg-primary text-primary-foreground' : 'text-foreground/70',
+                        'flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-semibold',
+                        isToday ? 'bg-primary text-primary-foreground' : busy ? 'text-primary' : 'text-foreground/60',
                       )}
                     >
                       {dayNum}
                     </span>
                     {hasOverlap && <span className="h-1.5 w-1.5 rounded-full bg-destructive" title="Overlapping bookings" />}
                   </span>
-                  {dayBookings.slice(0, maxChips).map((b) => (
-                    <EventChip key={b.id} b={b} date={date} />
-                  ))}
-                  {dayBookings.length > maxChips && (
-                    <span className="px-1 text-[10px] font-medium text-muted-foreground">+{dayBookings.length - maxChips} more</span>
+                  {label && (
+                    <span
+                      className={cn(
+                        'mt-auto block truncate rounded-[5px] px-1.5 py-1 text-[11px] font-semibold leading-tight',
+                        busy ? 'text-primary' : 'border border-dashed border-border text-muted-foreground',
+                      )}
+                    >
+                      {label}
+                      {busy && extra > 0 && <span className="font-medium opacity-70"> +{extra}</span>}
+                    </span>
                   )}
                 </button>
               )
@@ -234,15 +207,17 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
           </div>
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 pt-1">
-          {Object.entries(PURPOSE_COLORS).map(([purpose, color]) => (
-            <span key={purpose} className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
-              <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: color }} />
-              {purpose}
-            </span>
-          ))}
+          <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: 'color-mix(in oklch, var(--primary), var(--background) 60%)' }} />
+            Booked
+          </span>
           <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
             <span className="h-2.5 w-2.5 rounded-[3px] border border-dashed border-muted-foreground/60" />
             Checkout · free after
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <span className="h-2.5 w-2.5 rounded-[3px] border border-border bg-background" />
+            Free
           </span>
           <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
             <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
