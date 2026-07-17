@@ -164,7 +164,7 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
               const arrival = staying.find((b) => date === b.checkinDate && b.checkinTime)
               const label = busy
                 ? (arrival ? `In ${fmtTime(arrival.checkinTime)}` : 'Booked')
-                : checkoutOnly ? `Free after ${fmtTime(checkouts[0].checkoutTime)}` : ''
+                : checkoutOnly ? `Out ${fmtTime(checkouts[0].checkoutTime)}` : ''
               const extra = dayBookings.length - 1
               return (
                 <button
