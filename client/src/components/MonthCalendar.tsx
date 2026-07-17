@@ -162,7 +162,7 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
               const checkin = dayBookings.filter((b) => date === b.checkinDate)
               const checkout = dayBookings.filter((b) => date === (b.checkoutDate || b.checkinDate) && date !== b.checkinDate)
               const col = (b?: CalendarBooking) => (b ? (PURPOSE_COLORS[b.purpose] ?? PURPOSE_COLORS.Other) : '#888')
-              const tint = (c: string) => `color-mix(in oklch, ${c}, var(--background) 82%)`
+              const tint = (c: string) => `color-mix(in oklch, ${c}, var(--background) 74%)`
               return (
                 <button
                   key={date}
@@ -196,7 +196,7 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
                   <span className="relative z-10 mt-0.5 flex flex-1 flex-col leading-none">
                     {checkout.length > 0 && (
                       <span className="truncate text-[8.5px] font-bold sm:text-[10px]" style={{ color: col(checkout[0]) }}>
-                        ↑ {fmtTime(checkout[0].checkoutTime)}{checkout.length > 1 ? ` +${checkout.length - 1}` : ''}
+                        ↑ <span className="hidden sm:inline">Out </span>{fmtTime(checkout[0].checkoutTime)}{checkout.length > 1 ? ` +${checkout.length - 1}` : ''}
                       </span>
                     )}
                     <span className="mt-auto flex flex-col gap-1">
@@ -205,7 +205,7 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
                       )}
                       {checkin.length > 0 && (
                         <span className="truncate text-[8.5px] font-bold sm:text-[10px]" style={{ color: col(checkin[0]) }}>
-                          ↓ {fmtTime(checkin[0].checkinTime)}{checkin.length > 1 ? ` +${checkin.length - 1}` : ''}
+                          ↓ <span className="hidden sm:inline">In </span>{fmtTime(checkin[0].checkinTime)}{checkin.length > 1 ? ` +${checkin.length - 1}` : ''}
                         </span>
                       )}
                     </span>
