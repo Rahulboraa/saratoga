@@ -189,13 +189,13 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
                   )}
                 >
                   {full.length > 0 && (
-                    <span className="pointer-events-none absolute inset-0 border" style={{ background: tint(col(full[0])), borderColor: bord(col(full[0])) }} />
+                    <span className="pointer-events-none absolute inset-0 border border-dashed" style={{ background: tint(col(full[0])), borderColor: bord(col(full[0])) }} />
                   )}
                   {checkout.length > 0 && (
-                    <span className="pointer-events-none absolute inset-x-0 top-0 h-1/2 rounded-b-[3px] border" style={{ background: tint(col(checkout[0])), borderColor: bord(col(checkout[0])) }} />
+                    <span className="pointer-events-none absolute inset-x-0 top-0 h-1/2 rounded-b-[3px] border border-dashed" style={{ background: tint(col(checkout[0])), borderColor: bord(col(checkout[0])) }} />
                   )}
                   {checkin.length > 0 && (
-                    <span className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 rounded-t-[3px] border" style={{ background: tint(col(checkin[0])), borderColor: bord(col(checkin[0])) }} />
+                    <span className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 rounded-t-[3px] border border-dashed" style={{ background: tint(col(checkin[0])), borderColor: bord(col(checkin[0])) }} />
                   )}
 
                   <span className="relative z-10 flex items-center justify-between">
