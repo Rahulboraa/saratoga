@@ -72,6 +72,12 @@ export function DayBookingCard({ b, date, onOpen }: { b: CalendarBooking; date: 
 
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
+// Each booking gets its own colour (not by purpose) so the gate can tell one booking from the next at a glance.
+const CAL_PALETTE = [
+  'hsl(217 91% 55%)', 'hsl(152 55% 42%)', 'hsl(270 70% 60%)', 'hsl(25 90% 52%)', 'hsl(330 72% 55%)',
+  'hsl(190 80% 42%)', 'hsl(43 85% 47%)', 'hsl(0 72% 60%)', 'hsl(250 65% 62%)', 'hsl(168 60% 38%)',
+]
+
 function shiftMonth(ym: string, delta: number) {
   const [y, m] = ym.split('-').map(Number)
   const d = new Date(y, m - 1 + delta, 1)
@@ -117,6 +123,11 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
     }
   }
   const eventCount = new Set(bookings.map((b) => b.id)).size
+  // Assign a distinct colour per booking, cycling in check-in order so neighbours differ.
+  const bookingColor = new Map<string, string>()
+  ;[...new Map(bookings.map((b) => [b.id, b])).values()]
+    .sort((a, b) => a.checkinDate.localeCompare(b.checkinDate))
+    .forEach((b, idx) => bookingColor.set(b.id, CAL_PALETTE[idx % CAL_PALETTE.length]))
   const leading = first.getDay()
   const totalCells = Math.ceil((leading + daysInMonth) / 7) * 7
 
@@ -161,8 +172,9 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
               const full = dayBookings.filter((b) => date > b.checkinDate && date < (b.checkoutDate || b.checkinDate))
               const checkin = dayBookings.filter((b) => date === b.checkinDate)
               const checkout = dayBookings.filter((b) => date === (b.checkoutDate || b.checkinDate) && date !== b.checkinDate)
-              const col = (b?: CalendarBooking) => (b ? (PURPOSE_COLORS[b.purpose] ?? PURPOSE_COLORS.Other) : '#888')
+              const col = (b?: CalendarBooking) => (b ? (bookingColor.get(b.id) ?? '#888') : '#888')
               const tint = (c: string) => `color-mix(in oklch, ${c}, var(--background) 74%)`
+              const bord = (c: string) => `color-mix(in oklch, ${c}, var(--background) 30%)`
               return (
                 <button
                   key={date}
@@ -177,13 +189,13 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
                   )}
                 >
                   {full.length > 0 && (
-                    <span className="pointer-events-none absolute inset-0" style={{ background: tint(col(full[0])) }} />
+                    <span className="pointer-events-none absolute inset-0 border" style={{ background: tint(col(full[0])), borderColor: bord(col(full[0])) }} />
                   )}
                   {checkout.length > 0 && (
-                    <span className="pointer-events-none absolute inset-x-0 top-0 h-1/2 border-b border-dashed" style={{ background: tint(col(checkout[0])), borderColor: col(checkout[0]) }} />
+                    <span className="pointer-events-none absolute inset-x-0 top-0 h-1/2 rounded-b-[3px] border" style={{ background: tint(col(checkout[0])), borderColor: bord(col(checkout[0])) }} />
                   )}
                   {checkin.length > 0 && (
-                    <span className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 border-t border-dashed" style={{ background: tint(col(checkin[0])), borderColor: col(checkin[0]) }} />
+                    <span className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 rounded-t-[3px] border" style={{ background: tint(col(checkin[0])), borderColor: bord(col(checkin[0])) }} />
                   )}
 
                   <span className="relative z-10 flex items-center justify-between">
@@ -200,9 +212,6 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
                       </span>
                     )}
                     <span className="mt-auto flex flex-col gap-1">
-                      {full.length > 0 && (
-                        <span className="h-1.5 w-1.5 rounded-full" style={{ background: col(full[0]) }} title="Booked" />
-                      )}
                       {checkin.length > 0 && (
                         <span className="truncate text-[8.5px] font-bold sm:text-[10px]" style={{ color: col(checkin[0]) }}>
                           ↓ <span className="hidden sm:inline">In </span>{fmtTime(checkin[0].checkinTime)}{checkin.length > 1 ? ` +${checkin.length - 1}` : ''}
@@ -216,12 +225,14 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
           </div>
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-1">
-          {Object.entries(PURPOSE_COLORS).map(([purpose, color]) => (
-            <span key={purpose} className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
-              <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: color }} />
-              {purpose}
+          <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <span className="flex gap-0.5">
+              <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: CAL_PALETTE[0] }} />
+              <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: CAL_PALETTE[1] }} />
+              <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: CAL_PALETTE[2] }} />
             </span>
-          ))}
+            Each colour = one booking
+          </span>
           <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
             <span className="h-3.5 w-4 rounded-[3px] border border-border" style={{ background: 'linear-gradient(to bottom, color-mix(in oklch, var(--foreground), transparent 78%) 50%, transparent 50%)' }} />
             ↑ Checkout (morning)
