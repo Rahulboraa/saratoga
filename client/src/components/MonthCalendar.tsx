@@ -208,13 +208,13 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
                   <span className="relative z-10 mt-0.5 flex flex-1 flex-col leading-none">
                     {checkout.length > 0 && (
                       <span className="truncate text-[8.5px] font-bold sm:text-[10px]" style={{ color: col(checkout[0]) }}>
-                        ↑ <span className="hidden sm:inline">Out </span>{fmtTime(checkout[0].checkoutTime)}{checkout.length > 1 ? ` +${checkout.length - 1}` : ''}
+                        ↑ {fmtTime(checkout[0].checkoutTime)}{checkout.length > 1 ? ` +${checkout.length - 1}` : ''}
                       </span>
                     )}
                     <span className="mt-auto flex flex-col gap-1">
                       {checkin.length > 0 && (
                         <span className="truncate text-[8.5px] font-bold sm:text-[10px]" style={{ color: col(checkin[0]) }}>
-                          ↓ <span className="hidden sm:inline">In </span>{fmtTime(checkin[0].checkinTime)}{checkin.length > 1 ? ` +${checkin.length - 1}` : ''}
+                          ↓ {fmtTime(checkin[0].checkinTime)}{checkin.length > 1 ? ` +${checkin.length - 1}` : ''}
                         </span>
                       )}
                     </span>
@@ -231,19 +231,19 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
               <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: CAL_PALETTE[1] }} />
               <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: CAL_PALETTE[2] }} />
             </span>
-            Each colour = one booking
+            Har rang = alag booking
           </span>
           <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
             <span className="h-3.5 w-4 rounded-[3px] border border-border" style={{ background: 'linear-gradient(to bottom, color-mix(in oklch, var(--foreground), transparent 78%) 50%, transparent 50%)' }} />
-            ↑ Checkout (morning)
+            ↑ Ja rahe (subah)
           </span>
           <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
             <span className="h-3.5 w-4 rounded-[3px] border border-border" style={{ background: 'linear-gradient(to top, color-mix(in oklch, var(--foreground), transparent 78%) 50%, transparent 50%)' }} />
-            ↓ Check-in (evening)
+            ↓ Aa rahe (shaam)
           </span>
           <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
             <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
-            Overlap
+            Ek din 2 booking
           </span>
         </div>
       </CardContent>
