@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils'
 import InstallButton from '@/components/InstallPrompt'
 import ThemeToggle, { ThemeToggleRow } from '@/components/ThemeToggle'
 import SearchPalette, { openSearchPalette } from '@/components/SearchPalette'
+import PaymentNotice from '@/components/PaymentNotice'
 import { Search } from 'lucide-react'
 
 const NAV_MAIN = [
@@ -221,6 +222,7 @@ export default function AppLayout() {
       </header>
 
       <main className="min-h-screen bg-slate-50/50 dark:bg-background md:pl-[260px]">
+        <PaymentNotice />
         <TopBar />
         <div className="animate-fade-in mx-auto px-4 py-5 pb-24 sm:px-5 sm:py-6 md:px-6 md:py-6 md:pb-6">
           <Outlet />
