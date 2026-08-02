@@ -31,6 +31,31 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
 });
 
+// One-time self-heal for already-installed clients, who can't be asked to clear
+// their cache by hand. Bump this string to run it again on every browser.
+//
+// Deliberately no location.reload(): if this code is executing, the browser has
+// already fetched the current bundle, so a reload buys nothing and risks a loop.
+// This just drops the stale precache and the token invalidated by the JWT
+// rotation, so the *next* load is clean too.
+const RESET_KEY = "2026-08-02-jwt-rotation";
+const RESET_STORE_KEY = "sv_reset";
+
+async function resetStaleClient() {
+  localStorage.setItem(RESET_STORE_KEY, RESET_KEY);
+  try {
+    localStorage.removeItem("sv_token");
+    if ("caches" in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+    }
+  } catch {
+    // Best effort; the service worker's own cleanupOutdatedCaches is the backstop.
+  }
+}
+
+if (localStorage.getItem(RESET_STORE_KEY) !== RESET_KEY) void resetStaleClient();
+
 const root = createRoot(document.getElementById("root")!);
 
 if (SERVICE_HOLD) {
