@@ -22,14 +22,6 @@ function ServiceHold() {
         <h1 className="mt-4 text-[17px] font-semibold tracking-tight text-balance text-foreground">
           This app is temporarily unavailable
         </h1>
-        <div className="mt-7 flex items-center justify-center gap-2 border-t border-border/60 pt-5">
-          <span className="grid h-6 w-6 place-items-center rounded-md bg-primary text-[10px] font-bold text-primary-foreground">
-            SV
-          </span>
-          <span className="text-[12px] font-medium text-muted-foreground">
-            Saratoga Villa
-          </span>
-        </div>
       </div>
     </div>
   );
