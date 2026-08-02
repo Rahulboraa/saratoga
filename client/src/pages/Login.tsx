@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import loginBg from '@/assets/login-bg.jpg'
+import PaymentNotice from '@/components/PaymentNotice'
 
 export default function Login() {
   const { login, logoutMessage } = useAuth()
@@ -31,7 +32,9 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen w-full">
+    <div className="flex min-h-screen w-full flex-col">
+      <PaymentNotice />
+      <div className="flex w-full flex-1">
       <div className="relative hidden items-end overflow-hidden bg-slate-950 lg:flex lg:w-[60%]">
         <img src={loginBg} alt="Saratoga Villa at dusk" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
@@ -94,6 +97,7 @@ export default function Login() {
             </Button>
           </form>
         </div>
+      </div>
       </div>
     </div>
   )
