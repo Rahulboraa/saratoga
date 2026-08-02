@@ -19,10 +19,10 @@ function ServiceHold() {
         <div className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-muted text-muted-foreground">
           <ServerOff className="h-5 w-5" strokeWidth={2} />
         </div>
-        <h1 className="mt-4 text-[17px] font-semibold tracking-tight text-balance text-foreground">
+        <h1 className="mt-4 text-[17px] font-semibold tracking-wide text-balance uppercase text-foreground">
           Server unavailable
         </h1>
-        <p className="mx-auto mt-2 max-w-[30ch] text-[13px] leading-relaxed text-muted-foreground">
+        <p className="mx-auto mt-2.5 max-w-[30ch] text-[12px] leading-relaxed tracking-wide uppercase text-muted-foreground">
           The app is offline right now. Please try again later.
         </p>
       </div>
