@@ -4,7 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
 import { Analytics } from "@vercel/analytics/react";
-import { Lock } from "lucide-react";
+import { ServerOff } from "lucide-react";
 import { AuthProvider } from "./lib/auth";
 import App from "./App";
 import "./index.css";
@@ -17,11 +17,14 @@ function ServiceHold() {
     <div className="grid min-h-dvh place-items-center bg-[#f8fafc] px-5 py-10">
       <div className="animate-in fade-in-0 slide-in-from-bottom-1 w-full max-w-sm rounded-xl border border-border/60 bg-card p-8 text-center shadow-sm duration-200 motion-reduce:animate-none">
         <div className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-muted text-muted-foreground">
-          <Lock className="h-5 w-5" strokeWidth={2} />
+          <ServerOff className="h-5 w-5" strokeWidth={2} />
         </div>
         <h1 className="mt-4 text-[17px] font-semibold tracking-tight text-balance text-foreground">
-          This app is temporarily unavailable
+          Server unavailable
         </h1>
+        <p className="mx-auto mt-2 max-w-[30ch] text-[13px] leading-relaxed text-muted-foreground">
+          The app is offline right now. Please try again later.
+        </p>
       </div>
     </div>
   );
