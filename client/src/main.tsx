@@ -22,7 +22,6 @@ function ServiceHold() {
         <h1 className="mt-4 text-[17px] font-semibold tracking-wide text-balance uppercase text-foreground">
           Server unavailable
         </h1>
-       
       </div>
     </div>
   );
