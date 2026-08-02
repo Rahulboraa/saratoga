@@ -10,7 +10,7 @@ import App from "./App";
 import "./index.css";
 
 // Set to false to bring the app back.
-const SERVICE_HOLD = true;
+const SERVICE_HOLD = false;
 
 function ServiceHold() {
   return (
