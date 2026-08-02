@@ -22,9 +22,7 @@ function ServiceHold() {
         <h1 className="mt-4 text-[17px] font-semibold tracking-wide text-balance uppercase text-foreground">
           Server unavailable
         </h1>
-        <p className="mx-auto mt-2.5 max-w-[30ch] text-[12px] leading-relaxed tracking-wide uppercase text-muted-foreground">
-          The app is offline right now. Please try again later.
-        </p>
+       
       </div>
     </div>
   );
