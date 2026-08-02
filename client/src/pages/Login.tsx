@@ -32,9 +32,7 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen w-full flex-col">
-      <PaymentNotice />
-      <div className="flex w-full flex-1">
+    <div className="flex min-h-screen w-full">
       <div className="relative hidden items-end overflow-hidden bg-slate-950 lg:flex lg:w-[60%]">
         <img src={loginBg} alt="Saratoga Villa at dusk" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
@@ -46,6 +44,7 @@ export default function Login() {
 
       <div className="flex w-full items-center justify-center bg-background p-8 sm:p-12 lg:w-[40%]">
         <div className="w-full max-w-sm space-y-8">
+          <PaymentNotice variant="inline" />
           <div className="flex flex-col gap-2">
             <h1 className="text-3xl font-bold tracking-tight text-foreground">Welcome back</h1>
             <p className="text-sm text-muted-foreground">Sign in to Saratoga Villa Booking Manager</p>
@@ -97,7 +96,6 @@ export default function Login() {
             </Button>
           </form>
         </div>
-      </div>
       </div>
     </div>
   )
