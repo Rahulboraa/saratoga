@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
 import { Analytics } from "@vercel/analytics/react";
+import { Lock } from "lucide-react";
 import { AuthProvider } from "./lib/auth";
 import App from "./App";
 import "./index.css";
@@ -13,11 +14,22 @@ const SERVICE_HOLD = true;
 
 function ServiceHold() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-5">
-      <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-7 text-center shadow-sm">
-        <p className="mt-5 text-xl leading-snug font-medium text-card-foreground">
+    <div className="grid min-h-dvh place-items-center bg-[#f8fafc] px-5 py-10">
+      <div className="animate-in fade-in-0 slide-in-from-bottom-1 w-full max-w-sm rounded-xl border border-border/60 bg-card p-8 text-center shadow-sm duration-200 motion-reduce:animate-none">
+        <div className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-muted text-muted-foreground">
+          <Lock className="h-5 w-5" strokeWidth={2} />
+        </div>
+        <h1 className="mt-4 text-[17px] font-semibold tracking-tight text-balance text-foreground">
           This app is temporarily unavailable
-        </p>
+        </h1>
+        <div className="mt-7 flex items-center justify-center gap-2 border-t border-border/60 pt-5">
+          <span className="grid h-6 w-6 place-items-center rounded-md bg-primary text-[10px] font-bold text-primary-foreground">
+            SV
+          </span>
+          <span className="text-[12px] font-medium text-muted-foreground">
+            Saratoga Villa
+          </span>
+        </div>
       </div>
     </div>
   );
