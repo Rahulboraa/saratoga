@@ -27,7 +27,12 @@ export default defineConfig({
       },
       workbox: {
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
-        navigateFallbackDenylist: [/^\/api/],
+        // Serve navigations from the network, not the precached index.html.
+        // With the default ('index.html') an installed client keeps booting the
+        // old HTML — and therefore the old JS — so it never picks up a new
+        // deploy and can't be told to clear its cache by hand. Hashed assets
+        // stay precached, so only the small HTML document hits the network.
+        navigateFallback: undefined,
         runtimeCaching: [
           {
             urlPattern: /^\/api\//,
