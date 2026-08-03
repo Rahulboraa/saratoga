@@ -9,7 +9,6 @@ import { AuthProvider } from "./lib/auth";
 import App from "./App";
 import "./index.css";
 
-// Set to false to bring the app back.
 const SERVICE_HOLD = false;
 
 function ServiceHold() {
@@ -54,7 +53,8 @@ async function resetStaleClient() {
   }
 }
 
-if (localStorage.getItem(RESET_STORE_KEY) !== RESET_KEY) void resetStaleClient();
+if (localStorage.getItem(RESET_STORE_KEY) !== RESET_KEY)
+  void resetStaleClient();
 
 const root = createRoot(document.getElementById("root")!);
 
