@@ -2,7 +2,7 @@ import { TriangleAlert } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 // Set to false to remove the banner once payment is settled.
-const SHOW_PAYMENT_NOTICE = true
+const SHOW_PAYMENT_NOTICE = false
 
 const MESSAGE =
   'Payment for this service is pending. Access will be closed today if the outstanding amount is not settled.'
