@@ -13,8 +13,8 @@ section before anything else.
    in as admin and see every figure until they are changed. Changing them is safe —
    the seed only creates users that don't already exist, it never resets an existing
    password.
-2. **Rotate the secrets** listed in *Credentials* below, so the previous developer no
-   longer holds live access.
+2. **Rotate the secrets** listed under *Environment variables* below, so the previous
+   developer no longer holds live access.
 3. **Verify a backup arrives** (see *Backups*). Atlas automated backups are **off** on
    the free tier, so the nightly email is the only backup that exists.
 
