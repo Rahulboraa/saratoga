@@ -67,6 +67,7 @@ if (SERVICE_HOLD) {
         <BrowserRouter>
           <AuthProvider>
             <App />
+            
             <Analytics />
             <Toaster
               position="top-center"
