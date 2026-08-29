@@ -59,7 +59,11 @@ export default function Incentives() {
             </TableHeader>
             <TableBody>
               <TableRow>
-                <TableCell className="font-medium">Deepak</TableCell>
+                <TableCell className="font-medium">Deepak<div className="text-xs font-normal text-muted-foreground">from Jul 2026</div></TableCell>
+                <TableCell>First ₹5L @ 1.5% · ₹5L–10L @ 2% · ₹10L–15L @ 3% (max ₹32,500) · above ₹15L a flat 5% of total booked sales</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">Deepak<div className="text-xs font-normal text-muted-foreground">Apr–Jun 2026</div></TableCell>
                 <TableCell>First ₹5L @ 1% · Next ₹5L @ 1.5% · Above ₹10L @ 3% (on monthly booked sales)</TableCell>
               </TableRow>
               <TableRow>
