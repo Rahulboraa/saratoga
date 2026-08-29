@@ -44,7 +44,8 @@ export const bookingManagerSchema = bookingCommon
 
 export const paymentSchema = z.object({
   date: ymd,
-  amount: z.coerce.number().positive(),
+  // Negative amounts are allowed so a refund can be recorded against the booking.
+  amount: z.coerce.number().refine((n) => n !== 0, 'Amount cannot be zero'),
   method: str.default(''),
   dest: str.default(''),
   by: str.default(''),

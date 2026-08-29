@@ -138,7 +138,7 @@ export default function PaymentPanel({ booking, onClose }: { booking: Booking | 
                 </div>
                 <div className="space-y-2">
                   <Label>Amount *</Label>
-                  <Input name="amount" type="number" min="1" required autoFocus />
+                  <Input name="amount" type="number" step="any" required autoFocus placeholder="Negative for a refund" />
                 </div>
                 <div className="space-y-2">
                   <Label>Method</Label>
