@@ -6,7 +6,7 @@ import toast from 'react-hot-toast'
 import type { ColumnDef } from '@tanstack/react-table'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
-import { fmtMoney, fmtDate, fmtMonth, PURPOSE_COLORS, STATUS_VARIANT } from '@/lib/format'
+import { fmtMoney, fmtDate, fmtMonth, currentMonth, PURPOSE_COLORS, STATUS_VARIANT } from '@/lib/format'
 import { PURPOSES, type Booking } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -32,7 +32,8 @@ export default function Bookings() {
   const queryClient = useQueryClient()
 
   const [q, setQ] = useState('')
-  const [month, setMonth] = useState('all')
+  // Opens on this month — that is the window the team works in day to day.
+  const [month, setMonth] = useState(currentMonth())
   const [status, setStatus] = useState('all')
   const [purpose, setPurpose] = useState('all')
   const [page, setPage] = useState(1)
@@ -69,6 +70,10 @@ export default function Bookings() {
     queryFn: () => api<BookingsResponse>(`/bookings?${params}`),
     placeholderData: keepPreviousData,
   })
+
+  // The server only lists months that have bookings, so the current one is added
+  // explicitly — otherwise the default selection would show a blank trigger.
+  const monthOptions = [...new Set([currentMonth(), ...(data?.months ?? [])])].sort().reverse()
 
   const deleteBooking = useMutation({
     mutationFn: (id: string) => api(`/bookings/${id}`, { method: 'DELETE' }),
@@ -204,7 +209,7 @@ export default function Bookings() {
           <SelectTrigger className="h-9 w-[calc(50%-6px)] sm:w-64"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All months</SelectItem>
-            {(data?.months ?? []).map((m) => <SelectItem key={m} value={m}>{fmtMonth(m)}</SelectItem>)}
+            {monthOptions.map((m) => <SelectItem key={m} value={m}>{fmtMonth(m)}</SelectItem>)}
           </SelectContent>
         </Select>
         {canMoney && (
