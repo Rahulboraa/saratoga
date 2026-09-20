@@ -43,6 +43,6 @@ bookingSchema.pre('validate', function () {
   this.amount = (b?.venue ?? 0) + (b?.catering ?? 0) + (b?.decor ?? 0) + (b?.music ?? 0) + (b?.cleaning ?? 0)
 })
 
-bookingSchema.index({ propertyId: 1, legacyId: 1 }, { unique: true, sparse: true })
+bookingSchema.index({ propertyId: 1, legacyId: 1 }, { unique: true, partialFilterExpression: { legacyId: { $type: 'string' } } })
 
 export const Booking = model('Booking', bookingSchema)

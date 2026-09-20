@@ -15,6 +15,6 @@ const expensePaymentSchema = new Schema(
   { timestamps: true },
 )
 
-expensePaymentSchema.index({ propertyId: 1, legacyId: 1 }, { unique: true, sparse: true })
+expensePaymentSchema.index({ propertyId: 1, legacyId: 1 }, { unique: true, partialFilterExpression: { legacyId: { $type: 'string' } } })
 
 export const ExpensePayment = model('ExpensePayment', expensePaymentSchema)

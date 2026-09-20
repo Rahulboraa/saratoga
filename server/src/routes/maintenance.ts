@@ -11,7 +11,13 @@ maintenanceRouter.get('/status', async (_req, res) => {
 
 // One-time data migration, safe to repeat: it only fills in what is still missing.
 maintenanceRouter.post('/migrate', async (_req, res) => {
-  const stamped = await stampExistingRecords()
-  const visitorTypes = await backfillVisitorTypes()
-  res.json({ ...stamped, visitorTypes, status: await migrationStatus() })
+  try {
+    const stamped = await stampExistingRecords()
+    const visitorTypes = await backfillVisitorTypes()
+    res.json({ ...stamped, visitorTypes, status: await migrationStatus() })
+  } catch (err) {
+    // Admin-only, and the admin is the one who has to decide what to do about it.
+    console.error('migration failed', err)
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Migration failed' })
+  }
 })

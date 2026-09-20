@@ -48,6 +48,15 @@ export async function migrationStatus(): Promise<MigrationStatus> {
 export async function stampExistingRecords() {
   const property = await ensureDefaultProperty()
 
+  // Bring the collections' indexes in line with the schemas before writing. The first
+  // cut of the per-property legacyId index was sparse, which a compound index only
+  // honours when every field is missing — so stamping propertyId onto rows without a
+  // legacyId made them all collide on null. Rebuilding drops that index for the
+  // partial one, which indexes only rows that actually carry a legacyId.
+  for (const model of Object.values(SCOPED_MODELS)) {
+    await (model as typeof Booking).syncIndexes()
+  }
+
   const counts: Record<string, number> = {}
   for (const [label, model] of Object.entries(SCOPED_MODELS)) {
     const result = await (model as typeof Booking).updateMany(

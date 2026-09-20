@@ -30,6 +30,6 @@ const leadSchema = new Schema(
 
 leadSchema.index({ propertyId: 1, exec: 1, date: -1 })
 
-leadSchema.index({ propertyId: 1, legacyId: 1 }, { unique: true, sparse: true })
+leadSchema.index({ propertyId: 1, legacyId: 1 }, { unique: true, partialFilterExpression: { legacyId: { $type: 'string' } } })
 
 export const Lead = model('Lead', leadSchema)

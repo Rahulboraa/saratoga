@@ -23,6 +23,6 @@ const visitorSchema = new Schema(
   { timestamps: true },
 )
 
-visitorSchema.index({ propertyId: 1, legacyId: 1 }, { unique: true, sparse: true })
+visitorSchema.index({ propertyId: 1, legacyId: 1 }, { unique: true, partialFilterExpression: { legacyId: { $type: 'string' } } })
 
 export const Visitor = model('Visitor', visitorSchema)
