@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { api, getToken, setToken, setUnauthorizedHandler } from './api'
+import { api, getToken, setToken, setActiveProperty, setUnauthorizedHandler } from './api'
 import type { AuthUser } from '@/types'
 
 interface AuthState {
@@ -23,6 +23,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback((message = '') => {
     setToken(null)
+    // The next person to sign in here gets their own property, not the last one's.
+    setActiveProperty(null)
     setUser(null)
     setLogoutMessage(message)
     queryClient.clear()

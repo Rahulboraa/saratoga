@@ -1,4 +1,6 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, type ReactNode } from 'react'
+import {
+  createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode,
+} from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, getActiveProperty, setActiveProperty } from './api'
 import { useAuth } from './auth'
@@ -18,6 +20,9 @@ const PropertyContext = createContext<PropertyState>(null as never)
 export function PropertyProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  // Held in state, not read from storage during render: the switcher is a controlled
+  // select, so without a re-render it would snap straight back to its old value.
+  const [chosen, setChosen] = useState<string | null>(() => getActiveProperty() || null)
 
   const { data: properties = [] } = useQuery({
     queryKey: ['properties'],
@@ -26,9 +31,8 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
     staleTime: 5 * 60_000,
   })
 
-  const stored = getActiveProperty() || null
   // A non-admin is pinned to their own property no matter what is in storage.
-  const activeId = user && user.role !== 'admin' ? user.propertyId : stored
+  const activeId = user && user.role !== 'admin' ? user.propertyId : chosen
 
   useEffect(() => {
     if (!user) return
@@ -36,17 +40,20 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
       if (getActiveProperty() !== (user.propertyId ?? '')) setActiveProperty(user.propertyId)
       return
     }
-    // Drop a stored property that has since been deleted, so the app doesn't 404 on every call.
-    if (stored && properties.length && !properties.some((p) => p.id === stored)) {
+    // Drop a stored property that has since been deleted, so calls don't 404 on every page.
+    if (chosen && properties.length && !properties.some((p) => p.id === chosen)) {
       setActiveProperty(null)
-      queryClient.clear()
+      setChosen(null)
     }
-  }, [user, stored, properties, queryClient])
+  }, [user, chosen, properties])
 
   const setActive = useCallback((id: string | null) => {
+    // Storage first: the next refetch reads it for the x-property header.
     setActiveProperty(id)
-    // Every cached list belongs to the property it was fetched under — start clean.
-    queryClient.clear()
+    setChosen(id)
+    // Cached lists belong to the property they were fetched under, so drop them —
+    // but keep the property list itself, which the switcher is rendered from.
+    queryClient.removeQueries({ predicate: (query) => query.queryKey[0] !== 'properties' })
   }, [queryClient])
 
   const value = useMemo<PropertyState>(() => ({
