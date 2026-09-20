@@ -159,18 +159,49 @@ Every booking, payment, expense, visitor and lead belongs to exactly one propert
   comes from their token, and the `x-property` header is ignored for them
   (`server/src/middleware/scope.ts`).
 
-Admin → **Properties** page creates and deactivates properties. A property with users
-still assigned cannot be deleted; reassign them first.
+Admin → **Properties** page creates and deactivates properties, and holds the invoice
+address, GSTIN and invoice-number prefix used on that property's sales invoices. A
+property with users still assigned cannot be deleted; reassign them first.
 
-**Migration — run once after deploying this change:**
+**Migrations — run once after deploying this change:**
 
 ```bash
-npm run migrate:properties
+npm run migrate:properties      # puts all existing data under "Saratoga Villa"
+npm run backfill:visitor-types  # reads the old purpose text into the new type field
 ```
 
-It creates the *Saratoga Villa* property, stamps every existing record with it, and
-assigns every non-admin user to it. Safe to re-run: it only touches rows that have no
-property yet. Until it runs, non-admin users get a 403 because they have no property.
+The first creates the *Saratoga Villa* property, stamps every existing record with it,
+and assigns every non-admin user to it. Until it runs, non-admin users get a 403 because
+they have no property. Both are safe to re-run: they only touch rows not yet migrated.
+
+---
+
+## Sales invoices
+
+Bookings list → the file icon on a row opens a printable GST invoice. It renders as a
+draft until someone presses **Issue invoice**, which assigns the next serial number for
+that property and stores it on the booking.
+
+- Numbers run `PREFIX/FY/NNN` (e.g. `INV/2026-27/007`), per property, restarting each
+  financial year. They are only assigned on issue, so viewing a draft never leaves a gap
+  in the sequence.
+- GST is charged at **18% on top of** the booking amount, split CGST 9% + SGST 9%. The
+  licence fee is recovered at actuals and the security deposit is refundable, so neither
+  is taxed (`server/src/services/invoice.ts`).
+- The PDF comes from the browser's own print dialog — there is no PDF library to
+  maintain. Print styling lives in the `@media print` block at the end of
+  `client/src/index.css`.
+
+---
+
+## Investments and accounts
+
+- **Investments** — partner capital per property, recorded by partner name (not every
+  investor has a login). Each entry is an *Investment* or a *Withdrawal*, and the page
+  shows each partner's net and their share of the net capital.
+- **Accounts** — payments received grouped by the destination account they landed in
+  (HDFC, Paytm, and so on). Click a row to see just that account's payments. Refunds are
+  negative payments, so they net off the account they came from.
 
 ---
 

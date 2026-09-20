@@ -236,6 +236,16 @@ export interface ExpenseSummary {
   plSeries: { month: string; revenue: number; expenses: number; profit: number; margin: number }[]
 }
 
+export interface AccountReport {
+  months: string[]
+  total: number
+  accounts: { account: string; received: number; count: number; lastDate: string; share: number }[]
+  payments: {
+    id: string; date: string; amount: number; account: string
+    method: string; by: string; notes: string; guest: string
+  }[]
+}
+
 export interface InvestmentEntry {
   id: string
   partner: string
