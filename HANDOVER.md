@@ -163,16 +163,23 @@ Admin → **Properties** page creates and deactivates properties, and holds the 
 address, GSTIN and invoice-number prefix used on that property's sales invoices. A
 property with users still assigned cannot be deleted; reassign them first.
 
-**Migrations — run once after deploying this change:**
+**Migration — one time, after deploying properties for the first time:**
+
+Sign in as admin → **Properties**. If anything is still unmigrated, a banner appears with
+a **Migrate now** button. It puts every pre-properties record under *Saratoga Villa*,
+assigns non-admin users to it, and fills in visitor types from the old purpose text. The
+banner disappears once nothing is left, and pressing it again is harmless.
+
+The same work is available from a terminal, if the database is reachable:
 
 ```bash
 npm run migrate:properties      # puts all existing data under "Saratoga Villa"
 npm run backfill:visitor-types  # reads the old purpose text into the new type field
 ```
 
-The first creates the *Saratoga Villa* property, stamps every existing record with it,
-and assigns every non-admin user to it. Until it runs, non-admin users get a 403 because
-they have no property. Both are safe to re-run: they only touch rows not yet migrated.
+Both paths share one implementation (`server/src/services/migrations.ts`) and only touch
+rows that have not been migrated. Until it runs, non-admin users get a 403 because they
+have no property, and admins see empty pages unless they pick *All properties*.
 
 ---
 

@@ -236,6 +236,18 @@ export interface ExpenseSummary {
   plSeries: { month: string; revenue: number; expenses: number; profit: number; margin: number }[]
 }
 
+export interface MigrationStatus {
+  pending: Record<string, number>
+  total: number
+}
+
+export interface MigrationResult {
+  property: { id: string; name: string }
+  counts: Record<string, number>
+  visitorTypes: Record<string, number>
+  status: MigrationStatus
+}
+
 export interface AccountReport {
   months: string[]
   total: number

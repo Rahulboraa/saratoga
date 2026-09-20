@@ -16,6 +16,7 @@ import { cronRouter } from './routes/cron.js'
 import { searchRouter } from './routes/search.js'
 import { propertiesRouter } from './routes/properties.js'
 import { investmentsRouter } from './routes/investments.js'
+import { maintenanceRouter } from './routes/maintenance.js'
 import { requireAuth } from './middleware/auth.js'
 import { resolveScope } from './middleware/scope.js'
 import { errorHandler } from './middleware/error.js'
@@ -40,6 +41,7 @@ export function createApp() {
   app.use('/api/auth', authRouter)
   app.use('/api/users', requireAuth, usersRouter)
   app.use('/api/properties', requireAuth, propertiesRouter)
+  app.use('/api/maintenance', requireAuth, maintenanceRouter)
   app.use('/api/bookings', requireAuth, resolveScope, bookingsRouter)
   app.use('/api/payments', requireAuth, resolveScope, paymentsRouter)
   app.use('/api/expenses', requireAuth, resolveScope, expensesRouter)
