@@ -11,13 +11,45 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Session storage pins a signed-in user to the tab that signed them in; local storage
+ * carries it over to a new tab or a relaunched PWA. Without the tab-level copy, signing
+ * in as someone else anywhere in the browser silently reassigns every other open tab —
+ * an admin reloads and comes back as whoever logged in last.
+ */
+function readStored(key: string) {
+  try {
+    const pinned = sessionStorage.getItem(key)
+    if (pinned !== null) return pinned
+    const shared = localStorage.getItem(key)
+    // Pin it, so this tab keeps the identity it started with.
+    if (shared !== null) sessionStorage.setItem(key, shared)
+    return shared
+  } catch {
+    return null
+  }
+}
+
+function writeStored(key: string, value: string | null) {
+  try {
+    if (value === null) {
+      sessionStorage.removeItem(key)
+      localStorage.removeItem(key)
+    } else {
+      sessionStorage.setItem(key, value)
+      localStorage.setItem(key, value)
+    }
+  } catch {
+    // Private-mode browsers keep the session in memory for this page only.
+  }
+}
+
 export function getToken() {
-  return localStorage.getItem(TOKEN_KEY)
+  return readStored(TOKEN_KEY)
 }
 
 export function setToken(token: string | null) {
-  if (token) localStorage.setItem(TOKEN_KEY, token)
-  else localStorage.removeItem(TOKEN_KEY)
+  writeStored(TOKEN_KEY, token)
 }
 
 /**
@@ -25,20 +57,11 @@ export function setToken(token: string | null) {
  * stamp it on every request without each caller remembering to.
  */
 export function getActiveProperty() {
-  try {
-    return localStorage.getItem(PROPERTY_KEY) || ''
-  } catch {
-    return ''
-  }
+  return readStored(PROPERTY_KEY) || ''
 }
 
 export function setActiveProperty(id: string | null) {
-  try {
-    if (id) localStorage.setItem(PROPERTY_KEY, id)
-    else localStorage.removeItem(PROPERTY_KEY)
-  } catch {
-    // Private-mode browsers fall back to the all-properties view.
-  }
+  writeStored(PROPERTY_KEY, id)
 }
 
 function propertyHeader(): Record<string, string> {
