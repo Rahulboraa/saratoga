@@ -11,7 +11,8 @@
     "import:legacy": "tsx src/scripts/importLegacy.ts",
     "seed:demo": "tsx src/scripts/seedDemo.ts",
     "migrate:properties": "tsx src/scripts/migrateProperties.ts",
-    "backfill:visitor-types": "tsx src/scripts/backfillVisitorTypes.ts"
+    "backfill:visitor-types": "tsx src/scripts/backfillVisitorTypes.ts",
+    "test:e2e": "tsx src/scripts/e2e.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

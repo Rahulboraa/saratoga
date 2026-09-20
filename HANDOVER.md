@@ -178,7 +178,10 @@ npm run backfill:visitor-types  # reads the old purpose text into the new type f
 ```
 
 Both paths share one implementation (`server/src/services/migrations.ts`) and only touch
-rows that have not been migrated. Until it runs, non-admin users get a 403 because they
+rows that have not been migrated. The migration rebuilds the collections' indexes first:
+the original per-property `legacyId` index was declared sparse, which a compound index
+only honours when *every* field is missing, so stamping `propertyId` onto rows without a
+`legacyId` made them collide on null. It is a partial index now. Until it runs, non-admin users get a 403 because they
 have no property, and admins see empty pages unless they pick *All properties*.
 
 ---
@@ -209,6 +212,22 @@ that property and stores it on the booking.
 - **Accounts** — payments received grouped by the destination account they landed in
   (HDFC, Paytm, and so on). Click a row to see just that account's payments. Refunds are
   negative payments, so they net off the account they came from.
+
+---
+
+## Tests
+
+`npm test` runs the unit suite (no database needed).
+
+`npm run test:e2e` checks property isolation and the features built on it against a real
+MongoDB — that a manager only ever sees their own property and cannot widen it with the
+`x-property` header, that overlaps are per property, invoice numbering, the accounts
+report, partner ledger and visitor filters. It **wipes** the database it points at, so it
+refuses to run unless the name contains `test`, `e2e` or `scratch`:
+
+```bash
+MONGODB_URI="mongodb://127.0.0.1:27017/saratoga_e2e" npm run test:e2e
+```
 
 ---
 
