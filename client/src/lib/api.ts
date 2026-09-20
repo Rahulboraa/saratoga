@@ -30,6 +30,15 @@ function readStored(key: string) {
   }
 }
 
+/** Keeps a rolling token inside the tab, leaving the shared copy to deliberate sign-ins. */
+function pinStored(key: string, value: string) {
+  try {
+    sessionStorage.setItem(key, value)
+  } catch {
+    // Nothing to pin to; the in-memory session still works for this page.
+  }
+}
+
 function writeStored(key: string, value: string | null) {
   try {
     if (value === null) {
@@ -64,6 +73,33 @@ export function setActiveProperty(id: string | null) {
   writeStored(PROPERTY_KEY, id)
 }
 
+/** The `id` claim, read without verifying — the server is the one that trusts tokens. */
+function subjectOf(token: string | null) {
+  if (!token) return null
+  try {
+    const payload = token.split('.')[1]
+    const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
+    return (JSON.parse(json) as { id?: string }).id ?? null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Every response carries a refreshed token, which keeps a working session alive. It must
+ * never change who is signed in: a reply still in flight from a session that has since
+ * signed out — or from another user's tab — would otherwise reinstate them, and the next
+ * reload would come back as the wrong person.
+ */
+function acceptRefresh(fresh: string) {
+  const current = getToken()
+  if (!current) return
+  if (subjectOf(fresh) !== subjectOf(current)) return
+  // Tab-local: the shared copy records who last signed in on purpose, and a background
+  // refresh in one tab has no business rewriting that for the others.
+  pinStored(TOKEN_KEY, fresh)
+}
+
 function propertyHeader(): Record<string, string> {
   const id = getActiveProperty()
   return id ? { 'x-property': id } : {}
@@ -93,7 +129,7 @@ export async function api<T>(path: string, opts: Options = {}): Promise<T> {
   })
 
   const fresh = res.headers.get('x-refresh-token')
-  if (fresh) setToken(fresh)
+  if (fresh) acceptRefresh(fresh)
 
   const data = await res.json().catch(() => null)
   if (res.status === 401 && !path.startsWith('/auth/login')) {
@@ -113,7 +149,7 @@ export async function apiDownload(path: string, filename: string) {
   })
   if (!res.ok) throw new ApiError(res.status, 'Download failed', null)
   const fresh = res.headers.get('x-refresh-token')
-  if (fresh) setToken(fresh)
+  if (fresh) acceptRefresh(fresh)
   const blob = await res.blob()
   const a = document.createElement('a')
   a.href = URL.createObjectURL(blob)
