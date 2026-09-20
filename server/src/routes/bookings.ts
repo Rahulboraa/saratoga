@@ -7,6 +7,9 @@ import { serializeBooking, serializeCalendarBooking, serializePayment } from '..
 import { overlaps, overlapIdSet } from '../lib/overlap.js'
 import { paymentSums, withFinance } from '../services/finance.js'
 import { scoped, writeProperty } from '../middleware/scope.js'
+import { Property } from '../models/Property.js'
+import { invoiceLines, nextInvoiceNo, GST_RATE } from '../services/invoice.js'
+import { todayYmd } from '../lib/dates.js'
 
 export const bookingsRouter = Router()
 
@@ -181,6 +184,51 @@ bookingsRouter.delete('/:id', requireRole('admin'), async (req, res) => {
   if (!booking) return res.status(404).json({ error: 'Booking not found' })
   await Payment.deleteMany({ bookingId: booking._id })
   res.json({ ok: true })
+})
+
+/** Everything the printable invoice needs. `invoiceNo` is empty until it is issued. */
+async function invoicePayload(req: Parameters<typeof scoped>[0], id: string) {
+  const booking = await Booking.findOne(scoped(req, { _id: id }))
+  if (!booking) return null
+  const property = await Property.findById(booking.propertyId)
+  const sums = await paymentSums([booking._id])
+  const lines = invoiceLines(booking)
+  return {
+    invoiceNo: booking.invoiceNo,
+    invoiceDate: booking.invoiceDate,
+    gstRate: GST_RATE,
+    booking: {
+      id: booking.id, guest: booking.guest, phone: booking.phone,
+      checkinDate: booking.checkinDate, checkoutDate: booking.checkoutDate,
+      checkinTime: booking.checkinTime, checkoutTime: booking.checkoutTime,
+      pax: booking.pax, purpose: booking.purpose,
+    },
+    property: {
+      name: property?.name ?? '', address: property?.address ?? '',
+      location: property?.location ?? '', gstin: property?.gstin ?? '',
+    },
+    ...lines,
+    received: (booking.legacyReceived ?? 0) + (sums.get(String(booking._id)) ?? 0),
+  }
+}
+
+bookingsRouter.get('/:id/invoice', requireRole('admin', 'manager'), async (req, res) => {
+  const payload = await invoicePayload(req, String(req.params.id))
+  if (!payload) return res.status(404).json({ error: 'Booking not found' })
+  res.json(payload)
+})
+
+// Issuing burns a serial number, so it is a deliberate action, not a side effect of viewing.
+bookingsRouter.post('/:id/invoice', requireRole('admin'), async (req, res) => {
+  const booking = await Booking.findOne(scoped(req, { _id: req.params.id }))
+  if (!booking) return res.status(404).json({ error: 'Booking not found' })
+  if (!booking.invoiceNo) {
+    const date = todayYmd()
+    booking.invoiceNo = await nextInvoiceNo(String(booking.propertyId), date)
+    booking.invoiceDate = date
+    await booking.save()
+  }
+  res.json(await invoicePayload(req, String(req.params.id)))
 })
 
 bookingsRouter.get('/:id/payments', requireRole('admin', 'manager'), async (req, res) => {

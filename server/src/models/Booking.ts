@@ -29,6 +29,8 @@ const bookingSchema = new Schema(
     },
     amount: { type: Number, default: 0 },
     legacyReceived: { type: Number, default: 0 },
+    invoiceNo: { type: String, default: '' },
+    invoiceDate: { type: String, default: '' },
     createdBy: { type: String, default: '' },
     legacyId: { type: String, index: true },
   },

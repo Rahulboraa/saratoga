@@ -12,6 +12,7 @@ import Expenses from './pages/Expenses'
 import Incentives from './pages/Incentives'
 import Users from './pages/Users'
 import Properties from './pages/Properties'
+import Invoice from './pages/Invoice'
 import ImportPage from './pages/ImportPage'
 import Caretaker from './pages/Caretaker'
 
@@ -41,6 +42,7 @@ export default function App() {
           <Route path="/leads" element={<Leads />} />
           <Route element={<RequireRole roles={['admin', 'manager']} />}>
             <Route path="/import" element={<ImportPage />} />
+            <Route path="/bookings/:id/invoice" element={<Invoice />} />
           </Route>
           <Route element={<RequireRole roles={['admin']} />}>
             <Route path="/expenses" element={<Expenses />} />

@@ -7,12 +7,26 @@ import { requireRole } from '../middleware/auth.js'
 const createSchema = z.object({
   name: z.string().trim().min(1).max(80),
   location: z.string().trim().max(120).default(''),
+  address: z.string().trim().max(300).default(''),
+  gstin: z.string().trim().max(20).default(''),
+  invoicePrefix: z.string().trim().max(10).default('INV'),
 })
 
 const updateSchema = z.object({
   name: z.string().trim().min(1).max(80).optional(),
   location: z.string().trim().max(120).optional(),
   active: z.boolean().optional(),
+  address: z.string().trim().max(300).optional(),
+  gstin: z.string().trim().max(20).optional(),
+  invoicePrefix: z.string().trim().max(10).optional(),
+})
+
+const shape = (p: {
+  id: string; name: string; location: string; active: boolean
+  address: string; gstin: string; invoicePrefix: string
+}) => ({
+  id: p.id, name: p.name, location: p.location, active: p.active,
+  address: p.address, gstin: p.gstin, invoicePrefix: p.invoicePrefix,
 })
 
 export const propertiesRouter = Router()
@@ -21,7 +35,7 @@ export const propertiesRouter = Router()
 propertiesRouter.get('/', async (req, res) => {
   const filter = req.user.role === 'admin' ? {} : { _id: req.user.propertyId }
   const properties = await Property.find(filter).sort({ name: 1 })
-  res.json(properties.map((p) => ({ id: p.id, name: p.name, location: p.location, active: p.active })))
+  res.json(properties.map(shape))
 })
 
 propertiesRouter.use(requireRole('admin'))
@@ -32,14 +46,14 @@ propertiesRouter.post('/', async (req, res) => {
     return res.status(409).json({ error: 'A property with that name already exists' })
   }
   const property = await Property.create(body)
-  res.status(201).json({ id: property.id, name: property.name, location: property.location, active: property.active })
+  res.status(201).json(shape(property))
 })
 
 propertiesRouter.patch('/:id', async (req, res) => {
   const body = updateSchema.parse(req.body)
   const property = await Property.findByIdAndUpdate(req.params.id, body, { new: true, runValidators: true })
   if (!property) return res.status(404).json({ error: 'Property not found' })
-  res.json({ id: property.id, name: property.name, location: property.location, active: property.active })
+  res.json(shape(property))
 })
 
 propertiesRouter.delete('/:id', async (req, res) => {

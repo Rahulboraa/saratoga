@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
-import { useSearchParams } from 'react-router-dom'
-import { Pencil, Trash2, Wallet, CalendarDays } from 'lucide-react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { FileText, Pencil, Trash2, Wallet, CalendarDays } from 'lucide-react'
 import toast from 'react-hot-toast'
 import type { ColumnDef } from '@tanstack/react-table'
 import { api } from '@/lib/api'
@@ -43,6 +43,7 @@ export default function Bookings() {
   const [payFor, setPayFor] = useState<string | null>(null)
   const [external, setExternal] = useState<Booking | null>(null)
   const [searchParams, setSearchParams] = useSearchParams()
+  const navigate = useNavigate()
 
   useEffect(() => {
     const focus = searchParams.get('focus')
@@ -93,6 +94,16 @@ export default function Bookings() {
       {canMoney && (
         <Button variant="ghost" size="icon-sm" title="Payments" onClick={() => setPayFor(b.id)}>
           <Wallet className="size-5" />
+        </Button>
+      )}
+      {canEdit && (
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          title={b.invoiceNo ? `Invoice ${b.invoiceNo}` : 'Invoice'}
+          onClick={() => navigate(`/bookings/${b.id}/invoice`)}
+        >
+          <FileText className={`size-5 ${b.invoiceNo ? 'text-primary' : ''}`} />
         </Button>
       )}
       {canEdit && (

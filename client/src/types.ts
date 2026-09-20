@@ -18,6 +18,9 @@ export interface Property {
   name: string
   location: string
   active: boolean
+  address: string
+  gstin: string
+  invoicePrefix: string
 }
 
 export const PURPOSES = ['Party', 'Shoot', 'Pre-wedding', 'Kids Birthday', 'Other'] as const
@@ -37,6 +40,7 @@ export interface Breakdown {
 export type BookingStatus = 'paid' | 'partial' | 'pending'
 
 export interface Booking {
+  invoiceNo?: string
   id: string
   guest: string
   phone: string
@@ -230,6 +234,27 @@ export interface ExpenseSummary {
   totalDue: number
   categories: { cat: string; count: number; amount: number }[]
   plSeries: { month: string; revenue: number; expenses: number; profit: number; margin: number }[]
+}
+
+export interface InvoicePayload {
+  invoiceNo: string
+  invoiceDate: string
+  gstRate: number
+  booking: {
+    id: string; guest: string; phone: string
+    checkinDate: string; checkoutDate: string
+    checkinTime: string; checkoutTime: string
+    pax: string; purpose: string
+  }
+  property: { name: string; address: string; location: string; gstin: string }
+  items: { label: string; amount: number }[]
+  taxable: number
+  cgst: number
+  sgst: number
+  licence: number
+  security: number
+  total: number
+  received: number
 }
 
 export interface ImportRow {

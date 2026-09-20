@@ -60,7 +60,13 @@ export default function Properties() {
   function onCreate(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const fd = new FormData(e.currentTarget)
-    createProperty.mutate({ name: fd.get('name'), location: fd.get('location') })
+    createProperty.mutate({
+      name: fd.get('name'),
+      location: fd.get('location'),
+      address: fd.get('address'),
+      gstin: fd.get('gstin'),
+      invoicePrefix: fd.get('invoicePrefix') || 'INV',
+    })
   }
 
   const staffCount = (id: string) => (users ?? []).filter((u) => u.propertyId === id).length
@@ -92,6 +98,7 @@ export default function Properties() {
                   </div>
                   <div className="truncate text-[12px] text-muted-foreground">
                     {p.location || 'No location set'} · {staffCount(p.id)} user{staffCount(p.id) === 1 ? '' : 's'}
+                    {p.gstin && <> · GSTIN {p.gstin}</>}
                   </div>
                 </div>
               </div>
@@ -128,6 +135,20 @@ export default function Properties() {
             <div className="space-y-1.5">
               <Label>Location</Label>
               <Input name="location" placeholder="Optional" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Invoice address</Label>
+              <Input name="address" placeholder="Printed on sales invoices" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>GSTIN</Label>
+                <Input name="gstin" placeholder="Optional" autoCapitalize="characters" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Invoice prefix</Label>
+                <Input name="invoicePrefix" defaultValue="INV" maxLength={10} />
+              </div>
             </div>
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => setAddOpen(false)}>Cancel</Button>

@@ -164,3 +164,34 @@
     @apply font-sans;
     }
 }
+/* Printing an invoice: drop the app chrome so only the invoice sheet reaches the page. */
+@media print {
+  @page {
+    margin: 14mm;
+  }
+
+  /* The layout hides the sidebar/nav, and the main column loses its offset and padding. */
+  aside,
+  header,
+  nav[class*="fixed"] {
+    display: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  main > div {
+    padding: 0 !important;
+  }
+
+  body {
+    background: #fff !important;
+  }
+
+  /* Print in light tones whatever the on-screen theme is. */
+  :root {
+    color-scheme: light;
+  }
+}
