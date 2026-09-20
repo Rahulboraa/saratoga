@@ -38,7 +38,9 @@ export default function Properties() {
     mutationFn: () => api<MigrationResult>('/maintenance/migrate', { method: 'POST' }),
     onSuccess: (result) => {
       // Everything on screen was filtered by a property the old rows did not have.
-      queryClient.clear()
+      // Reset rather than clear, so the mounted queries refetch instead of sitting on
+      // stale data until a reload.
+      queryClient.resetQueries()
       const moved = Object.values(result.counts).reduce((sum, n) => sum + n, 0)
       toast.success(moved > 0 ? `${moved} records moved into ${result.property.name}` : 'Nothing left to migrate')
     },

@@ -51,9 +51,12 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
     // Storage first: the next refetch reads it for the x-property header.
     setActiveProperty(id)
     setChosen(id)
-    // Cached lists belong to the property they were fetched under, so drop them —
+    // Cached lists belong to the property they were fetched under, so throw them away —
     // but keep the property list itself, which the switcher is rendered from.
-    queryClient.removeQueries({ predicate: (query) => query.queryKey[0] !== 'properties' })
+    // resetQueries, not removeQueries: removing leaves whatever is already on screen
+    // showing the old property's data until the page is reloaded, because nothing asks
+    // the mounted queries to fetch again. resetQueries refetches them.
+    queryClient.resetQueries({ predicate: (query) => query.queryKey[0] !== 'properties' })
   }, [queryClient])
 
   const value = useMemo<PropertyState>(() => ({
