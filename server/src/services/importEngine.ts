@@ -2,7 +2,8 @@ import * as XLSX from 'xlsx'
 import { z } from 'zod'
 import { Booking, PURPOSES, SOURCES } from '../models/Booking.js'
 import { Payment } from '../models/Payment.js'
-import { Expense, EXPENSE_CATS } from '../models/Expense.js'
+import { Expense, DEFAULT_EXPENSE_CATS } from '../models/Expense.js'
+import { activeCategoryNames } from './expenseCategories.js'
 import { Visitor, FU_STATUSES } from '../models/Visitor.js'
 import { visitorTypeFromPurpose } from '../lib/visitorType.js'
 import { Lead, EVENT_TYPES, OUTCOMES } from '../models/Lead.js'
@@ -152,7 +153,12 @@ export function reportMapping(type: ImportType, headers: string[]) {
 
 const FLAG_MAP: Record<string, string> = { review: 'review', goodcall: 'good', good: 'good', escalate: 'escalate' }
 
-export function normalizeRow(type: ImportType, m: Raw): Raw {
+/**
+ * `cats` is the live expense-category list; it is passed in because categories are
+ * editable data now, not a fixed enum. Tests and callers that only handle other types
+ * can leave it out.
+ */
+export function normalizeRow(type: ImportType, m: Raw, cats: readonly string[] = DEFAULT_EXPENSE_CATS): Raw {
   switch (type) {
     case 'bookings':
       return {
@@ -195,7 +201,7 @@ export function normalizeRow(type: ImportType, m: Raw): Raw {
       return {
         legacyId: str(m.legacyId) || undefined,
         date: normalizeDate(m.date),
-        cat: coerceEnum(m.cat, EXPENSE_CATS, 'Other'),
+        cat: coerceEnum(m.cat, cats, 'Other'),
         desc: str(m.desc),
         amount: normalizeNumber(m.amount),
         vendor: str(m.vendor),
@@ -315,9 +321,10 @@ export async function prepareRows(type: ImportType, rawRows: Raw[], propertyId: 
     ? new Set((await User.find({ $or: [{ propertyId }, { role: 'admin' }] }).select('username')).map((u) => u.username))
     : null
   const { legacyIds, naturals } = await existingKeys(type, propertyId)
+  const cats = type === 'expenses' ? await activeCategoryNames() : DEFAULT_EXPENSE_CATS
 
   return rawRows.map((raw, index) => {
-    const normalized = normalizeRow(type, mapRow(type, raw))
+    const normalized = normalizeRow(type, mapRow(type, raw), cats)
     const parsed = importSchemas[type].safeParse(normalized)
     const errors: string[] = []
     let data: Raw = normalized

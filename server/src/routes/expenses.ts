@@ -7,6 +7,7 @@ import { expenseSchema, expensePaymentSchema } from '../validation/schemas.js'
 import { serializeExpense, serializeExpensePayment } from '../lib/sanitize.js'
 import { expensePaymentSums, statusOf } from '../services/finance.js'
 import { expenseSummary } from '../services/stats.js'
+import { assertCategory } from '../services/expenseCategories.js'
 import { scoped, writeProperty } from '../middleware/scope.js'
 
 export const expensesRouter = Router()
@@ -58,6 +59,7 @@ expensesRouter.get('/', async (req, res) => {
 
 expensesRouter.post('/', async (req, res) => {
   const body = expenseSchema.parse(req.body)
+  await assertCategory(body.cat)
   const propertyId = writeProperty(req, res)
   if (!propertyId) return
   const bookingId = await resolveBooking(req, body.bookingId)
@@ -67,6 +69,7 @@ expensesRouter.post('/', async (req, res) => {
 
 expensesRouter.patch('/:id', async (req, res) => {
   const body = expenseSchema.partial().parse(req.body)
+  await assertCategory(body.cat)
   const update: Record<string, unknown> = { ...body }
   if (body.bookingId !== undefined) update.bookingId = await resolveBooking(req, body.bookingId)
   const expense = await Expense.findOneAndUpdate(scoped(req, { _id: req.params.id }), update, { new: true, runValidators: true })

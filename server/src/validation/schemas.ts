@@ -1,6 +1,5 @@
 import { z } from 'zod'
 import { PURPOSES, SOURCES } from '../models/Booking.js'
-import { EXPENSE_CATS } from '../models/Expense.js'
 import { FU_STATUSES, VISITOR_TYPES } from '../models/Visitor.js'
 import { INVESTMENT_KINDS } from '../models/Investment.js'
 import { EVENT_TYPES, OUTCOMES, FLAGS } from '../models/Lead.js'
@@ -55,7 +54,7 @@ export const paymentSchema = z.object({
 
 export const expenseSchema = z.object({
   date: ymd,
-  cat: z.enum(EXPENSE_CATS),
+  cat: str.min(1).max(40),
   bookingId: z.union([z.string(), z.null()]).optional(),
   desc: str.min(1),
   amount: money,

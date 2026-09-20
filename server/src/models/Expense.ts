@@ -1,6 +1,7 @@
 import { Schema, model } from 'mongoose'
 
-export const EXPENSE_CATS = [
+/** Seeded once into the ExpenseCategory collection, which is the source of truth after that. */
+export const DEFAULT_EXPENSE_CATS = [
   'Salary', 'Catering', 'Decor', 'Electricity', 'Housekeeping',
   'Dry Cleaning', 'Meta Ads', 'Marketing', 'Maintenance', 'Other',
 ] as const
@@ -9,7 +10,8 @@ const expenseSchema = new Schema(
   {
     propertyId: { type: Schema.Types.ObjectId, ref: 'Property', required: true, index: true },
     date: { type: String, required: true, index: true },
-    cat: { type: String, enum: EXPENSE_CATS, required: true },
+    // Free text, constrained at the route against the editable category list.
+    cat: { type: String, required: true, trim: true, index: true },
     // Optional: ties a cost to the event it was incurred for.
     bookingId: { type: Schema.Types.ObjectId, ref: 'Booking', default: null, index: true },
     desc: { type: String, required: true, trim: true },

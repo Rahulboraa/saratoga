@@ -204,6 +204,16 @@ that property and stores it on the booking.
 
 ---
 
+## Expense categories
+
+Categories are data, not a fixed list: Expenses → **Categories**. The first read seeds
+the old hard-coded list plus anything already used by an expense, so nothing loses its
+category. Renaming rewrites every expense filed under that name. A category still in use
+cannot be deleted — switch it off instead, which hides it from new entries but keeps the
+history reachable in the filter.
+
+---
+
 ## Investments and accounts
 
 - **Investments** — partner capital per property, recorded by partner name (not every

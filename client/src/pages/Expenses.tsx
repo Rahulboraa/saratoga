@@ -6,7 +6,7 @@ import toast from 'react-hot-toast'
 import type { ColumnDef } from '@tanstack/react-table'
 import { api } from '@/lib/api'
 import { fmtMoney, fmtDate, fmtMonth, todayYmd, STATUS_VARIANT, chartWindow } from '@/lib/format'
-import { EXPENSE_CATS, type Expense, type ExpensePayment, type ExpenseSummary } from '@/types'
+import type { Expense, ExpensePayment, ExpenseSummary } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -24,6 +24,7 @@ import ExportButton from '@/components/ExportButton'
 import { PageHeader } from '@/components/PageHeader'
 import { DatePicker } from '@/components/DatePicker'
 import { PLChart } from '@/components/charts'
+import ExpenseCategoriesDialog, { useExpenseCategories } from '@/components/ExpenseCategories'
 
 type ExpensesResponse = Paged<Expense> & { months: string[] }
 
@@ -41,6 +42,7 @@ const NO_BOOKING = 'none'
 
 function ExpenseSheet({ open, onClose, expense }: { open: boolean; onClose: () => void; expense?: Expense | null }) {
   const queryClient = useQueryClient()
+  const { data: categories = [] } = useExpenseCategories()
   const { data: bookingOptions = [] } = useQuery({
     queryKey: ['bookings', 'options'],
     queryFn: () => api<{ id: string; guest: string; checkinDate: string }[]>('/bookings/options'),
@@ -98,7 +100,10 @@ function ExpenseSheet({ open, onClose, expense }: { open: boolean; onClose: () =
                 <Select value={watch('cat')} onValueChange={(v) => setValue('cat', v)}>
                   <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {EXPENSE_CATS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    {categories
+                      // A switched-off category stays selectable on the expense already using it.
+                      .filter((c) => c.active || c.name === expense?.cat)
+                      .map((c) => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -288,6 +293,9 @@ export default function Expenses() {
   const [limit, setLimit] = useState(20)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editing, setEditing] = useState<Expense | null>(null)
+  const [categoriesOpen, setCategoriesOpen] = useState(false)
+  // Retired categories stay in the filter so their history is still reachable.
+  const { data: filterCategories = [] } = useExpenseCategories()
   const [payFor, setPayFor] = useState<string | null>(null)
 
   const params = new URLSearchParams({ page: String(page), limit: String(limit) })
@@ -392,6 +400,7 @@ export default function Expenses() {
               if (cat !== 'all') p.set('cat', cat)
               return <ExportButton path="/export/expenses" name="expenses" params={p} />
             })()}
+            <Button variant="outline" onClick={() => setCategoriesOpen(true)}>Categories</Button>
             <Button onClick={() => { setEditing(null); setSheetOpen(true) }}>Add expense</Button>
           </>
         }
@@ -514,7 +523,7 @@ export default function Expenses() {
           <SelectTrigger className="h-10 w-full sm:w-64"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All categories</SelectItem>
-            {EXPENSE_CATS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            {filterCategories.map((c) => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
@@ -553,6 +562,7 @@ export default function Expenses() {
       />
 
       <ExpenseSheet open={sheetOpen} onClose={() => setSheetOpen(false)} expense={editing} />
+      <ExpenseCategoriesDialog open={categoriesOpen} onClose={() => setCategoriesOpen(false)} />
       {payExpense && <ExpensePayPanel expense={payExpense} onClose={() => setPayFor(null)} />}
     </div>
   )

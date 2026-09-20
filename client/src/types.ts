@@ -85,17 +85,19 @@ export interface Payment {
   notes: string
 }
 
-export const EXPENSE_CATS = [
-  'Salary', 'Catering', 'Decor', 'Electricity', 'Housekeeping',
-  'Dry Cleaning', 'Meta Ads', 'Marketing', 'Maintenance', 'Other',
-] as const
+export interface ExpenseCategory {
+  id: string
+  name: string
+  active: boolean
+  inUse: number
+}
 
 export interface Expense {
   bookingId?: string | null
   bookingLabel?: string
   id: string
   date: string
-  cat: (typeof EXPENSE_CATS)[number]
+  cat: string
   desc: string
   amount: number
   vendor: string
