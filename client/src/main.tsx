@@ -6,6 +6,7 @@ import { Toaster } from "react-hot-toast";
 import { Analytics } from "@vercel/analytics/react";
 import { ServerOff } from "lucide-react";
 import { AuthProvider } from "./lib/auth";
+import { PropertyProvider } from "./lib/property";
 import App from "./App";
 import "./index.css";
 
@@ -66,32 +67,34 @@ if (SERVICE_HOLD) {
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <AuthProvider>
-            <App />
+            <PropertyProvider>
+              <App />
             
-            <Analytics />
-            <Toaster
-              position="top-center"
-              toastOptions={{
-                style: {
-                  fontSize: "13px",
-                  borderRadius: "10px",
-                  border: "1px solid var(--border)",
-                  boxShadow: "0 4px 12px rgb(0 0 0 / 0.08)",
-                  padding: "10px 14px",
-                  background: "var(--popover)",
-                  color: "var(--popover-foreground)",
-                },
-                success: {
-                  iconTheme: {
-                    primary: "hsl(152 60% 44%)",
-                    secondary: "white",
+              <Analytics />
+              <Toaster
+                position="top-center"
+                toastOptions={{
+                  style: {
+                    fontSize: "13px",
+                    borderRadius: "10px",
+                    border: "1px solid var(--border)",
+                    boxShadow: "0 4px 12px rgb(0 0 0 / 0.08)",
+                    padding: "10px 14px",
+                    background: "var(--popover)",
+                    color: "var(--popover-foreground)",
                   },
-                },
-                error: {
-                  iconTheme: { primary: "hsl(0 79% 63%)", secondary: "white" },
-                },
-              }}
-            />
+                  success: {
+                    iconTheme: {
+                      primary: "hsl(152 60% 44%)",
+                      secondary: "white",
+                    },
+                  },
+                  error: {
+                    iconTheme: { primary: "hsl(0 79% 63%)", secondary: "white" },
+                  },
+                }}
+              />
+            </PropertyProvider>
           </AuthProvider>
         </BrowserRouter>
       </QueryClientProvider>

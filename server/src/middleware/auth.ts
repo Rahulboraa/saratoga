@@ -8,6 +8,8 @@ export interface AuthUser {
   username: string
   name: string
   role: Role
+  /** null for admins, who span every property. */
+  propertyId: string | null
 }
 
 declare module 'express-serve-static-core' {
@@ -26,7 +28,13 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
   if (!token) return res.status(401).json({ error: 'Not authenticated' })
   try {
     const payload = jwt.verify(token, env.JWT_SECRET) as AuthUser & { iat: number; exp: number }
-    req.user = { id: payload.id, username: payload.username, name: payload.name, role: payload.role }
+    req.user = {
+      id: payload.id,
+      username: payload.username,
+      name: payload.name,
+      role: payload.role,
+      propertyId: payload.propertyId ?? null,
+    }
     res.setHeader('x-refresh-token', signToken(req.user))
     next()
   } catch {

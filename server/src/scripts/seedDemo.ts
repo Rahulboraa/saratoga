@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
 import { connectDb } from '../db.js'
+import { ensureDefaultProperty } from '../services/defaultProperty.js'
 import { env } from '../env.js'
 import { Booking, PURPOSES, SOURCES } from '../models/Booking.js'
 import { Payment } from '../models/Payment.js'
@@ -22,12 +23,15 @@ await Promise.all([
   ExpensePayment.deleteMany({}), Visitor.deleteMany({}), Lead.deleteMany({}),
 ])
 
+const property = await ensureDefaultProperty()
+const propertyId = property._id
+
 const bk = (guest: string, phone: string, checkin: string, checkout: string, purpose: (typeof PURPOSES)[number], source: (typeof SOURCES)[number], breakdown: Record<string, number>, notes = '', times: [string, string] = ['15:00', '10:00']) => ({
   guest, phone, checkinDate: checkin, checkoutDate: checkout, purpose, source,
   checkinTime: times[0], checkoutTime: times[1],
   pax: `${20 + Math.floor(Math.random() * 60)} guests`,
   dest: ['HDFC', 'Rajound Paytm', 'Airbnb', 'ICICI'][Math.floor(Math.random() * 4)],
-  notes, breakdown, createdBy: 'admin',
+  notes, breakdown, createdBy: 'admin', propertyId,
 })
 
 const bookings = await Booking.create([
@@ -80,6 +84,7 @@ for (const [idx, fractions, methods] of payPlans) {
     d.setDate(d.getDate() + offset + i * 12)
     payments.push({
       bookingId: b._id,
+      propertyId,
       date: d.toISOString().slice(0, 10),
       amount: Math.round(b.amount * f),
       method: methods[i],
@@ -91,7 +96,7 @@ for (const [idx, fractions, methods] of payPlans) {
 }
 await Payment.create(payments)
 
-const expenses = await Expense.create([
+const expenses = await Expense.create(([
   { date: '2026-05-01', cat: 'Salary', desc: 'Caretaker salary — May', amount: 18000, vendor: 'Ramesh', by: 'Akhil' },
   { date: '2026-05-06', cat: 'Housekeeping', desc: 'Deep cleaning post-wedding', amount: 8500, vendor: 'UrbanKlean', by: 'Deepak' },
   { date: '2026-05-14', cat: 'Electricity', desc: 'Electricity bill — May', amount: 22400, vendor: 'DHBVN' },
@@ -107,16 +112,16 @@ const expenses = await Expense.create([
   { date: '2026-08-01', cat: 'Salary', desc: 'Caretaker salary — August', amount: 18000, vendor: 'Ramesh', by: 'Akhil' },
   { date: '2026-08-12', cat: 'Maintenance', desc: 'Bathroom regrouting x4', amount: 21000, vendor: 'FixIt Bros' },
   { date: '2026-08-20', cat: 'Catering', desc: 'Standby chef — Bansal wedding', amount: 15000, vendor: 'Chef Manoj' },
-])
+] as Record<string, unknown>[]).map((e) => ({ ...e, propertyId })))
 
 const expPays: Record<string, unknown>[] = []
 expenses.forEach((e, i) => {
-  if (i % 3 === 0) expPays.push({ expenseId: e._id, date: e.date, amount: e.amount, method: 'Bank Transfer', to: e.vendor, by: 'Akhil' })
-  else if (i % 3 === 1) expPays.push({ expenseId: e._id, date: e.date, amount: Math.round(e.amount * 0.5), method: 'UPI', to: e.vendor, by: 'Deepak', notes: 'Advance' })
+  if (i % 3 === 0) expPays.push({ expenseId: e._id, propertyId, date: e.date, amount: e.amount, method: 'Bank Transfer', to: e.vendor, by: 'Akhil' })
+  else if (i % 3 === 1) expPays.push({ expenseId: e._id, propertyId, date: e.date, amount: Math.round(e.amount * 0.5), method: 'UPI', to: e.vendor, by: 'Deepak', notes: 'Advance' })
 })
 await ExpensePayment.create(expPays)
 
-await Visitor.create([
+await Visitor.create(([
   { date: '2026-07-01', name: 'Amit Courier', phone: '9811111111', purpose: 'Delivery', inTime: '10:30', outTime: '10:45', loggedBy: 'caretaker' },
   { date: '2026-07-01', name: 'Pooja Sharma', phone: '9822222222', purpose: 'Guest visit — site tour', inTime: '16:00', outTime: '17:10', fuStatus: 'Hold', fuRemark: 'Wants Dec wedding dates, call with quote', loggedBy: 'caretaker' },
   { date: '2026-07-02', name: 'DHBVN Meter Reader', phone: '9833333333', purpose: 'Staff', inTime: '11:00', outTime: '11:15', loggedBy: 'caretaker' },
@@ -125,9 +130,9 @@ await Visitor.create([
   { date: '2026-07-03', name: 'BigBasket Delivery', phone: '9866666666', purpose: 'Delivery', inTime: '09:15', outTime: '09:20', loggedBy: 'caretaker' },
   { date: '2026-06-30', name: 'Suresh Gardener', phone: '9877777777', purpose: 'Staff', inTime: '08:00', outTime: '13:00', loggedBy: 'caretaker' },
   { date: '2026-06-30', name: 'Tent House Crew', phone: '9888888888', purpose: 'Vendor — decor pickup', inTime: '15:00', outTime: '18:00', loggedBy: 'caretaker' },
-])
+] as Record<string, unknown>[]).map((v) => ({ ...v, propertyId })))
 
-await Lead.create([
+await Lead.create(([
   { date: '2026-07-01', time: '11:20', name: 'Rohit Malhotra', phone: '9810011001', eventType: 'Wedding / Engagement', outcome: 'Interested', followup: '2026-07-06', notes: 'Nov wedding, 150 pax, asked full villa quote', exec: 'simran', execLabel: 'Simran' },
   { date: '2026-07-01', time: '15:45', name: 'Kritika Jain', phone: '9810022002', eventType: 'Birthday / Anniversary / Milestone', outcome: 'Callback', followup: '2026-06-29', notes: 'Husband ka 40th, wants pool party', exec: 'deepak', execLabel: 'Deepak' },
   { date: '2026-06-28', time: '12:00', name: 'AdFilm Productions', phone: '9810033003', eventType: 'Shoot', outcome: 'Interested', followup: '2026-06-30', notes: '2-day ad shoot, need crew parking for 8 vans', exec: 'simran', execLabel: 'Simran', flag: 'escalate', adminComment: 'Big ticket — Akhil ko loop karo' },
@@ -138,7 +143,7 @@ await Lead.create([
   { date: '2026-07-03', time: '10:00', name: 'Priyanka Sethi', phone: '9810088008', eventType: 'Wedding / Engagement', outcome: 'Callback', followup: '2026-07-10', notes: 'Roka ceremony, 60 pax, veg catering only', exec: 'simran', execLabel: 'Simran' },
   { date: '2026-06-25', time: '14:40', name: 'Gaurav Bhalla', phone: '9810099009', eventType: 'Corporate / Office Party', outcome: 'Interested', followup: '2026-06-28', notes: 'Startup founders retreat, 2 nights', exec: 'deepak', execLabel: 'Deepak', flag: 'review', adminComment: 'Weekday discount offer kiya hai — confirm pricing' },
   { date: '2026-06-24', time: '16:10', name: 'Meera Reddy', phone: '9810010010', eventType: 'Other', outcome: 'Converted', notes: 'Family reunion — booked 21 June', exec: 'simran', execLabel: 'Simran', flag: 'good' },
-])
+] as Record<string, unknown>[]).map((l) => ({ ...l, propertyId })))
 
 const counts = {
   bookings: await Booking.countDocuments(),

@@ -6,6 +6,7 @@ export const BREAKDOWN_KEYS = ['venue', 'catering', 'decor', 'music', 'cleaning'
 
 const bookingSchema = new Schema(
   {
+    propertyId: { type: Schema.Types.ObjectId, ref: 'Property', required: true, index: true },
     guest: { type: String, required: true, trim: true },
     phone: { type: String, default: '', trim: true },
     checkinDate: { type: String, required: true, index: true },
@@ -29,7 +30,7 @@ const bookingSchema = new Schema(
     amount: { type: Number, default: 0 },
     legacyReceived: { type: Number, default: 0 },
     createdBy: { type: String, default: '' },
-    legacyId: { type: String, index: { unique: true, sparse: true } },
+    legacyId: { type: String, index: true },
   },
   { timestamps: true },
 )
@@ -39,5 +40,7 @@ bookingSchema.pre('validate', function () {
   const b = this.breakdown
   this.amount = (b?.venue ?? 0) + (b?.catering ?? 0) + (b?.decor ?? 0) + (b?.music ?? 0) + (b?.cleaning ?? 0)
 })
+
+bookingSchema.index({ propertyId: 1, legacyId: 1 }, { unique: true, sparse: true })
 
 export const Booking = model('Booking', bookingSchema)

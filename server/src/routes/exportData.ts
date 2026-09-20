@@ -10,6 +10,7 @@ import { requireRole } from '../middleware/auth.js'
 import { paymentSums, expensePaymentSums, withFinance, statusOf } from '../services/finance.js'
 import { incentiveStats } from '../services/stats.js'
 import { buildWorkbook } from '../services/backup.js'
+import { scoped } from '../middleware/scope.js'
 
 export const exportRouter = Router()
 
@@ -29,7 +30,7 @@ function sendSheet(res: Response, name: string, rows: Record<string, unknown>[])
 
 exportRouter.get('/bookings', requireRole('admin', 'manager'), async (req, res) => {
   const { month, status, purpose, q, upcoming } = req.query as Record<string, string | undefined>
-  const filter: Record<string, unknown> = {}
+  const filter: Record<string, unknown> = scoped(req)
   if (upcoming) filter.checkinDate = { $gte: new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }) }
   if (month) filter.checkinDate = { $regex: `^${escapeRegex(month)}` }
   if (purpose) filter.purpose = purpose
@@ -54,7 +55,7 @@ exportRouter.get('/bookings', requireRole('admin', 'manager'), async (req, res) 
 
 exportRouter.get('/expenses', requireRole('admin'), async (req, res) => {
   const { month, cat } = req.query as Record<string, string | undefined>
-  const filter: Record<string, unknown> = {}
+  const filter: Record<string, unknown> = scoped(req)
   if (month) filter.date = { $regex: `^${month.replace(/[^\d-]/g, '')}` }
   if (cat) filter.cat = cat
   const expenses = await Expense.find(filter).sort({ date: 1 })
@@ -71,7 +72,7 @@ exportRouter.get('/expenses', requireRole('admin'), async (req, res) => {
 
 exportRouter.get('/leads', requireRole('admin', 'manager'), async (req, res) => {
   const { outcome, exec, eventType, q } = req.query as Record<string, string | undefined>
-  const filter: Record<string, unknown> = {}
+  const filter: Record<string, unknown> = scoped(req)
   if (exec === 'unassigned') filter.exec = ''
   else if (exec) filter.exec = exec
   if (outcome !== undefined) filter.outcome = outcome
@@ -90,7 +91,7 @@ exportRouter.get('/leads', requireRole('admin', 'manager'), async (req, res) => 
 
 exportRouter.get('/visitors', requireRole('admin', 'manager'), async (req, res) => {
   const { date, from, to, q } = req.query as Record<string, string | undefined>
-  const filter: Record<string, unknown> = {}
+  const filter: Record<string, unknown> = scoped(req)
   if (date) filter.date = date
   else if (from || to) filter.date = { ...(from ? { $gte: from } : {}), ...(to ? { $lte: to } : {}) }
   if (q) {
@@ -105,8 +106,9 @@ exportRouter.get('/visitors', requireRole('admin', 'manager'), async (req, res) 
   })))
 })
 
-exportRouter.get('/incentives', requireRole('admin'), async (_req, res) => {
-  const incentives = await incentiveStats()
+exportRouter.get('/incentives', requireRole('admin'), async (req, res) => {
+  if (!req.scope.propertyId) return res.status(400).json({ error: 'Select a property to export incentives' })
+  const incentives = await incentiveStats(req.scope.filter)
   sendSheet(res, 'Incentives', incentives.trend.map((t) => ({
     Month: t.month, 'Booked Sales': t.sales, Expenses: t.expenses, Profit: t.profit,
     Deepak: t.deepak, Akhil: t.akhil, Total: t.total,
@@ -115,8 +117,8 @@ exportRouter.get('/incentives', requireRole('admin'), async (_req, res) => {
 
 exportRouter.use(requireRole('admin'))
 
-exportRouter.get('/', async (_req, res) => {
-  const buf = await buildWorkbook()
+exportRouter.get('/', async (req, res) => {
+  const buf = await buildWorkbook(req.scope.filter)
   const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
   res.setHeader('Content-Disposition', `attachment; filename="saratoga-export-${today}.xlsx"`)
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')

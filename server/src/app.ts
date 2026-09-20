@@ -14,7 +14,9 @@ import { importsRouter } from './routes/imports.js'
 import { exportRouter } from './routes/exportData.js'
 import { cronRouter } from './routes/cron.js'
 import { searchRouter } from './routes/search.js'
+import { propertiesRouter } from './routes/properties.js'
 import { requireAuth } from './middleware/auth.js'
+import { resolveScope } from './middleware/scope.js'
 import { errorHandler } from './middleware/error.js'
 
 function resolveClientDist() {
@@ -36,16 +38,17 @@ export function createApp() {
   app.use('/api/cron', cronRouter)
   app.use('/api/auth', authRouter)
   app.use('/api/users', requireAuth, usersRouter)
-  app.use('/api/bookings', requireAuth, bookingsRouter)
-  app.use('/api/payments', requireAuth, paymentsRouter)
-  app.use('/api/expenses', requireAuth, expensesRouter)
-  app.use('/api/expense-payments', requireAuth, expensePaymentsRouter)
-  app.use('/api/visitors', requireAuth, visitorsRouter)
-  app.use('/api/leads', requireAuth, leadsRouter)
-  app.use('/api/stats', requireAuth, statsRouter)
-  app.use('/api/import', requireAuth, importsRouter)
-  app.use('/api/export', requireAuth, exportRouter)
-  app.use('/api/search', requireAuth, searchRouter)
+  app.use('/api/properties', requireAuth, propertiesRouter)
+  app.use('/api/bookings', requireAuth, resolveScope, bookingsRouter)
+  app.use('/api/payments', requireAuth, resolveScope, paymentsRouter)
+  app.use('/api/expenses', requireAuth, resolveScope, expensesRouter)
+  app.use('/api/expense-payments', requireAuth, resolveScope, expensePaymentsRouter)
+  app.use('/api/visitors', requireAuth, resolveScope, visitorsRouter)
+  app.use('/api/leads', requireAuth, resolveScope, leadsRouter)
+  app.use('/api/stats', requireAuth, resolveScope, statsRouter)
+  app.use('/api/import', requireAuth, resolveScope, importsRouter)
+  app.use('/api/export', requireAuth, resolveScope, exportRouter)
+  app.use('/api/search', requireAuth, resolveScope, searchRouter)
   app.use('/api', (_req, res) => res.status(404).json({ error: 'Not found' }))
 
   app.use(express.static(clientDist))

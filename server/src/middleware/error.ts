@@ -15,6 +15,11 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
   if (err instanceof mongoose.Error.ValidationError) {
     return res.status(400).json({ error: err.message })
   }
+  // Routes can throw an Error carrying a `status` to surface a clean client-facing message.
+  const status = (err as { status?: unknown })?.status
+  if (typeof status === 'number' && status >= 400 && status < 500) {
+    return res.status(status).json({ error: (err as Error).message })
+  }
   console.error(err)
   res.status(500).json({ error: 'Internal server error' })
 }

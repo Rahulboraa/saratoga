@@ -7,6 +7,7 @@ export const EXPENSE_CATS = [
 
 const expenseSchema = new Schema(
   {
+    propertyId: { type: Schema.Types.ObjectId, ref: 'Property', required: true, index: true },
     date: { type: String, required: true, index: true },
     cat: { type: String, enum: EXPENSE_CATS, required: true },
     desc: { type: String, required: true, trim: true },
@@ -14,9 +15,11 @@ const expenseSchema = new Schema(
     vendor: { type: String, default: '' },
     by: { type: String, default: '' },
     notes: { type: String, default: '' },
-    legacyId: { type: String, index: { unique: true, sparse: true } },
+    legacyId: { type: String, index: true },
   },
   { timestamps: true },
 )
+
+expenseSchema.index({ propertyId: 1, legacyId: 1 }, { unique: true, sparse: true })
 
 export const Expense = model('Expense', expenseSchema)

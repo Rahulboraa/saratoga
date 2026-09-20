@@ -4,6 +4,7 @@ import { requireRole } from '../middleware/auth.js'
 import { visitorSchema, visitorCaretakerSchema, visitorCaretakerPatchSchema } from '../validation/schemas.js'
 import { serializeVisitor } from '../lib/sanitize.js'
 import { todayYmd } from '../lib/dates.js'
+import { scoped, writeProperty } from '../middleware/scope.js'
 
 export const visitorsRouter = Router()
 
@@ -11,7 +12,7 @@ const VISITOR_TYPES = ['Guest', 'Vendor', 'Delivery', 'Staff'] as const
 
 visitorsRouter.get('/', async (req, res) => {
   const { date, from, to, q, type } = req.query as Record<string, string | undefined>
-  const filter: Record<string, unknown> = {}
+  const filter: Record<string, unknown> = scoped(req)
   if (date) filter.date = date
   else if (from || to) {
     filter.date = { ...(from ? { $gte: from } : {}), ...(to ? { $lte: to } : {}) }
@@ -29,7 +30,7 @@ visitorsRouter.get('/', async (req, res) => {
   const [visitors, total, dates] = await Promise.all([
     Visitor.find(filter).sort({ date: -1, loggedAt: -1 }).skip((page - 1) * limit).limit(limit),
     Visitor.countDocuments(filter),
-    Visitor.distinct('date'),
+    Visitor.distinct('date', scoped(req)),
   ])
   res.json({
     rows: visitors.map((v) => serializeVisitor(v.toObject({ virtuals: true }), req.user.role)),
@@ -41,7 +42,9 @@ visitorsRouter.get('/', async (req, res) => {
 visitorsRouter.post('/', async (req, res) => {
   const schema = req.user.role === 'caretaker' ? visitorCaretakerSchema : visitorSchema
   const body = schema.parse(req.body)
-  const visitor = await Visitor.create({ ...body, date: body.date || todayYmd(), loggedBy: req.user.username })
+  const propertyId = writeProperty(req, res)
+  if (!propertyId) return
+  const visitor = await Visitor.create({ ...body, propertyId, date: body.date || todayYmd(), loggedBy: req.user.username })
   res.status(201).json(serializeVisitor(visitor.toObject({ virtuals: true }), req.user.role))
 })
 
@@ -49,13 +52,13 @@ visitorsRouter.patch('/:id', async (req, res) => {
   const body = req.user.role === 'caretaker'
     ? visitorCaretakerPatchSchema.parse(req.body)
     : visitorSchema.partial().parse(req.body)
-  const visitor = await Visitor.findByIdAndUpdate(req.params.id, body, { new: true, runValidators: true })
+  const visitor = await Visitor.findOneAndUpdate(scoped(req, { _id: req.params.id }), body, { new: true, runValidators: true })
   if (!visitor) return res.status(404).json({ error: 'Visitor not found' })
   res.json(serializeVisitor(visitor.toObject({ virtuals: true }), req.user.role))
 })
 
 visitorsRouter.delete('/:id', requireRole('admin'), async (req, res) => {
-  const visitor = await Visitor.findByIdAndDelete(req.params.id)
+  const visitor = await Visitor.findOneAndDelete(scoped(req, { _id: req.params.id }))
   if (!visitor) return res.status(404).json({ error: 'Visitor not found' })
   res.json({ ok: true })
 })

@@ -12,14 +12,33 @@ import EmptyState from '@/components/EmptyState'
 import { PageHeader } from '@/components/PageHeader'
 import StatCard from '@/components/StatCard'
 import ExportButton from '@/components/ExportButton'
-import { Coins, TrendingUp } from 'lucide-react'
+import { Building2, Coins, TrendingUp } from 'lucide-react'
+import { useProperty } from '@/lib/property'
 
 export default function Incentives() {
   const [month, setMonth] = useState('all')
+  const { activeId, canSwitch } = useProperty()
   const { data, isLoading } = useQuery({
     queryKey: ['stats', 'incentives', month],
     queryFn: () => api<IncentiveStats>(`/stats/incentives?month=${month}`),
+    enabled: !!activeId,
   })
+
+  // Slabs are per property, so a combined figure would be one nobody is actually owed.
+  if (!activeId) {
+    return (
+      <div>
+        <PageHeader title="Incentives" description="Slabs run separately for each property" />
+        <EmptyState
+          icon={Building2}
+          message="Pick a property"
+          description={canSwitch
+            ? 'Incentives are calculated per property. Choose one from the switcher above.'
+            : 'No property is assigned to your account yet.'}
+        />
+      </div>
+    )
+  }
 
   if (isLoading || !data) {
     return <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-28" />)}</div>

@@ -5,6 +5,7 @@ import { User } from '../models/User.js'
 import { requireRole } from '../middleware/auth.js'
 import { leadCommonSchema, leadManagerSchema } from '../validation/schemas.js'
 import { serializeLead } from '../lib/sanitize.js'
+import { scoped, writeProperty } from '../middleware/scope.js'
 
 export const leadsRouter = Router()
 leadsRouter.use(requireRole('admin', 'manager', 'sales'))
@@ -21,7 +22,7 @@ async function execLabelFor(exec: string) {
 
 leadsRouter.get('/', async (req, res) => {
   const { month, outcome, exec, eventType, q } = req.query as Record<string, string | undefined>
-  const filter: Record<string, unknown> = {}
+  const filter: Record<string, unknown> = scoped(req)
   if (req.user.role === 'sales') filter.exec = req.user.username
   else if (exec === 'unassigned') filter.exec = ''
   else if (exec) filter.exec = exec
@@ -42,7 +43,7 @@ leadsRouter.get('/', async (req, res) => {
 })
 
 leadsRouter.get('/summary', async (req, res) => {
-  const filter: Record<string, unknown> = req.user.role === 'sales' ? { exec: req.user.username } : {}
+  const filter = scoped(req, req.user.role === 'sales' ? { exec: req.user.username } : {})
   const leads = await Lead.find(filter).select('outcome followup exec')
   const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
   res.json({
@@ -54,17 +55,17 @@ leadsRouter.get('/summary', async (req, res) => {
   })
 })
 
-leadsRouter.get('/unassigned', requireRole('admin', 'manager'), async (_req, res) => {
-  const leads = await Lead.find({ exec: '' }).sort({ date: -1 }).limit(10)
+leadsRouter.get('/unassigned', requireRole('admin', 'manager'), async (req, res) => {
+  const leads = await Lead.find(scoped(req, { exec: '' })).sort({ date: -1 }).limit(10)
   res.json(leads.map((l) => ({ id: l.id, name: l.name, phone: l.phone, eventType: l.eventType })))
 })
 
 leadsRouter.get('/overdue', async (req, res) => {
   const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
-  const filter: Record<string, unknown> = {
+  const filter: Record<string, unknown> = scoped(req, {
     followup: { $gt: '', $lt: today },
     outcome: { $nin: ['Converted', 'Not Interested'] },
-  }
+  })
   if (req.user.role === 'sales') filter.exec = req.user.username
   const leads = await Lead.find(filter).sort({ followup: 1 }).limit(8)
   res.json(leads.map((l) => serializeLead(l.toObject(), req.user.role)))
@@ -72,7 +73,7 @@ leadsRouter.get('/overdue', async (req, res) => {
 
 leadsRouter.get('/report', requireRole('admin', 'manager'), async (req, res) => {
   const month = String(req.query.month || '')
-  const filter = month ? { date: { $regex: `^${month.replace(/[^\d-]/g, '')}` } } : {}
+  const filter = scoped(req, month ? { date: { $regex: `^${month.replace(/[^\d-]/g, '')}` } } : {})
   const leads = await Lead.find(filter)
   const byExec = new Map<string, { exec: string; execLabel: string; calls: number; interested: number; callbacks: number; converted: number }>()
   for (const l of leads) {
@@ -91,18 +92,20 @@ leadsRouter.get('/report', requireRole('admin', 'manager'), async (req, res) => 
 })
 
 leadsRouter.post('/', async (req, res) => {
+  const propertyId = writeProperty(req, res)
+  if (!propertyId) return
   if (req.user.role === 'sales') {
     const body = leadCommonSchema.parse(req.body)
-    const lead = await Lead.create({ ...body, exec: req.user.username, execLabel: req.user.name })
+    const lead = await Lead.create({ ...body, propertyId, exec: req.user.username, execLabel: req.user.name })
     return res.status(201).json(serializeLead(lead.toObject(), req.user.role))
   }
   const body = leadManagerSchema.parse(req.body)
-  const lead = await Lead.create({ ...body, execLabel: await execLabelFor(body.exec) })
+  const lead = await Lead.create({ ...body, propertyId, execLabel: await execLabelFor(body.exec) })
   res.status(201).json(serializeLead(lead.toObject(), req.user.role))
 })
 
 leadsRouter.patch('/:id', async (req, res) => {
-  const lead = await Lead.findById(req.params.id)
+  const lead = await Lead.findOne(scoped(req, { _id: req.params.id }))
   if (!lead) return res.status(404).json({ error: 'Lead not found' })
   if (req.user.role === 'sales') {
     if (lead.exec !== req.user.username) return res.status(403).json({ error: 'Forbidden' })
@@ -117,7 +120,7 @@ leadsRouter.patch('/:id', async (req, res) => {
 })
 
 leadsRouter.delete('/:id', requireRole('admin'), async (req, res) => {
-  const lead = await Lead.findByIdAndDelete(req.params.id)
+  const lead = await Lead.findOneAndDelete(scoped(req, { _id: req.params.id }))
   if (!lead) return res.status(404).json({ error: 'Lead not found' })
   res.json({ ok: true })
 })
@@ -127,6 +130,6 @@ const assignSchema = z.object({ ids: z.array(z.string()).min(1), exec: z.string(
 leadsRouter.post('/assign', requireRole('admin', 'manager'), async (req, res) => {
   const { ids, exec } = assignSchema.parse(req.body)
   const execLabel = await execLabelFor(exec)
-  const result = await Lead.updateMany({ _id: { $in: ids } }, { exec, execLabel })
+  const result = await Lead.updateMany(scoped(req, { _id: { $in: ids } }), { exec, execLabel })
   res.json({ ok: true, assigned: result.modifiedCount })
 })

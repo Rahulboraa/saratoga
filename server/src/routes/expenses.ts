@@ -6,25 +6,26 @@ import { expenseSchema, expensePaymentSchema } from '../validation/schemas.js'
 import { serializeExpense, serializeExpensePayment } from '../lib/sanitize.js'
 import { expensePaymentSums, statusOf } from '../services/finance.js'
 import { expenseSummary } from '../services/stats.js'
+import { scoped, writeProperty } from '../middleware/scope.js'
 
 export const expensesRouter = Router()
 expensesRouter.use(requireRole('admin'))
 
 expensesRouter.get('/summary', async (req, res) => {
-  res.json(await expenseSummary(String(req.query.month || '')))
+  res.json(await expenseSummary(req.scope.filter, String(req.query.month || '')))
 })
 
 expensesRouter.get('/', async (req, res) => {
   const { month, cat } = req.query as Record<string, string | undefined>
   const page = Math.max(parseInt(String(req.query.page)) || 1, 1)
   const limit = Math.min(Math.max(parseInt(String(req.query.limit)) || 20, 1), 100)
-  const filter: Record<string, unknown> = {}
+  const filter: Record<string, unknown> = scoped(req)
   if (month) filter.date = { $regex: `^${month.replace(/[^\d-]/g, '')}` }
   if (cat) filter.cat = cat
   const [expenses, total, allDates] = await Promise.all([
     Expense.find(filter).sort({ date: -1 }).skip((page - 1) * limit).limit(limit),
     Expense.countDocuments(filter),
-    Expense.distinct('date'),
+    Expense.distinct('date', scoped(req)),
   ])
   const months = [...new Set(allDates.map((d) => d.slice(0, 7)))].sort().reverse()
   const sums = await expensePaymentSums(expenses.map((e) => e._id))
@@ -37,13 +38,15 @@ expensesRouter.get('/', async (req, res) => {
 
 expensesRouter.post('/', async (req, res) => {
   const body = expenseSchema.parse(req.body)
-  const expense = await Expense.create({ ...body, by: body.by || req.user.name })
+  const propertyId = writeProperty(req, res)
+  if (!propertyId) return
+  const expense = await Expense.create({ ...body, propertyId, by: body.by || req.user.name })
   res.status(201).json(serializeExpense({ ...expense.toObject(), id: expense.id, paid: 0, due: expense.amount, status: 'pending' }))
 })
 
 expensesRouter.patch('/:id', async (req, res) => {
   const body = expenseSchema.partial().parse(req.body)
-  const expense = await Expense.findByIdAndUpdate(req.params.id, body, { new: true, runValidators: true })
+  const expense = await Expense.findOneAndUpdate(scoped(req, { _id: req.params.id }), body, { new: true, runValidators: true })
   if (!expense) return res.status(404).json({ error: 'Expense not found' })
   const sums = await expensePaymentSums([expense._id])
   const paid = sums.get(expense.id) ?? 0
@@ -51,22 +54,22 @@ expensesRouter.patch('/:id', async (req, res) => {
 })
 
 expensesRouter.delete('/:id', async (req, res) => {
-  const expense = await Expense.findByIdAndDelete(req.params.id)
+  const expense = await Expense.findOneAndDelete(scoped(req, { _id: req.params.id }))
   if (!expense) return res.status(404).json({ error: 'Expense not found' })
   await ExpensePayment.deleteMany({ expenseId: expense._id })
   res.json({ ok: true })
 })
 
 expensesRouter.get('/:id/payments', async (req, res) => {
-  const payments = await ExpensePayment.find({ expenseId: req.params.id }).sort({ date: 1 })
+  const payments = await ExpensePayment.find(scoped(req, { expenseId: req.params.id })).sort({ date: 1 })
   res.json(payments.map((p) => serializeExpensePayment(p.toObject())))
 })
 
 expensesRouter.post('/:id/payments', async (req, res) => {
-  const expense = await Expense.findById(req.params.id)
+  const expense = await Expense.findOne(scoped(req, { _id: req.params.id }))
   if (!expense) return res.status(404).json({ error: 'Expense not found' })
   const body = expensePaymentSchema.parse(req.body)
-  const payment = await ExpensePayment.create({ ...body, expenseId: expense._id })
+  const payment = await ExpensePayment.create({ ...body, expenseId: expense._id, propertyId: expense.propertyId })
   res.status(201).json(serializeExpensePayment(payment.toObject()))
 })
 
@@ -75,13 +78,13 @@ expensePaymentsRouter.use(requireRole('admin'))
 
 expensePaymentsRouter.patch('/:id', async (req, res) => {
   const body = expensePaymentSchema.partial().parse(req.body)
-  const payment = await ExpensePayment.findByIdAndUpdate(req.params.id, body, { new: true, runValidators: true })
+  const payment = await ExpensePayment.findOneAndUpdate(scoped(req, { _id: req.params.id }), body, { new: true, runValidators: true })
   if (!payment) return res.status(404).json({ error: 'Payment not found' })
   res.json(serializeExpensePayment(payment.toObject()))
 })
 
 expensePaymentsRouter.delete('/:id', async (req, res) => {
-  const payment = await ExpensePayment.findByIdAndDelete(req.params.id)
+  const payment = await ExpensePayment.findOneAndDelete(scoped(req, { _id: req.params.id }))
   if (!payment) return res.status(404).json({ error: 'Payment not found' })
   res.json({ ok: true })
 })

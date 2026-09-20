@@ -5,6 +5,7 @@ import toast from 'react-hot-toast'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import type { ManagedUser, Role } from '@/types'
+import { useProperty } from '@/lib/property'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -25,6 +26,9 @@ export default function Users() {
   const [addOpen, setAddOpen] = useState(false)
   const [resetFor, setResetFor] = useState<ManagedUser | null>(null)
   const [newRole, setNewRole] = useState<Role>('sales')
+  const [newProperty, setNewProperty] = useState('')
+  const { properties } = useProperty()
+  const propertyName = (id: string | null) => properties.find((p) => p.id === id)?.name ?? '—'
 
   const { data: users, isLoading } = useQuery({
     queryKey: ['users'],
@@ -75,8 +79,13 @@ export default function Users() {
   function onCreate(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const fd = new FormData(e.currentTarget)
+    if (newRole !== 'admin' && !newProperty) {
+      toast.error('Pick a property for this user')
+      return
+    }
     createUser.mutate({
       username: fd.get('username'), password: fd.get('password'), name: fd.get('name'), role: newRole,
+      propertyId: newRole === 'admin' ? null : newProperty,
     })
   }
 
@@ -110,7 +119,10 @@ export default function Users() {
                     {u.id === me?.id && <Badge variant="info">you</Badge>}
                     {!u.active && <Badge variant="destructive" withDot>inactive</Badge>}
                   </div>
-                  <div className="truncate text-[12px] text-muted-foreground">@{u.username}</div>
+                  <div className="truncate text-[12px] text-muted-foreground">
+                    @{u.username}
+                    {u.role !== 'admin' && <> · {propertyName(u.propertyId)}</>}
+                  </div>
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-3">
@@ -122,6 +134,18 @@ export default function Users() {
                   <SelectTrigger className="h-8 w-32"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {ROLES.map((r) => <SelectItem key={r} value={r}>{roleLabel(r)}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={u.propertyId ?? 'none'}
+                  onValueChange={(propertyId) => updateUser.mutate({ id: u.id, body: { propertyId } })}
+                  disabled={u.role === 'admin'}
+                >
+                  <SelectTrigger className="h-8 w-36">
+                    <SelectValue placeholder={u.role === 'admin' ? 'All properties' : 'Property'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {properties.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
                 <div className="flex w-20 items-center gap-1.5">
@@ -175,6 +199,18 @@ export default function Users() {
                 </SelectContent>
               </Select>
             </div>
+            {newRole !== 'admin' && (
+              <div className="space-y-1.5">
+                <Label>Property</Label>
+                <Select value={newProperty} onValueChange={setNewProperty}>
+                  <SelectTrigger className="w-full"><SelectValue placeholder="Select a property" /></SelectTrigger>
+                  <SelectContent>
+                    {properties.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] text-muted-foreground">They will only ever see this property's data.</p>
+              </div>
+            )}
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => setAddOpen(false)}>Cancel</Button>
               <Button type="submit" disabled={createUser.isPending}>Create</Button>

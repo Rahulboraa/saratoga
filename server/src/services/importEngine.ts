@@ -270,8 +270,8 @@ export interface ImportRow {
   bookingRef?: string
 }
 
-async function bookingLookups() {
-  const bookings = await Booking.find().select('guest checkinDate legacyId')
+async function bookingLookups(propertyId: string) {
+  const bookings = await Booking.find({ propertyId }).select('guest checkinDate legacyId')
   const byLegacyId = new Map<string, string>()
   const byGuestDate = new Map<string, string>()
   for (const b of bookings) {
@@ -291,9 +291,10 @@ function naturalKey(type: ImportType, d: Raw): string {
   }
 }
 
-async function existingKeys(type: ImportType): Promise<{ legacyIds: Set<string>; naturals: Map<string, string> }> {
+async function existingKeys(type: ImportType, propertyId: string): Promise<{ legacyIds: Set<string>; naturals: Map<string, string> }> {
   const model = { bookings: Booking, payments: Payment, expenses: Expense, visitors: Visitor, leads: Lead }[type]
-  const docs = await (model as typeof Booking).find().lean()
+  // Duplicate detection is per property: the same guest can exist at two villas.
+  const docs = await (model as typeof Booking).find({ propertyId }).lean()
   const legacyIds = new Set<string>()
   const naturals = new Map<string, string>()
   for (const doc of docs as Raw[]) {
@@ -304,12 +305,12 @@ async function existingKeys(type: ImportType): Promise<{ legacyIds: Set<string>;
   return { legacyIds, naturals }
 }
 
-export async function prepareRows(type: ImportType, rawRows: Raw[]): Promise<ImportRow[]> {
-  const lookups = type === 'payments' ? await bookingLookups() : null
+export async function prepareRows(type: ImportType, rawRows: Raw[], propertyId: string): Promise<ImportRow[]> {
+  const lookups = type === 'payments' ? await bookingLookups(propertyId) : null
   const validExecs = type === 'leads'
-    ? new Set((await User.find().select('username')).map((u) => u.username))
+    ? new Set((await User.find({ $or: [{ propertyId }, { role: 'admin' }] }).select('username')).map((u) => u.username))
     : null
-  const { legacyIds, naturals } = await existingKeys(type)
+  const { legacyIds, naturals } = await existingKeys(type, propertyId)
 
   return rawRows.map((raw, index) => {
     const normalized = normalizeRow(type, mapRow(type, raw))
@@ -338,8 +339,14 @@ export async function prepareRows(type: ImportType, rawRows: Raw[]): Promise<Imp
   })
 }
 
-export async function commitRows(type: ImportType, rows: ImportRow[], mode: 'skip' | 'update', importedBy: string) {
-  const { naturals } = await existingKeys(type)
+export async function commitRows(
+  type: ImportType,
+  rows: ImportRow[],
+  mode: 'skip' | 'update',
+  importedBy: string,
+  propertyId: string,
+) {
+  const { naturals } = await existingKeys(type, propertyId)
   const execLabels = type === 'leads'
     ? new Map((await User.find().select('username name')).map((u) => [u.username, u.name]))
     : null
@@ -353,6 +360,7 @@ export async function commitRows(type: ImportType, rows: ImportRow[], mode: 'ski
     if (!row.valid) continue
     const { bookingLegacyId: _bl, guest: _g, ...rest } = row.data as Raw & { bookingLegacyId?: string; guest?: string }
     let data: Raw = type === 'payments' ? { ...rest, bookingId: row.bookingRef } : { ...row.data }
+    data.propertyId = propertyId
     if (type === 'leads') {
       data.execLabel = execLabels!.get(String(data.exec)) ?? ''
       data.importedBy = importedBy
@@ -362,16 +370,16 @@ export async function commitRows(type: ImportType, rows: ImportRow[], mode: 'ski
     const existingId = naturals.get(naturalKey(type, { ...data, bookingRef: row.bookingRef }))
     const model = { bookings: Booking, payments: Payment, expenses: Expense, visitors: Visitor, leads: Lead }[type] as typeof Booking
 
-    if (data.legacyId != null && (await model.exists({ legacyId: data.legacyId }))) {
+    if (data.legacyId != null && (await model.exists({ legacyId: data.legacyId, propertyId }))) {
       if (mode === 'update') {
-        await model.updateOne({ legacyId: data.legacyId }, { $set: data })
+        await model.updateOne({ legacyId: data.legacyId, propertyId }, { $set: data })
         updated++
       } else skipped++
       continue
     }
     if (existingId) {
       if (mode === 'update') {
-        await model.updateOne({ _id: existingId }, { $set: data })
+        await model.updateOne({ _id: existingId, propertyId }, { $set: data })
         updated++
       } else skipped++
       continue

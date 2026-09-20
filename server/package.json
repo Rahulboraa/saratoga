@@ -9,7 +9,8 @@
     "test": "vitest run",
     "seed": "tsx src/scripts/seed.ts",
     "import:legacy": "tsx src/scripts/importLegacy.ts",
-    "seed:demo": "tsx src/scripts/seedDemo.ts"
+    "seed:demo": "tsx src/scripts/seedDemo.ts",
+    "migrate:properties": "tsx src/scripts/migrateProperties.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

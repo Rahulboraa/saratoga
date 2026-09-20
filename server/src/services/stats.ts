@@ -14,11 +14,13 @@ function addTo(map: Map<string, number>, key: string, value: number) {
   map.set(key, (map.get(key) ?? 0) + value)
 }
 
-async function monthlyFinance() {
+type Scope = Record<string, unknown>
+
+async function monthlyFinance(scope: Scope) {
   const [bookings, payments, expenses] = await Promise.all([
-    Booking.find().select('checkinDate amount legacyReceived'),
-    Payment.find().select('date amount'),
-    Expense.find().select('date amount'),
+    Booking.find(scope).select('checkinDate amount legacyReceived'),
+    Payment.find(scope).select('date amount'),
+    Expense.find(scope).select('date amount'),
   ])
   const booked = new Map<string, number>()
   const collected = new Map<string, number>()
@@ -38,9 +40,9 @@ function allMonths(...maps: Map<string, number>[]) {
   return monthsBetween(keys[0], keys[keys.length - 1])
 }
 
-export async function dashboardStats(role: Role) {
+export async function dashboardStats(role: Role, scope: Scope = {}) {
   const today = todayYmd()
-  const bookings = await Booking.find().sort({ checkinDate: 1 })
+  const bookings = await Booking.find(scope).sort({ checkinDate: 1 })
   const rows = bookings.map((b) => ({ ...b.toObject(), id: b.id }))
   const overlapIds = overlapIdSet(rows)
 
@@ -49,7 +51,7 @@ export async function dashboardStats(role: Role) {
   const uniqueDates = new Set<string>()
   let upcomingCount = 0
 
-  const sums = await paymentSums()
+  const sums = await paymentSums(undefined, scope)
   for (const b of rows) {
     uniqueDates.add(b.checkinDate)
     addTo(bookingsPerMonth, monthOf(b.checkinDate), 1)
@@ -93,7 +95,7 @@ export async function dashboardStats(role: Role) {
 
   if (role !== 'admin') return common
 
-  const { booked, collected, expensed } = await monthlyFinance()
+  const { booked, collected, expensed } = await monthlyFinance(scope)
   const totalBooked = rows.reduce((s, b) => s + b.amount, 0)
   const totalCollected = rows.reduce((s, b) => s + withFinance(b as never, sums).collected, 0)
   const upcomingUnpaid = rows.filter((b) => b.checkinDate >= today && withFinance(b as never, sums).status !== 'paid').length
@@ -140,8 +142,8 @@ export async function dashboardStats(role: Role) {
   }
 }
 
-export async function incentiveStats(month?: string) {
-  const { booked, expensed } = await monthlyFinance()
+export async function incentiveStats(scope: Scope = {}, month?: string) {
+  const { booked, expensed } = await monthlyFinance(scope)
   const months = allMonths(booked, expensed).filter((m) => m >= INCENTIVE_START)
   const trend = months.map((m) => monthIncentive(m, booked.get(m) ?? 0, expensed.get(m) ?? 0))
   const selected = month && month !== 'all'
@@ -157,10 +159,10 @@ export async function incentiveStats(month?: string) {
   return { start: INCENTIVE_START, selected, trend }
 }
 
-export async function expenseSummary(month?: string) {
-  const filter = month ? { date: { $regex: `^${month.replace(/[^\d-]/g, '')}` } } : {}
+export async function expenseSummary(scope: Scope = {}, month?: string) {
+  const filter = { ...scope, ...(month ? { date: { $regex: `^${month.replace(/[^\d-]/g, '')}` } } : {}) }
   const expenses = await Expense.find(filter)
-  const payments = await ExpensePayment.find()
+  const payments = await ExpensePayment.find(scope)
   const paidByExpense = new Map<string, number>()
   for (const p of payments) addTo(paidByExpense, String(p.expenseId), p.amount)
 
@@ -176,7 +178,7 @@ export async function expenseSummary(month?: string) {
     c.amount += e.amount
   }
 
-  const { booked, collected, expensed } = await monthlyFinance()
+  const { booked, collected, expensed } = await monthlyFinance(scope)
   const months = allMonths(booked, collected, expensed)
   const plSeries = months.map((m) => {
     const bk = booked.get(m) ?? 0

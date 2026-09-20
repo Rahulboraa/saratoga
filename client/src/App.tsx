@@ -11,6 +11,7 @@ import Leads from './pages/Leads'
 import Expenses from './pages/Expenses'
 import Incentives from './pages/Incentives'
 import Users from './pages/Users'
+import Properties from './pages/Properties'
 import ImportPage from './pages/ImportPage'
 import Caretaker from './pages/Caretaker'
 
@@ -44,6 +45,7 @@ export default function App() {
           <Route element={<RequireRole roles={['admin']} />}>
             <Route path="/expenses" element={<Expenses />} />
             <Route path="/incentives" element={<Incentives />} />
+            <Route path="/properties" element={<Properties />} />
             <Route path="/users" element={<Users />} />
           </Route>
         </Route>

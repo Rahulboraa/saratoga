@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs'
 import { User } from '../models/User.js'
+import { ensureDefaultProperty } from '../services/defaultProperty.js'
 
 const SEED_USERS = [
   { username: 'admin', password: 'admin123', role: 'admin', name: 'Admin' },
@@ -10,6 +11,7 @@ const SEED_USERS = [
 ] as const
 
 export async function ensureSeedUsers() {
+  const property = await ensureDefaultProperty()
   for (const u of SEED_USERS) {
     const exists = await User.exists({ username: u.username })
     if (exists) continue
@@ -18,6 +20,7 @@ export async function ensureSeedUsers() {
       passwordHash: await bcrypt.hash(u.password, 10),
       role: u.role,
       name: u.name,
+      propertyId: u.role === 'admin' ? null : property._id,
     })
     console.log(`seeded user ${u.username}`)
   }

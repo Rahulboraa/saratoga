@@ -2,11 +2,14 @@ import mongoose from 'mongoose'
 import { connectDb } from '../db.js'
 import { env } from '../env.js'
 import { prepareRows, commitRows, type ImportType } from '../services/importEngine.js'
+import { ensureDefaultProperty } from '../services/defaultProperty.js'
 
 const url = env.LEGACY_SHEET_URL
 if (!url) throw new Error('LEGACY_SHEET_URL not set')
 
 await connectDb()
+const property = await ensureDefaultProperty()
+const propertyId = String(property._id)
 
 for (const type of ['bookings', 'payments', 'expenses', 'visitors'] as ImportType[]) {
   const res = await fetch(`${url}?type=${type}`)
@@ -16,10 +19,10 @@ for (const type of ['bookings', 'payments', 'expenses', 'visitors'] as ImportTyp
     continue
   }
   const rows = json.rows ?? []
-  const prepared = await prepareRows(type, rows)
+  const prepared = await prepareRows(type, rows, propertyId)
   const invalidRows = prepared.filter((r) => !r.valid)
   for (const r of invalidRows.slice(0, 5)) console.warn(`${type} row ${r.index}: ${r.errors.join('; ')}`)
-  const result = await commitRows(type, prepared, 'update', 'legacy-import')
+  const result = await commitRows(type, prepared, 'update', 'legacy-import', propertyId)
   console.log(`${type}: pulled ${rows.length} → inserted ${result.inserted}, updated ${result.updated}, skipped ${result.skipped}, invalid ${result.invalid}`)
 }
 

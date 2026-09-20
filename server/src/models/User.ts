@@ -9,6 +9,8 @@ const userSchema = new Schema(
     passwordHash: { type: String, required: true, select: false },
     name: { type: String, required: true },
     role: { type: String, enum: ROLES, required: true },
+    // Admins span every property; everyone else is pinned to exactly one.
+    propertyId: { type: Schema.Types.ObjectId, ref: 'Property', default: null, index: true },
     active: { type: Boolean, default: true },
   },
   { timestamps: true },

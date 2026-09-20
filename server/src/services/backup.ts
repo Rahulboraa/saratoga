@@ -5,6 +5,7 @@ import { Expense } from '../models/Expense.js'
 import { ExpensePayment } from '../models/ExpensePayment.js'
 import { Visitor } from '../models/Visitor.js'
 import { Lead } from '../models/Lead.js'
+import { Property } from '../models/Property.js'
 import { paymentSums, expensePaymentSums, withFinance, statusOf } from './finance.js'
 import { incentiveStats } from './stats.js'
 
@@ -12,18 +13,36 @@ export function istDate() {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
 }
 
-export async function buildWorkbook(): Promise<Buffer> {
-  const [bookings, payments, expenses, expPayments, visitors, leads, incentives] = await Promise.all([
-    Booking.find().sort({ checkinDate: 1 }),
-    Payment.find().sort({ date: 1 }),
-    Expense.find().sort({ date: 1 }),
-    ExpensePayment.find().sort({ date: 1 }),
-    Visitor.find().sort({ date: 1 }),
-    Lead.find().sort({ date: 1 }),
-    incentiveStats(),
+type Scope = Record<string, unknown>
+
+export async function buildWorkbook(scope: Scope = {}): Promise<Buffer> {
+  const [bookings, payments, expenses, expPayments, visitors, leads, properties] = await Promise.all([
+    Booking.find(scope).sort({ checkinDate: 1 }),
+    Payment.find(scope).sort({ date: 1 }),
+    Expense.find(scope).sort({ date: 1 }),
+    ExpensePayment.find(scope).sort({ date: 1 }),
+    Visitor.find(scope).sort({ date: 1 }),
+    Lead.find(scope).sort({ date: 1 }),
+    Property.find().sort({ name: 1 }),
   ])
-  const sums = await paymentSums()
-  const expSums = await expensePaymentSums()
+  const sums = await paymentSums(undefined, scope)
+  const expSums = await expensePaymentSums(undefined, scope)
+  const propertyName = new Map(properties.map((p) => [p.id, p.name]))
+  // A single-property export has one owner throughout; a combined one needs the column.
+  const multi = !scope.propertyId
+  const withProperty = (row: Record<string, unknown>, propertyId: unknown) =>
+    multi ? { Property: propertyName.get(String(propertyId)) ?? '', ...row } : row
+
+  // Slabs run per property, so incentives are computed one property at a time and stacked.
+  const incentiveScopes = multi
+    ? properties.map((p) => ({ name: p.name, filter: { propertyId: p._id } }))
+    : [{ name: propertyName.get(String(scope.propertyId)) ?? '', filter: scope }]
+  const incentiveRows = (await Promise.all(
+    incentiveScopes.map(async ({ name, filter }) => {
+      const stats = await incentiveStats(filter)
+      return stats.trend.map((t) => ({ ...(multi ? { Property: name } : {}), ...t }))
+    }),
+  )).flat()
   const guestById = new Map(bookings.map((b) => [b.id, b.guest]))
   const descById = new Map(expenses.map((e) => [e.id, e.desc]))
 
@@ -33,7 +52,7 @@ export async function buildWorkbook(): Promise<Buffer> {
 
   add('Bookings', bookings.map((b) => {
     const fin = withFinance(b, sums)
-    return {
+    return withProperty({
       Guest: b.guest, Phone: b.phone, 'Check-in': b.checkinDate, 'Check-out': b.checkoutDate,
       'In Time': b.checkinTime, 'Out Time': b.checkoutTime, Pax: b.pax, Purpose: b.purpose, Source: b.source,
       Venue: b.breakdown?.venue ?? 0, Catering: b.breakdown?.catering ?? 0, Decor: b.breakdown?.decor ?? 0,
@@ -41,35 +60,36 @@ export async function buildWorkbook(): Promise<Buffer> {
       License: b.breakdown?.license ?? 0, Security: b.breakdown?.security ?? 0,
       Amount: b.amount, Received: fin.collected, Due: fin.due, Status: fin.status,
       Destination: b.dest, Notes: b.notes,
-    }
+    }, b.propertyId)
   }))
-  add('Payments', payments.map((p) => ({
+  add('Payments', payments.map((p) => withProperty({
     Guest: guestById.get(String(p.bookingId)) ?? '', Date: p.date, Amount: p.amount,
     Method: p.method, Destination: p.dest, 'Paid By': p.by, Notes: p.notes,
-  })))
+  }, p.propertyId)))
   add('Expenses', expenses.map((e) => {
     const paid = expSums.get(e.id) ?? 0
-    return {
+    return withProperty({
       Date: e.date, Category: e.cat, Description: e.desc, Bill: e.amount,
       Paid: paid, Due: e.amount - paid, Status: statusOf(e.amount, paid),
       Vendor: e.vendor, By: e.by, Notes: e.notes,
-    }
+    }, e.propertyId)
   }))
-  add('Expense Payments', expPayments.map((p) => ({
+  add('Expense Payments', expPayments.map((p) => withProperty({
     Expense: descById.get(String(p.expenseId)) ?? '', Date: p.date, Amount: p.amount,
     Method: p.method, To: p.to, By: p.by, Notes: p.notes,
-  })))
-  add('Visitors', visitors.map((v) => ({
+  }, p.propertyId)))
+  add('Visitors', visitors.map((v) => withProperty({
     Date: v.date, Name: v.name, Phone: v.phone, Purpose: v.purpose,
     'In Time': v.inTime, 'Out Time': v.outTime, Remarks: v.remarks,
     'Follow-up': v.fuStatus, 'Follow-up Note': v.fuRemark, 'Logged By': v.loggedBy,
-  })))
-  add('Leads', leads.map((l) => ({
+  }, v.propertyId)))
+  add('Leads', leads.map((l) => withProperty({
     Date: l.date, Time: l.time, Name: l.name, Phone: l.phone, 'Event Type': l.eventType,
     Outcome: l.outcome, 'Follow-up': l.followup, 'Assigned To': l.execLabel, Flag: l.flag,
     Notes: l.notes, 'Admin Comment': l.adminComment,
-  })))
-  add('Incentives', incentives.trend.map((t) => ({
+  }, l.propertyId)))
+  add('Incentives', incentiveRows.map((t) => ({
+    ...(multi ? { Property: (t as { Property?: string }).Property ?? '' } : {}),
     Month: t.month, 'Booked Sales': t.sales, Expenses: t.expenses, Profit: t.profit,
     Deepak: t.deepak, Akhil: t.akhil, Total: t.total,
   })))
@@ -79,7 +99,8 @@ export async function buildWorkbook(): Promise<Buffer> {
 
 // Raw dump for exact restore (all fields, including internal keys)
 export async function buildRawJson(): Promise<string> {
-  const [bookings, payments, expenses, expensePayments, visitors, leads] = await Promise.all([
+  const [properties, bookings, payments, expenses, expensePayments, visitors, leads] = await Promise.all([
+    Property.find().lean(),
     Booking.find().lean(),
     Payment.find().lean(),
     Expense.find().lean(),
@@ -88,7 +109,7 @@ export async function buildRawJson(): Promise<string> {
     Lead.find().lean(),
   ])
   return JSON.stringify(
-    { exportedAt: new Date().toISOString(), bookings, payments, expenses, expensePayments, visitors, leads },
+    { exportedAt: new Date().toISOString(), properties, bookings, payments, expenses, expensePayments, visitors, leads },
     null,
     2,
   )

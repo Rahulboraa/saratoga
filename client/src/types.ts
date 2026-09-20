@@ -5,9 +5,18 @@ export interface AuthUser {
   username: string
   name: string
   role: Role
+  /** null for admins, who span every property. */
+  propertyId: string | null
 }
 
 export interface ManagedUser extends AuthUser {
+  active: boolean
+}
+
+export interface Property {
+  id: string
+  name: string
+  location: string
   active: boolean
 }
 

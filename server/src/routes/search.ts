@@ -3,6 +3,7 @@ import { Booking } from '../models/Booking.js'
 import { Lead } from '../models/Lead.js'
 import { Visitor } from '../models/Visitor.js'
 import { requireRole } from '../middleware/auth.js'
+import { scoped } from '../middleware/scope.js'
 
 export const searchRouter = Router()
 searchRouter.use(requireRole('admin', 'manager', 'sales'))
@@ -12,13 +13,13 @@ searchRouter.get('/', async (req, res) => {
   if (!q) return res.json({ bookings: [], leads: [], visitors: [] })
   const rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
 
-  const leadFilter: Record<string, unknown> = { $or: [{ name: rx }, { phone: rx }] }
+  const leadFilter: Record<string, unknown> = scoped(req, { $or: [{ name: rx }, { phone: rx }] })
   if (req.user.role === 'sales') leadFilter.exec = req.user.username
 
   const [bookings, leads, visitors] = await Promise.all([
-    Booking.find({ $or: [{ guest: rx }, { phone: rx }] }).select('guest phone checkinDate purpose').sort({ checkinDate: -1 }).limit(5),
+    Booking.find(scoped(req, { $or: [{ guest: rx }, { phone: rx }] })).select('guest phone checkinDate purpose').sort({ checkinDate: -1 }).limit(5),
     Lead.find(leadFilter).select('name phone eventType outcome').sort({ date: -1 }).limit(5),
-    Visitor.find({ $or: [{ name: rx }, { phone: rx }] }).select('name phone purpose date').sort({ date: -1 }).limit(5),
+    Visitor.find(scoped(req, { $or: [{ name: rx }, { phone: rx }] })).select('name phone purpose date').sort({ date: -1 }).limit(5),
   ])
 
   res.json({

@@ -9,6 +9,7 @@ export const FLAGS = ['', 'review', 'good', 'escalate'] as const
 
 const leadSchema = new Schema(
   {
+    propertyId: { type: Schema.Types.ObjectId, ref: 'Property', required: true, index: true },
     date: { type: String, required: true },
     time: { type: String, default: '' },
     name: { type: String, required: true, trim: true },
@@ -22,11 +23,13 @@ const leadSchema = new Schema(
     flag: { type: String, enum: FLAGS, default: '' },
     adminComment: { type: String, default: '' },
     importedBy: { type: String, default: '' },
-    legacyId: { type: String, index: { unique: true, sparse: true } },
+    legacyId: { type: String, index: true },
   },
   { timestamps: true },
 )
 
-leadSchema.index({ exec: 1, date: -1 })
+leadSchema.index({ propertyId: 1, exec: 1, date: -1 })
+
+leadSchema.index({ propertyId: 1, legacyId: 1 }, { unique: true, sparse: true })
 
 export const Lead = model('Lead', leadSchema)

@@ -1,4 +1,5 @@
 const TOKEN_KEY = 'sv_token'
+const PROPERTY_KEY = 'sv_property'
 
 export class ApiError extends Error {
   status: number
@@ -19,6 +20,32 @@ export function setToken(token: string | null) {
   else localStorage.removeItem(TOKEN_KEY)
 }
 
+/**
+ * The property the user is looking at. Lives here so both `api` and `apiDownload`
+ * stamp it on every request without each caller remembering to.
+ */
+export function getActiveProperty() {
+  try {
+    return localStorage.getItem(PROPERTY_KEY) || ''
+  } catch {
+    return ''
+  }
+}
+
+export function setActiveProperty(id: string | null) {
+  try {
+    if (id) localStorage.setItem(PROPERTY_KEY, id)
+    else localStorage.removeItem(PROPERTY_KEY)
+  } catch {
+    // Private-mode browsers fall back to the all-properties view.
+  }
+}
+
+function propertyHeader(): Record<string, string> {
+  const id = getActiveProperty()
+  return id ? { 'x-property': id } : {}
+}
+
 let onUnauthorized = () => {}
 export function setUnauthorizedHandler(fn: () => void) {
   onUnauthorized = fn
@@ -31,7 +58,7 @@ interface Options {
 }
 
 export async function api<T>(path: string, opts: Options = {}): Promise<T> {
-  const headers: Record<string, string> = {}
+  const headers: Record<string, string> = { ...propertyHeader() }
   const token = getToken()
   if (token) headers.Authorization = `Bearer ${token}`
   if (opts.body !== undefined) headers['Content-Type'] = 'application/json'
@@ -59,7 +86,7 @@ export async function api<T>(path: string, opts: Options = {}): Promise<T> {
 export async function apiDownload(path: string, filename: string) {
   const token = getToken()
   const res = await fetch(`/api${path}`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    headers: { ...propertyHeader(), ...(token ? { Authorization: `Bearer ${token}` } : {}) },
   })
   if (!res.ok) throw new ApiError(res.status, 'Download failed', null)
   const fresh = res.headers.get('x-refresh-token')

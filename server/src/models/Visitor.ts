@@ -4,6 +4,7 @@ export const FU_STATUSES = ['', 'Hold', 'Closed', 'Cancelled'] as const
 
 const visitorSchema = new Schema(
   {
+    propertyId: { type: Schema.Types.ObjectId, ref: 'Property', required: true, index: true },
     date: { type: String, required: true, index: true },
     loggedAt: { type: String, default: () => new Date().toISOString() },
     name: { type: String, required: true, trim: true },
@@ -15,9 +16,11 @@ const visitorSchema = new Schema(
     fuStatus: { type: String, enum: FU_STATUSES, default: '' },
     fuRemark: { type: String, default: '' },
     loggedBy: { type: String, default: '' },
-    legacyId: { type: String, index: { unique: true, sparse: true } },
+    legacyId: { type: String, index: true },
   },
   { timestamps: true },
 )
+
+visitorSchema.index({ propertyId: 1, legacyId: 1 }, { unique: true, sparse: true })
 
 export const Visitor = model('Visitor', visitorSchema)

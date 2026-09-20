@@ -20,7 +20,13 @@ authRouter.post('/login', loginLimiter, async (req, res) => {
   if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
     return res.status(401).json({ error: 'Invalid username or password' })
   }
-  const authUser: AuthUser = { id: user.id, username: user.username, name: user.name, role: user.role }
+  const authUser: AuthUser = {
+    id: user.id,
+    username: user.username,
+    name: user.name,
+    role: user.role,
+    propertyId: user.propertyId ? String(user.propertyId) : null,
+  }
   res.json({ token: signToken(authUser), user: authUser })
 })
 

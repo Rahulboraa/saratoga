@@ -2,17 +2,19 @@ import { Payment } from '../models/Payment.js'
 import { ExpensePayment } from '../models/ExpensePayment.js'
 import type { Types } from 'mongoose'
 
-export async function paymentSums(bookingIds?: Types.ObjectId[]) {
+export async function paymentSums(bookingIds?: Types.ObjectId[], scope: Record<string, unknown> = {}) {
   const rows = await Payment.aggregate([
     ...(bookingIds ? [{ $match: { bookingId: { $in: bookingIds } } }] : []),
+    ...(Object.keys(scope).length ? [{ $match: scope }] : []),
     { $group: { _id: '$bookingId', sum: { $sum: '$amount' } } },
   ])
   return new Map<string, number>(rows.map((r) => [String(r._id), r.sum]))
 }
 
-export async function expensePaymentSums(expenseIds?: Types.ObjectId[]) {
+export async function expensePaymentSums(expenseIds?: Types.ObjectId[], scope: Record<string, unknown> = {}) {
   const rows = await ExpensePayment.aggregate([
     ...(expenseIds ? [{ $match: { expenseId: { $in: expenseIds } } }] : []),
+    ...(Object.keys(scope).length ? [{ $match: scope }] : []),
     { $group: { _id: '$expenseId', sum: { $sum: '$amount' } } },
   ])
   return new Map<string, number>(rows.map((r) => [String(r._id), r.sum]))

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import * as XLSX from 'xlsx'
 import { connectDb } from '../db.js'
+import { ensureDefaultProperty } from '../services/defaultProperty.js'
 import { Booking } from '../models/Booking.js'
 import { Payment } from '../models/Payment.js'
 import { Expense } from '../models/Expense.js'
@@ -112,12 +113,14 @@ if (DRY) {
 }
 
 await connectDb()
+const property = await ensureDefaultProperty()
 
 let n = 0
 for (const { _sheetAmount, ...b } of bookings) {
   void _sheetAmount
-  const doc = await Booking.findOne({ legacyId: b.legacyId })
-  if (doc) { doc.set(b); await doc.save() } else { await Booking.create(b as Parameters<typeof Booking.create>[0]) }
+  const row = { ...b, propertyId: property._id }
+  const doc = await Booking.findOne({ legacyId: b.legacyId, propertyId: property._id })
+  if (doc) { doc.set(row); await doc.save() } else { await Booking.create(row as Parameters<typeof Booking.create>[0]) }
   n++
 }
 console.log('bookings upserted:', n)

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   Menu, LogOut, Home, CalendarDays, Users2, PhoneCall,
-  Upload, KeyRound, ChevronsUpDown, ChevronRight, CalendarClock, IndianRupee, Trophy,
+  Upload, KeyRound, ChevronsUpDown, ChevronRight, CalendarClock, IndianRupee, Trophy, Building2,
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
@@ -16,6 +16,8 @@ import InstallButton from '@/components/InstallPrompt'
 import ThemeToggle, { ThemeToggleRow } from '@/components/ThemeToggle'
 import SearchPalette, { openSearchPalette } from '@/components/SearchPalette'
 import PaymentNotice from '@/components/PaymentNotice'
+import PropertySwitcher from '@/components/PropertySwitcher'
+import { useProperty } from '@/lib/property'
 import { Search } from 'lucide-react'
 
 const NAV_MAIN = [
@@ -30,6 +32,7 @@ const NAV_ADMIN = [
   { to: '/expenses', label: 'Expenses', icon: IndianRupee },
   { to: '/incentives', label: 'Incentives', icon: Trophy },
   { to: '/import', label: 'Import', icon: Upload },
+  { to: '/properties', label: 'Properties', icon: Building2 },
   { to: '/users', label: 'Users', icon: KeyRound },
 ]
 
@@ -87,6 +90,8 @@ function Brand() {
 
 function UserFooter() {
   const { user, logout } = useAuth()
+  const { active, canSwitch } = useProperty()
+  const propertyLabel = canSwitch ? (active?.name ?? 'All properties') : active?.name ?? ''
   const initials = user?.name?.split(' ').map((p) => p[0]).join('').slice(0, 2).toUpperCase() ?? '?'
   return (
     <div className="border-t border-border bg-background p-3">
@@ -98,7 +103,9 @@ function UserFooter() {
             </div>
             <div className="min-w-0 flex-1">
               <div className="truncate text-[13px] font-semibold leading-tight text-foreground">{user?.name ?? '—'}</div>
-              <div className="truncate text-[11px] capitalize leading-tight text-muted-foreground">{user?.role ?? ''}</div>
+              <div className="truncate text-[11px] capitalize leading-tight text-muted-foreground">
+                {user?.role ?? ''}{propertyLabel ? ` · ${propertyLabel}` : ''}
+              </div>
             </div>
             <ChevronsUpDown className="h-3.5 w-3.5 text-muted-foreground" />
           </button>
@@ -122,6 +129,7 @@ function UserFooter() {
 const PAGE_LABELS: Record<string, string> = {
   '': 'Dashboard', bookings: 'Bookings', upcoming: 'Upcoming', visitors: 'Visitors', leads: 'CRM',
   expenses: 'Expenses', incentives: 'Incentives', import: 'Import', users: 'Users',
+  properties: 'Properties',
 }
 
 function TopBar() {
@@ -135,6 +143,7 @@ function TopBar() {
         <span className="font-medium text-foreground">{PAGE_LABELS[key] ?? 'Dashboard'}</span>
       </nav>
       <div className="flex flex-1 items-center justify-end gap-2">
+        <PropertySwitcher className="h-9 w-[190px]" />
         <button
           type="button"
           onClick={openSearchPalette}
@@ -218,7 +227,10 @@ export default function AppLayout() {
           </SheetContent>
         </Sheet>
         <Brand />
-        <div className="ml-auto flex items-center gap-1"><ThemeToggle /><InstallButton /></div>
+        <div className="ml-auto flex items-center gap-1">
+          <PropertySwitcher className="h-8 w-[140px] text-[12px]" />
+          <ThemeToggle /><InstallButton />
+        </div>
       </header>
 
       <main className="min-h-screen bg-slate-50/50 dark:bg-background md:pl-[260px]">

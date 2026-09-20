@@ -146,6 +146,34 @@ just in the UI, so it cannot be revealed from the browser.
 
 ---
 
+## Properties (multi-property)
+
+Every booking, payment, expense, visitor and lead belongs to exactly one property.
+
+- **admin** — spans all properties. The switcher in the top bar picks one, or
+  *All properties* for a combined read-only view. Adding records while on
+  *All properties* is refused: pick a property first. Incentives always need one
+  property selected, because the slabs run per property.
+- **manager / sales / caretaker** — pinned to a single property (set on the Users
+  page). They never see another property's data and cannot widen it: the property
+  comes from their token, and the `x-property` header is ignored for them
+  (`server/src/middleware/scope.ts`).
+
+Admin → **Properties** page creates and deactivates properties. A property with users
+still assigned cannot be deleted; reassign them first.
+
+**Migration — run once after deploying this change:**
+
+```bash
+npm run migrate:properties
+```
+
+It creates the *Saratoga Villa* property, stamps every existing record with it, and
+assigns every non-admin user to it. Safe to re-run: it only touches rows that have no
+property yet. Until it runs, non-admin users get a 403 because they have no property.
+
+---
+
 ## Backups
 
 A Vercel cron calls `GET /api/cron/backup` once daily at 20:30 UTC (about 2 AM IST) and
