@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   Menu, LogOut, Home, CalendarDays, Users2, PhoneCall,
-  Upload, KeyRound, ChevronsUpDown, ChevronRight, CalendarClock, IndianRupee, Trophy, Building2,
+  Upload, KeyRound, ChevronsUpDown, ChevronRight, CalendarClock, IndianRupee, Trophy, Building2, Landmark,
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
@@ -31,6 +31,7 @@ const NAV_MAIN = [
 const NAV_ADMIN = [
   { to: '/expenses', label: 'Expenses', icon: IndianRupee },
   { to: '/incentives', label: 'Incentives', icon: Trophy },
+  { to: '/investments', label: 'Investments', icon: Landmark },
   { to: '/import', label: 'Import', icon: Upload },
   { to: '/properties', label: 'Properties', icon: Building2 },
   { to: '/users', label: 'Users', icon: KeyRound },
@@ -129,7 +130,7 @@ function UserFooter() {
 const PAGE_LABELS: Record<string, string> = {
   '': 'Dashboard', bookings: 'Bookings', upcoming: 'Upcoming', visitors: 'Visitors', leads: 'CRM',
   expenses: 'Expenses', incentives: 'Incentives', import: 'Import', users: 'Users',
-  properties: 'Properties',
+  properties: 'Properties', investments: 'Investments',
 }
 
 function TopBar() {

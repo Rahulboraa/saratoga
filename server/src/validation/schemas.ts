@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { PURPOSES, SOURCES } from '../models/Booking.js'
 import { EXPENSE_CATS } from '../models/Expense.js'
 import { FU_STATUSES, VISITOR_TYPES } from '../models/Visitor.js'
+import { INVESTMENT_KINDS } from '../models/Investment.js'
 import { EVENT_TYPES, OUTCOMES, FLAGS } from '../models/Lead.js'
 import { YMD, HM } from '../lib/dates.js'
 
@@ -70,6 +71,16 @@ export const expensePaymentSchema = z.object({
   to: str.default(''),
   by: str.default(''),
   notes: str.default(''),
+})
+
+export const investmentSchema = z.object({
+  partner: str.min(1).max(60),
+  date: ymd,
+  kind: z.enum(INVESTMENT_KINDS).default('Investment'),
+  amount: z.coerce.number().positive(),
+  mode: str.default(''),
+  notes: str.default(''),
+  by: str.default(''),
 })
 
 export const visitorSchema = z.object({

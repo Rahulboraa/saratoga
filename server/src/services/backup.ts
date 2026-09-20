@@ -6,6 +6,7 @@ import { ExpensePayment } from '../models/ExpensePayment.js'
 import { Visitor } from '../models/Visitor.js'
 import { Lead } from '../models/Lead.js'
 import { Property } from '../models/Property.js'
+import { Investment } from '../models/Investment.js'
 import { paymentSums, expensePaymentSums, withFinance, statusOf } from './finance.js'
 import { incentiveStats } from './stats.js'
 
@@ -25,6 +26,7 @@ export async function buildWorkbook(scope: Scope = {}): Promise<Buffer> {
     Lead.find(scope).sort({ date: 1 }),
     Property.find().sort({ name: 1 }),
   ])
+  const investments = await Investment.find(scope).sort({ date: 1 })
   const sums = await paymentSums(undefined, scope)
   const expSums = await expensePaymentSums(undefined, scope)
   const propertyName = new Map(properties.map((p) => [p.id, p.name]))
@@ -88,6 +90,10 @@ export async function buildWorkbook(scope: Scope = {}): Promise<Buffer> {
     Outcome: l.outcome, 'Follow-up': l.followup, 'Assigned To': l.execLabel, Flag: l.flag,
     Notes: l.notes, 'Admin Comment': l.adminComment,
   }, l.propertyId)))
+  add('Investments', investments.map((i) => withProperty({
+    Date: i.date, Partner: i.partner, Type: i.kind, Amount: i.amount,
+    Mode: i.mode, By: i.by, Notes: i.notes,
+  }, i.propertyId)))
   add('Incentives', incentiveRows.map((t) => ({
     ...(multi ? { Property: (t as { Property?: string }).Property ?? '' } : {}),
     Month: t.month, 'Booked Sales': t.sales, Expenses: t.expenses, Profit: t.profit,
@@ -99,7 +105,7 @@ export async function buildWorkbook(scope: Scope = {}): Promise<Buffer> {
 
 // Raw dump for exact restore (all fields, including internal keys)
 export async function buildRawJson(): Promise<string> {
-  const [properties, bookings, payments, expenses, expensePayments, visitors, leads] = await Promise.all([
+  const [properties, bookings, payments, expenses, expensePayments, visitors, leads, investments] = await Promise.all([
     Property.find().lean(),
     Booking.find().lean(),
     Payment.find().lean(),
@@ -107,9 +113,10 @@ export async function buildRawJson(): Promise<string> {
     ExpensePayment.find().lean(),
     Visitor.find().lean(),
     Lead.find().lean(),
+    Investment.find().lean(),
   ])
   return JSON.stringify(
-    { exportedAt: new Date().toISOString(), properties, bookings, payments, expenses, expensePayments, visitors, leads },
+    { exportedAt: new Date().toISOString(), properties, bookings, payments, expenses, expensePayments, visitors, leads, investments },
     null,
     2,
   )

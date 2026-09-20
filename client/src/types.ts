@@ -236,6 +236,27 @@ export interface ExpenseSummary {
   plSeries: { month: string; revenue: number; expenses: number; profit: number; margin: number }[]
 }
 
+export interface InvestmentEntry {
+  id: string
+  partner: string
+  date: string
+  kind: 'Investment' | 'Withdrawal'
+  amount: number
+  mode: string
+  notes: string
+  by: string
+}
+
+export interface PartnerRow {
+  partner: string
+  invested: number
+  withdrawn: number
+  net: number
+  share: number
+  entries: number
+  lastDate: string
+}
+
 export interface InvoicePayload {
   invoiceNo: string
   invoiceDate: string

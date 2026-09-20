@@ -6,6 +6,7 @@ import { Expense } from '../models/Expense.js'
 import { ExpensePayment } from '../models/ExpensePayment.js'
 import { Visitor } from '../models/Visitor.js'
 import { Lead } from '../models/Lead.js'
+import { Investment } from '../models/Investment.js'
 import { requireRole } from '../middleware/auth.js'
 import { paymentSums, expensePaymentSums, withFinance, statusOf } from '../services/finance.js'
 import { incentiveStats } from '../services/stats.js'
@@ -115,6 +116,14 @@ exportRouter.get('/incentives', requireRole('admin'), async (req, res) => {
   sendSheet(res, 'Incentives', incentives.trend.map((t) => ({
     Month: t.month, 'Booked Sales': t.sales, Expenses: t.expenses, Profit: t.profit,
     Deepak: t.deepak, Akhil: t.akhil, Total: t.total,
+  })))
+})
+
+exportRouter.get('/investments', requireRole('admin'), async (req, res) => {
+  const investments = await Investment.find(scoped(req)).sort({ date: 1 })
+  sendSheet(res, 'Investments', investments.map((i) => ({
+    Date: i.date, Partner: i.partner, Type: i.kind, Amount: i.amount,
+    Mode: i.mode, By: i.by, Notes: i.notes,
   })))
 })
 
