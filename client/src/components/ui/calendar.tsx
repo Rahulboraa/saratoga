@@ -6,6 +6,8 @@ import {
   type Locale,
 } from "react-day-picker"
 
+import { enIN } from "date-fns/locale"
+
 import { cn } from "@/lib/utils"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from "lucide-react"
@@ -16,7 +18,9 @@ function Calendar({
   showOutsideDays = true,
   captionLayout = "label",
   buttonVariant = "ghost",
-  locale,
+  // Pinned, so month and weekday names do not follow whatever language the browser
+  // happens to be set to.
+  locale = enIN,
   formatters,
   components,
   ...props
@@ -38,7 +42,7 @@ function Calendar({
       locale={locale}
       formatters={{
         formatMonthDropdown: (date) =>
-          date.toLocaleString(locale?.code, { month: "short" }),
+          date.toLocaleString(locale?.code ?? "en-IN", { month: "short" }),
         ...formatters,
       }}
       classNames={{
@@ -197,7 +201,7 @@ function CalendarDayButton({
       ref={ref}
       variant="ghost"
       size="icon"
-      data-day={day.date.toLocaleDateString(locale?.code)}
+      data-day={day.date.toLocaleDateString(locale?.code ?? "en-IN")}
       data-selected-single={
         modifiers.selected &&
         !modifiers.range_start &&
