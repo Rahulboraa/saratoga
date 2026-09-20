@@ -169,6 +169,16 @@ check("cannot map to another property's booking", badExp.status === 400, String(
 const expList = await call(admin, '/expenses', { property: A })
 check('expense row names the booking', expList.body.rows?.[0]?.bookingLabel?.includes('Guest A'), JSON.stringify(expList.body.rows?.[0]?.bookingLabel))
 
+console.log('\n8b. Property look')
+const look = await call(admin, `/properties/${A}`, { method: 'PATCH', body: { imageUrl: 'https://example.com/villa.jpg', color: '#2563eb' } })
+check('photo and colour can be set', look.body.imageUrl === 'https://example.com/villa.jpg' && look.body.color === '#2563eb', JSON.stringify(look.body.imageUrl))
+const badUrl = await call(admin, `/properties/${A}`, { method: 'PATCH', body: { imageUrl: 'javascript:alert(1)' } })
+check('a non-http photo URL is refused', badUrl.status === 400, String(badUrl.status))
+const badColor = await call(admin, `/properties/${A}`, { method: 'PATCH', body: { color: 'red' } })
+check('a colour has to be a hex value', badColor.status === 400, String(badColor.status))
+const clearUrl = await call(admin, `/properties/${A}`, { method: 'PATCH', body: { imageUrl: '' } })
+check('the photo can be cleared', clearUrl.status === 200 && clearUrl.body.imageUrl === '', String(clearUrl.status))
+
 console.log('\n9. Expense categories')
 const cats = await call(admin, '/expense-categories')
 check('defaults are seeded on first read', cats.body.some((c: Json) => c.name === 'Catering'), String(cats.body?.length))

@@ -13,6 +13,7 @@ import { Switch } from '@/components/ui/switch'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import ConfirmDelete from '@/components/ConfirmDelete'
+import { propertyColor } from '@/lib/propertyLook'
 import EmptyState from '@/components/EmptyState'
 import { PageHeader } from '@/components/PageHeader'
 
@@ -100,6 +101,8 @@ export default function Properties() {
       gstin: fd.get('gstin'),
       invoicePrefix: fd.get('invoicePrefix') || 'INV',
       invoiceTerms: fd.get('invoiceTerms'),
+      imageUrl: fd.get('imageUrl'),
+      color: fd.get('color'),
     }
     if (editing) saveEdits.mutate({ id: editing.id, body })
     else createProperty.mutate(body)
@@ -156,9 +159,21 @@ export default function Properties() {
           {(properties ?? []).map((p) => (
             <div key={p.id} className="flex flex-wrap items-center gap-x-4 gap-y-3 px-4 py-3">
               <div className="flex min-w-0 flex-1 items-center gap-2.5">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
-                  <Building2 className="size-4 text-muted-foreground" />
-                </div>
+                {p.imageUrl ? (
+                  <img
+                    src={p.imageUrl}
+                    alt=""
+                    className="size-8 shrink-0 rounded-full object-cover"
+                    onError={(e) => { e.currentTarget.style.display = 'none' }}
+                  />
+                ) : (
+                  <div
+                    className="flex size-8 shrink-0 items-center justify-center rounded-full"
+                    style={{ background: propertyColor(p) }}
+                  >
+                    <Building2 className="size-4 text-white" />
+                  </div>
+                )}
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="truncate text-[13px] font-semibold">{p.name}</span>
@@ -213,6 +228,24 @@ export default function Properties() {
             <div className="space-y-1.5">
               <Label>Location</Label>
               <Input name="location" defaultValue={editing?.location ?? ''} placeholder="Optional" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Photo URL</Label>
+              <Input name="imageUrl" defaultValue={editing?.imageUrl ?? ''} placeholder="https://… (shown across the app)" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Colour</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  name="color"
+                  type="color"
+                  defaultValue={propertyColor(editing)}
+                  className="h-9 w-16 p-1"
+                />
+                <span className="text-[11px] text-muted-foreground">
+                  Used on the banner and the switcher, so each property is told apart at a glance.
+                </span>
+              </div>
             </div>
             <div className="space-y-1.5">
               <Label>Invoice address</Label>

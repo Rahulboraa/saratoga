@@ -17,6 +17,7 @@ import ThemeToggle, { ThemeToggleRow } from '@/components/ThemeToggle'
 import SearchPalette, { openSearchPalette } from '@/components/SearchPalette'
 import PaymentNotice from '@/components/PaymentNotice'
 import PropertySwitcher from '@/components/PropertySwitcher'
+import PropertyBanner from '@/components/PropertyBanner'
 import { useProperty } from '@/lib/property'
 import { Search } from 'lucide-react'
 
@@ -239,6 +240,7 @@ export default function AppLayout() {
         <PaymentNotice />
         <TopBar />
         <div className="animate-fade-in mx-auto px-4 py-5 pb-24 sm:px-5 sm:py-6 md:px-6 md:py-6 md:pb-6">
+          <PropertyBanner />
           <Outlet />
         </div>
       </main>

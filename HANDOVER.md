@@ -159,6 +159,11 @@ Every booking, payment, expense, visitor and lead belongs to exactly one propert
   comes from their token, and the `x-property` header is ignored for them
   (`server/src/middleware/scope.ts`).
 
+Each property carries a photo URL and a colour, shown as a banner above every page, as a
+chip in the switcher and on the Properties list — so it is obvious which property is
+being worked on before anything is typed into it. A property with no colour set gets a
+distinct one derived from its id. Photo URLs must be `http(s)`; anything else is refused.
+
 Admin → **Properties** page creates and deactivates properties, and holds the invoice
 address, GSTIN and invoice-number prefix used on that property's sales invoices. A
 property with users still assigned cannot be deleted; reassign them first.

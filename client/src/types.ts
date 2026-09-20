@@ -22,6 +22,8 @@ export interface Property {
   gstin: string
   invoicePrefix: string
   invoiceTerms: string
+  imageUrl: string
+  color: string
 }
 
 export const PURPOSES = ['Party', 'Shoot', 'Pre-wedding', 'Kids Birthday', 'Other'] as const

@@ -24,6 +24,9 @@ const propertySchema = new Schema(
     address: { type: String, default: '' },
     gstin: { type: String, default: '' },
     invoicePrefix: { type: String, default: 'INV' },
+    // Shown across the app so it is obvious which property is being worked on.
+    imageUrl: { type: String, default: '' },
+    color: { type: String, default: '' },
     // One term per line.
     invoiceTerms: { type: String, default: DEFAULT_INVOICE_TERMS },
     // Invoice serials restart each financial year, per property.
