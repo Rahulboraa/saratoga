@@ -231,19 +231,19 @@ export default function MonthCalendar({ onSelectDate }: { onSelectDate?: (date: 
               <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: CAL_PALETTE[1] }} />
               <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: CAL_PALETTE[2] }} />
             </span>
-            Har rang = alag booking
+            Each colour is one booking
           </span>
           <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
             <span className="h-3.5 w-4 rounded-[3px] border border-border" style={{ background: 'linear-gradient(to bottom, color-mix(in oklch, var(--foreground), transparent 78%) 50%, transparent 50%)' }} />
-            ↑ Ja rahe (subah)
+            ↑ Check-out (morning)
           </span>
           <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
             <span className="h-3.5 w-4 rounded-[3px] border border-border" style={{ background: 'linear-gradient(to top, color-mix(in oklch, var(--foreground), transparent 78%) 50%, transparent 50%)' }} />
-            ↓ Aa rahe (shaam)
+            ↓ Check-in (evening)
           </span>
           <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
             <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
-            Ek din 2 booking
+            Two bookings that day
           </span>
         </div>
       </CardContent>
