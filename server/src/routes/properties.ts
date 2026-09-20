@@ -10,6 +10,7 @@ const createSchema = z.object({
   address: z.string().trim().max(300).default(''),
   gstin: z.string().trim().max(20).default(''),
   invoicePrefix: z.string().trim().max(10).default('INV'),
+  invoiceTerms: z.string().max(4000).optional(),
 })
 
 const updateSchema = z.object({
@@ -19,14 +20,16 @@ const updateSchema = z.object({
   address: z.string().trim().max(300).optional(),
   gstin: z.string().trim().max(20).optional(),
   invoicePrefix: z.string().trim().max(10).optional(),
+  invoiceTerms: z.string().max(4000).optional(),
 })
 
 const shape = (p: {
   id: string; name: string; location: string; active: boolean
-  address: string; gstin: string; invoicePrefix: string
+  address: string; gstin: string; invoicePrefix: string; invoiceTerms: string
 }) => ({
   id: p.id, name: p.name, location: p.location, active: p.active,
   address: p.address, gstin: p.gstin, invoicePrefix: p.invoicePrefix,
+  invoiceTerms: p.invoiceTerms,
 })
 
 export const propertiesRouter = Router()

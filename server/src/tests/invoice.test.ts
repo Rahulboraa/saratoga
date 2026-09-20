@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { financialYear, invoiceLines, GST_RATE } from '../services/invoice.js'
 
-const bookingWith = (breakdown: Record<string, number>) =>
-  ({ breakdown } as unknown as Parameters<typeof invoiceLines>[0])
+const bookingWith = (breakdown: Record<string, number>, gstEnabled = true) =>
+  ({ breakdown, gstEnabled } as unknown as Parameters<typeof invoiceLines>[0])
 
 describe('financialYear', () => {
   it('runs April to March', () => {
@@ -32,6 +32,21 @@ describe('invoiceLines', () => {
     const out = invoiceLines(bookingWith({ venue: 27_000, catering: 0, decor: 0 }))
     expect(out.items).toEqual([{ label: 'Venue rental', amount: 27_000 }])
     expect(out.total).toBe(27_000 + 4_860)
+  })
+
+  it('bills without tax when GST is switched off', () => {
+    const out = invoiceLines(bookingWith({ venue: 27_000, security: 10_000 }, false))
+    expect(out.gstEnabled).toBe(false)
+    expect(out.taxable).toBe(27_000)
+    expect(out.cgst).toBe(0)
+    expect(out.sgst).toBe(0)
+    expect(out.total).toBe(37_000)
+  })
+
+  it('treats a booking with no flag as taxed, which is the default', () => {
+    const out = invoiceLines({ breakdown: { venue: 10_000 } } as never)
+    expect(out.gstEnabled).toBe(true)
+    expect(out.total).toBe(11_800)
   })
 
   it('is empty for a booking with no charges', () => {

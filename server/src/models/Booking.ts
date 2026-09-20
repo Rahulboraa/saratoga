@@ -29,6 +29,8 @@ const bookingSchema = new Schema(
     },
     amount: { type: Number, default: 0 },
     legacyReceived: { type: Number, default: 0 },
+    // Off for bookings billed without tax; remembered so a reprint matches what was sent.
+    gstEnabled: { type: Boolean, default: true },
     invoiceNo: { type: String, default: '' },
     invoiceDate: { type: String, default: '' },
     createdBy: { type: String, default: '' },

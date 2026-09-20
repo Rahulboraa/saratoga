@@ -193,10 +193,14 @@ async function invoicePayload(req: Parameters<typeof scoped>[0], id: string) {
   const property = await Property.findById(booking.propertyId)
   const sums = await paymentSums([booking._id])
   const lines = invoiceLines(booking)
+  const received = (booking.legacyReceived ?? 0) + (sums.get(String(booking._id)) ?? 0)
   return {
     invoiceNo: booking.invoiceNo,
     invoiceDate: booking.invoiceDate,
     gstRate: GST_RATE,
+    // Until it is issued the document is a proforma, which doubles as the quote sent
+    // before anyone has paid. A tax invoice is only a tax invoice if it carries tax.
+    kind: booking.invoiceNo ? (lines.gstEnabled ? 'Tax Invoice' : 'Invoice') : 'Proforma Invoice',
     booking: {
       id: booking.id, guest: booking.guest, phone: booking.phone,
       checkinDate: booking.checkinDate, checkoutDate: booking.checkoutDate,
@@ -206,10 +210,21 @@ async function invoicePayload(req: Parameters<typeof scoped>[0], id: string) {
     property: {
       name: property?.name ?? '', address: property?.address ?? '',
       location: property?.location ?? '', gstin: property?.gstin ?? '',
+      terms: (property?.invoiceTerms ?? '').split('\n').map((t) => t.trim()).filter(Boolean),
     },
     ...lines,
-    received: (booking.legacyReceived ?? 0) + (sums.get(String(booking._id)) ?? 0),
+    received,
   }
+}
+
+/** Turns a booking's proforma into a numbered invoice. No-op once it already has a number. */
+export async function issueInvoice(booking: InstanceType<typeof Booking>) {
+  if (booking.invoiceNo) return booking.invoiceNo
+  const date = todayYmd()
+  booking.invoiceNo = await nextInvoiceNo(String(booking.propertyId), date)
+  booking.invoiceDate = date
+  await booking.save()
+  return booking.invoiceNo
 }
 
 bookingsRouter.get('/:id/invoice', requireRole('admin', 'manager'), async (req, res) => {
@@ -218,16 +233,21 @@ bookingsRouter.get('/:id/invoice', requireRole('admin', 'manager'), async (req, 
   res.json(payload)
 })
 
+bookingsRouter.patch('/:id/invoice', requireRole('admin'), async (req, res) => {
+  const booking = await Booking.findOne(scoped(req, { _id: req.params.id }))
+  if (!booking) return res.status(404).json({ error: 'Booking not found' })
+  if (typeof req.body?.gstEnabled === 'boolean') {
+    booking.gstEnabled = req.body.gstEnabled
+    await booking.save()
+  }
+  res.json(await invoicePayload(req, String(req.params.id)))
+})
+
 // Issuing burns a serial number, so it is a deliberate action, not a side effect of viewing.
 bookingsRouter.post('/:id/invoice', requireRole('admin'), async (req, res) => {
   const booking = await Booking.findOne(scoped(req, { _id: req.params.id }))
   if (!booking) return res.status(404).json({ error: 'Booking not found' })
-  if (!booking.invoiceNo) {
-    const date = todayYmd()
-    booking.invoiceNo = await nextInvoiceNo(String(booking.propertyId), date)
-    booking.invoiceDate = date
-    await booking.save()
-  }
+  await issueInvoice(booking)
   res.json(await invoicePayload(req, String(req.params.id)))
 })
 
@@ -241,5 +261,8 @@ bookingsRouter.post('/:id/payments', requireRole('admin', 'manager'), async (req
   if (!booking) return res.status(404).json({ error: 'Booking not found' })
   const body = paymentSchema.parse(req.body)
   const payment = await Payment.create({ ...body, bookingId: booking._id, propertyId: booking.propertyId })
+  // Money in means the booking is real, so the proforma becomes the sales invoice.
+  // A refund (negative) is not a first payment, so it never triggers this.
+  if (body.amount > 0) await issueInvoice(booking)
   res.status(201).json(serializePayment(payment.toObject()))
 })

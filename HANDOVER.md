@@ -188,13 +188,23 @@ have no property, and admins see empty pages unless they pick *All properties*.
 
 ## Sales invoices
 
-Bookings list → the file icon on a row opens a printable GST invoice. It renders as a
-draft until someone presses **Issue invoice**, which assigns the next serial number for
-that property and stores it on the booking.
+Bookings list → the file icon on a row opens the invoice.
+
+Before any payment it is a **proforma**, which is what you send as the quote. Recording a
+payment against the booking turns it into a numbered invoice on its own; an admin can
+also convert it by hand from the invoice page. A refund does not trigger it, and a second
+payment does not take a second number.
+
+**GST** is on by default and can be switched off per booking from the invoice page. The
+choice is stored, so a reprint matches what was sent. Without GST the document is headed
+"Invoice" rather than "Tax Invoice".
+
+**Terms** print under the totals and are edited per property (Properties → edit → Invoice
+terms, one per line), so deposit amounts and timings can differ between properties.
 
 - Numbers run `PREFIX/FY/NNN` (e.g. `INV/2026-27/007`), per property, restarting each
-  financial year. They are only assigned on issue, so viewing a draft never leaves a gap
-  in the sequence.
+  financial year. They are only assigned when the invoice becomes real, so viewing a
+  proforma never leaves a gap in the sequence.
 - GST is charged at **18% on top of** the booking amount, split CGST 9% + SGST 9%. The
   licence fee is recovered at actuals and the security deposit is refundable, so neither
   is taxed (`server/src/services/invoice.ts`).

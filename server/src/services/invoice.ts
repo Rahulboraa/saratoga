@@ -35,7 +35,8 @@ type BookingDoc = InstanceType<typeof Booking>
 
 /**
  * Invoice figures for a booking. GST applies to the service lines only: the licence fee
- * is a pass-through at actuals and the security deposit is refundable, so neither is taxed.
+ * is a pass-through at actuals and the security deposit is refundable, so neither is
+ * taxed. A booking billed without GST carries the same lines at zero tax.
  */
 export function invoiceLines(booking: BookingDoc) {
   const b = booking.breakdown
@@ -47,13 +48,15 @@ export function invoiceLines(booking: BookingDoc) {
     ['Cleaning', b?.cleaning ?? 0],
   ] as [string, number][]).filter(([, amount]) => amount > 0).map(([label, amount]) => ({ label, amount }))
 
+  const gstEnabled = booking.gstEnabled !== false
   const taxable = items.reduce((sum, i) => sum + i.amount, 0)
-  const cgst = Math.round(taxable * (GST_RATE / 2))
-  const sgst = Math.round(taxable * (GST_RATE / 2))
+  const cgst = gstEnabled ? Math.round(taxable * (GST_RATE / 2)) : 0
+  const sgst = gstEnabled ? Math.round(taxable * (GST_RATE / 2)) : 0
   const licence = b?.license ?? 0
   const security = b?.security ?? 0
 
   return {
+    gstEnabled,
     items,
     taxable,
     cgst,

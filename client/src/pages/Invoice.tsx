@@ -8,6 +8,8 @@ import { fmtMoney, fmtDate } from '@/lib/format'
 import type { InvoicePayload } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
 
 function Row({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
   return (
@@ -39,6 +41,13 @@ export default function Invoice() {
     onError: (e) => toast.error(e instanceof Error ? e.message : 'Could not issue invoice'),
   })
 
+  const setGst = useMutation({
+    mutationFn: (gstEnabled: boolean) =>
+      api<InvoicePayload>(`/bookings/${id}/invoice`, { method: 'PATCH', body: { gstEnabled } }),
+    onSuccess: (fresh) => queryClient.setQueryData(['invoice', id], fresh),
+    onError: (e) => toast.error(e instanceof Error ? e.message : 'Could not change GST'),
+  })
+
   if (isLoading || !data) {
     return <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-28" />)}</div>
   }
@@ -47,6 +56,7 @@ export default function Invoice() {
   const issued = !!data.invoiceNo
   const gstPct = Math.round(data.gstRate * 100)
   const balance = data.total - data.received
+  const isAdmin = user?.role === 'admin'
 
   return (
     <div>
@@ -55,10 +65,21 @@ export default function Invoice() {
         <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
           <ArrowLeft className="mr-1.5 size-4" /> Back
         </Button>
+        {isAdmin && (
+          <div className="flex items-center gap-2">
+            <Switch
+              id="gst"
+              checked={data.gstEnabled}
+              onCheckedChange={(v) => setGst.mutate(v)}
+              disabled={setGst.isPending}
+            />
+            <Label htmlFor="gst" className="cursor-pointer text-[13px]">Charge GST</Label>
+          </div>
+        )}
         <div className="flex-1" />
-        {!issued && user?.role === 'admin' && (
+        {!issued && isAdmin && (
           <Button size="sm" onClick={() => issue.mutate()} disabled={issue.isPending}>
-            Issue invoice
+            Convert to {data.gstEnabled ? 'tax invoice' : 'invoice'}
           </Button>
         )}
         <Button size="sm" variant={issued ? 'default' : 'outline'} onClick={() => window.print()}>
@@ -68,8 +89,9 @@ export default function Invoice() {
 
       {!issued && (
         <p className="mb-4 rounded-lg border border-dashed px-4 py-2.5 text-[13px] text-muted-foreground print:hidden">
-          This is a draft. Issuing assigns the next invoice number for {property.name} — numbers must run
-          consecutively, so only issue when you are ready to send it.
+          A proforma — send it as the quote. It becomes a numbered invoice on its own as soon as a payment
+          is recorded against this booking, or now if you convert it by hand. Numbers run consecutively for
+          {' '}{property.name}, so one is only taken when the invoice is real.
         </p>
       )}
 
@@ -83,7 +105,7 @@ export default function Invoice() {
           </div>
           <div className="text-right">
             <div className="text-[13px] font-semibold uppercase tracking-wider text-muted-foreground">
-              {issued ? 'Tax Invoice' : 'Draft Invoice'}
+              {data.kind}
             </div>
             {issued ? (
               <>
@@ -91,7 +113,7 @@ export default function Invoice() {
                 <div className="text-[12px] text-muted-foreground">{fmtDate(data.invoiceDate)}</div>
               </>
             ) : (
-              <div className="mt-1 text-[13px] text-muted-foreground">Not yet issued</div>
+              <div className="mt-1 text-[13px] text-muted-foreground">Quotation · not yet a tax invoice</div>
             )}
           </div>
         </div>
@@ -131,9 +153,13 @@ export default function Invoice() {
         </table>
 
         <div className="ml-auto mt-5 max-w-xs">
-          <Row label="Taxable value" value={fmtMoney(data.taxable)} />
-          <Row label={`CGST ${gstPct / 2}%`} value={fmtMoney(data.cgst)} />
-          <Row label={`SGST ${gstPct / 2}%`} value={fmtMoney(data.sgst)} />
+          <Row label={data.gstEnabled ? 'Taxable value' : 'Subtotal'} value={fmtMoney(data.taxable)} />
+          {data.gstEnabled && (
+            <>
+              <Row label={`CGST ${gstPct / 2}%`} value={fmtMoney(data.cgst)} />
+              <Row label={`SGST ${gstPct / 2}%`} value={fmtMoney(data.sgst)} />
+            </>
+          )}
           {data.licence > 0 && <Row label="Licence fee (no GST)" value={fmtMoney(data.licence)} />}
           {data.security > 0 && <Row label="Security deposit (refundable)" value={fmtMoney(data.security)} />}
           <div className="mt-1.5 border-t pt-1.5">
@@ -149,9 +175,24 @@ export default function Invoice() {
           )}
         </div>
 
-        <p className="mt-8 border-t pt-4 text-[11px] leading-relaxed text-muted-foreground">
-          GST charged at {gstPct}% on the taxable value. The licence fee is recovered at actuals and the
-          security deposit is refundable, so neither attracts GST. This is a computer-generated invoice.
+        {property.terms.length > 0 && (
+          <div className="mt-8 border-t pt-4">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Terms</div>
+            <ul className="mt-2 space-y-1">
+              {property.terms.map((t) => (
+                <li key={t} className="flex gap-2 text-[11px] leading-relaxed text-muted-foreground">
+                  <span aria-hidden>•</span><span>{t}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <p className="mt-4 border-t pt-4 text-[11px] leading-relaxed text-muted-foreground">
+          {data.gstEnabled
+            ? `GST charged at ${gstPct}% on the taxable value. The licence fee is recovered at actuals and the security deposit is refundable, so neither attracts GST. `
+            : 'Billed without GST. The licence fee is recovered at actuals and the security deposit is refundable. '}
+          This is a computer-generated document.
         </p>
       </div>
     </div>

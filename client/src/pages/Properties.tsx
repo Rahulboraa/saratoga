@@ -6,6 +6,7 @@ import { api } from '@/lib/api'
 import type { ManagedUser, MigrationStatus, MigrationResult, Property } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
@@ -98,6 +99,7 @@ export default function Properties() {
       address: fd.get('address'),
       gstin: fd.get('gstin'),
       invoicePrefix: fd.get('invoicePrefix') || 'INV',
+      invoiceTerms: fd.get('invoiceTerms'),
     }
     if (editing) saveEdits.mutate({ id: editing.id, body })
     else createProperty.mutate(body)
@@ -200,7 +202,7 @@ export default function Properties() {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-sm">
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-md">
           <DialogHeader><DialogTitle>{editing ? `Edit ${editing.name}` : 'Add property'}</DialogTitle></DialogHeader>
           {/* Keyed on the property so the fields reload when switching between rows. */}
           <form key={editing?.id ?? 'new'} onSubmit={onSubmit} className="mt-2 space-y-3">
@@ -231,6 +233,17 @@ export default function Properties() {
                 Changing the prefix only affects invoices issued from now on; ones already issued keep their number.
               </p>
             )}
+            <div className="space-y-1.5">
+              <Label>Invoice terms</Label>
+              <Textarea
+                name="invoiceTerms"
+                rows={6}
+                defaultValue={editing?.invoiceTerms ?? ''}
+                placeholder="One term per line"
+                className="text-[12px]"
+              />
+              <p className="text-[11px] text-muted-foreground">One per line — printed under the totals on every invoice.</p>
+            </div>
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => setDialogOpen(false)}>Cancel</Button>
               <Button type="submit" disabled={createProperty.isPending || saveEdits.isPending}>

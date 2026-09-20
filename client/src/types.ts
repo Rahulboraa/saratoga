@@ -21,6 +21,7 @@ export interface Property {
   address: string
   gstin: string
   invoicePrefix: string
+  invoiceTerms: string
 }
 
 export const PURPOSES = ['Party', 'Shoot', 'Pre-wedding', 'Kids Birthday', 'Other'] as const
@@ -285,13 +286,15 @@ export interface InvoicePayload {
   invoiceNo: string
   invoiceDate: string
   gstRate: number
+  gstEnabled: boolean
+  kind: 'Proforma Invoice' | 'Tax Invoice' | 'Invoice'
   booking: {
     id: string; guest: string; phone: string
     checkinDate: string; checkoutDate: string
     checkinTime: string; checkoutTime: string
     pax: string; purpose: string
   }
-  property: { name: string; address: string; location: string; gstin: string }
+  property: { name: string; address: string; location: string; gstin: string; terms: string[] }
   items: { label: string; amount: number }[]
   taxable: number
   cgst: number
