@@ -34,10 +34,14 @@ export function serializePayment(doc: Doc) {
   return { ...base(doc), ...pick(doc, PAYMENT_KEYS), bookingId: String(doc.bookingId) }
 }
 
-const EXPENSE_KEYS = ['date', 'cat', 'desc', 'amount', 'vendor', 'by', 'notes', 'paid', 'due', 'status']
+const EXPENSE_KEYS = ['date', 'cat', 'desc', 'amount', 'vendor', 'by', 'notes', 'paid', 'due', 'status', 'bookingLabel']
 
 export function serializeExpense(doc: Doc) {
-  return { ...base(doc), ...pick(doc, EXPENSE_KEYS) }
+  return {
+    ...base(doc),
+    ...pick(doc, EXPENSE_KEYS),
+    bookingId: doc.bookingId ? String(doc.bookingId) : null,
+  }
 }
 
 const EXPENSE_PAYMENT_KEYS = ['expenseId', 'date', 'amount', 'method', 'to', 'by', 'notes']

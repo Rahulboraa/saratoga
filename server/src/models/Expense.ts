@@ -10,6 +10,8 @@ const expenseSchema = new Schema(
     propertyId: { type: Schema.Types.ObjectId, ref: 'Property', required: true, index: true },
     date: { type: String, required: true, index: true },
     cat: { type: String, enum: EXPENSE_CATS, required: true },
+    // Optional: ties a cost to the event it was incurred for.
+    bookingId: { type: Schema.Types.ObjectId, ref: 'Booking', default: null, index: true },
     desc: { type: String, required: true, trim: true },
     amount: { type: Number, required: true, min: 0 },
     vendor: { type: String, default: '' },

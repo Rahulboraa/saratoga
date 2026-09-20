@@ -60,11 +60,14 @@ exportRouter.get('/expenses', requireRole('admin'), async (req, res) => {
   if (cat) filter.cat = cat
   const expenses = await Expense.find(filter).sort({ date: 1 })
   const sums = await expensePaymentSums(expenses.map((e) => e._id))
+  const bookings = await Booking.find({ _id: { $in: expenses.map((e) => e.bookingId).filter(Boolean) } }).select('guest')
+  const bookingName = new Map(bookings.map((b) => [b.id, b.guest]))
   sendSheet(res, 'Expenses', expenses.map((e) => {
     const paid = sums.get(e.id) ?? 0
     return {
       Date: e.date, Category: e.cat, Description: e.desc, Bill: e.amount,
       Paid: paid, Due: e.amount - paid, Status: statusOf(e.amount, paid),
+      Booking: bookingName.get(String(e.bookingId)) ?? '',
       Vendor: e.vendor, By: e.by, Notes: e.notes,
     }
   }))

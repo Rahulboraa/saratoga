@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { Expense } from '../models/Expense.js'
+import { Booking } from '../models/Booking.js'
 import { ExpensePayment } from '../models/ExpensePayment.js'
 import { requireRole } from '../middleware/auth.js'
 import { expenseSchema, expensePaymentSchema } from '../validation/schemas.js'
@@ -10,6 +11,21 @@ import { scoped, writeProperty } from '../middleware/scope.js'
 
 export const expensesRouter = Router()
 expensesRouter.use(requireRole('admin'))
+
+/** Guest names for the bookings an expense list refers to, so rows can show what it was for. */
+async function bookingLabels(ids: unknown[]) {
+  if (!ids.length) return new Map<string, string>()
+  const bookings = await Booking.find({ _id: { $in: ids } }).select('guest checkinDate')
+  return new Map(bookings.map((b) => [b.id, `${b.guest} · ${b.checkinDate}`]))
+}
+
+/** A mapped booking has to live in the same property, or the link would leak across them. */
+async function resolveBooking(req: Parameters<typeof scoped>[0], bookingId: string | null | undefined) {
+  if (!bookingId) return null
+  const booking = await Booking.findOne(scoped(req, { _id: bookingId })).select('_id')
+  if (!booking) throw Object.assign(new Error('Booking not found'), { status: 400 })
+  return booking._id
+}
 
 expensesRouter.get('/summary', async (req, res) => {
   res.json(await expenseSummary(req.scope.filter, String(req.query.month || '')))
@@ -29,9 +45,13 @@ expensesRouter.get('/', async (req, res) => {
   ])
   const months = [...new Set(allDates.map((d) => d.slice(0, 7)))].sort().reverse()
   const sums = await expensePaymentSums(expenses.map((e) => e._id))
+  const labels = await bookingLabels(expenses.map((e) => e.bookingId).filter(Boolean))
   const rows = expenses.map((e) => {
     const paid = sums.get(e.id) ?? 0
-    return serializeExpense({ ...e.toObject(), id: e.id, paid, due: e.amount - paid, status: statusOf(e.amount, paid) })
+    return serializeExpense({
+      ...e.toObject(), id: e.id, paid, due: e.amount - paid, status: statusOf(e.amount, paid),
+      bookingLabel: labels.get(String(e.bookingId)) ?? '',
+    })
   })
   res.json({ rows, total, page, limit, months })
 })
@@ -40,13 +60,16 @@ expensesRouter.post('/', async (req, res) => {
   const body = expenseSchema.parse(req.body)
   const propertyId = writeProperty(req, res)
   if (!propertyId) return
-  const expense = await Expense.create({ ...body, propertyId, by: body.by || req.user.name })
+  const bookingId = await resolveBooking(req, body.bookingId)
+  const expense = await Expense.create({ ...body, bookingId, propertyId, by: body.by || req.user.name })
   res.status(201).json(serializeExpense({ ...expense.toObject(), id: expense.id, paid: 0, due: expense.amount, status: 'pending' }))
 })
 
 expensesRouter.patch('/:id', async (req, res) => {
   const body = expenseSchema.partial().parse(req.body)
-  const expense = await Expense.findOneAndUpdate(scoped(req, { _id: req.params.id }), body, { new: true, runValidators: true })
+  const update: Record<string, unknown> = { ...body }
+  if (body.bookingId !== undefined) update.bookingId = await resolveBooking(req, body.bookingId)
+  const expense = await Expense.findOneAndUpdate(scoped(req, { _id: req.params.id }), update, { new: true, runValidators: true })
   if (!expense) return res.status(404).json({ error: 'Expense not found' })
   const sums = await expensePaymentSums([expense._id])
   const paid = sums.get(expense.id) ?? 0

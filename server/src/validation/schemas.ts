@@ -55,6 +55,7 @@ export const paymentSchema = z.object({
 export const expenseSchema = z.object({
   date: ymd,
   cat: z.enum(EXPENSE_CATS),
+  bookingId: z.union([z.string(), z.null()]).optional(),
   desc: str.min(1),
   amount: money,
   vendor: str.default(''),

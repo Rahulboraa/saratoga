@@ -88,6 +88,16 @@ bookingsRouter.get('/upcoming', requireRole('admin', 'manager', 'sales'), async 
   res.json({ rows: rows.map((r) => serializeBooking(r, req.user.role)), total, page, limit })
 })
 
+// Compact list for pickers (e.g. mapping an expense to an event). Declared before
+// '/:id' so it is not swallowed by the id route.
+bookingsRouter.get('/options', requireRole('admin', 'manager'), async (req, res) => {
+  const bookings = await Booking.find(scoped(req))
+    .select('guest checkinDate')
+    .sort({ checkinDate: -1 })
+    .limit(500)
+  res.json(bookings.map((b) => ({ id: b.id, guest: b.guest, checkinDate: b.checkinDate })))
+})
+
 bookingsRouter.get('/calendar', async (req, res) => {
   const month = String(req.query.month || '')
   if (!/^\d{4}-\d{2}$/.test(month)) return res.status(400).json({ error: 'month required (YYYY-MM)' })

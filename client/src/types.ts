@@ -87,6 +87,8 @@ export const EXPENSE_CATS = [
 ] as const
 
 export interface Expense {
+  bookingId?: string | null
+  bookingLabel?: string
   id: string
   date: string
   cat: (typeof EXPENSE_CATS)[number]

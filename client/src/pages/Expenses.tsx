@@ -34,10 +34,19 @@ interface ExpenseForm {
   amount: number
   vendor: string
   notes: string
+  bookingId: string
 }
+
+const NO_BOOKING = 'none'
 
 function ExpenseSheet({ open, onClose, expense }: { open: boolean; onClose: () => void; expense?: Expense | null }) {
   const queryClient = useQueryClient()
+  const { data: bookingOptions = [] } = useQuery({
+    queryKey: ['bookings', 'options'],
+    queryFn: () => api<{ id: string; guest: string; checkinDate: string }[]>('/bookings/options'),
+    enabled: open,
+    staleTime: 60_000,
+  })
   const { register, handleSubmit, reset, watch, setValue, formState: { errors, isSubmitting } } = useForm<ExpenseForm>({
     values: {
       date: expense?.date ?? todayYmd(),
@@ -46,6 +55,7 @@ function ExpenseSheet({ open, onClose, expense }: { open: boolean; onClose: () =
       amount: expense?.amount ?? 0,
       vendor: expense?.vendor ?? '',
       notes: expense?.notes ?? '',
+      bookingId: expense?.bookingId ?? NO_BOOKING,
     },
   })
 
@@ -69,7 +79,14 @@ function ExpenseSheet({ open, onClose, expense }: { open: boolean; onClose: () =
           <SheetTitle>{expense ? 'Edit expense' : 'Add expense'}</SheetTitle>
           <SheetDescription>Record partial payments against it after saving.</SheetDescription>
         </SheetHeader>
-        <form onSubmit={handleSubmit((v) => save.mutate({ ...v, amount: +v.amount }))} className="flex min-h-0 flex-1 flex-col">
+        <form
+          onSubmit={handleSubmit((v) => save.mutate({
+            ...v,
+            amount: +v.amount,
+            bookingId: v.bookingId === NO_BOOKING ? null : v.bookingId,
+          }))}
+          className="flex min-h-0 flex-1 flex-col"
+        >
           <div className="flex-1 space-y-6 overflow-y-auto px-6 py-6">
             <div className="grid grid-cols-2 gap-x-4 gap-y-5">
               <div className="space-y-2">
@@ -88,6 +105,19 @@ function ExpenseSheet({ open, onClose, expense }: { open: boolean; onClose: () =
               <div className="space-y-2 col-span-2">
                 <Label>Description *</Label>
                 <Input {...register('desc', { required: true })} aria-invalid={!!errors.desc} />
+              </div>
+              <div className="space-y-2 col-span-2">
+                <Label>For booking</Label>
+                <Select value={watch('bookingId')} onValueChange={(v) => setValue('bookingId', v)}>
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={NO_BOOKING}>Not tied to a booking</SelectItem>
+                    {bookingOptions.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>{b.guest} · {fmtDate(b.checkinDate)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] text-muted-foreground">Leave as is for running costs like salary or electricity.</p>
               </div>
               <div className="space-y-2">
                 <Label>Total bill amount *</Label>
@@ -316,6 +346,7 @@ export default function Expenses() {
         <div className="max-w-48">
           <div className="truncate font-medium">{e.desc}</div>
           {e.vendor && <div className="truncate text-[11px] text-muted-foreground">{e.vendor}</div>}
+          {e.bookingLabel && <div className="truncate text-[11px] text-primary">for {e.bookingLabel}</div>}
         </div>
       ),
     },
