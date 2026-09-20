@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { AlertTriangle, Building2, Trash2 } from 'lucide-react'
+import { AlertTriangle, Building2, Pencil, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { api } from '@/lib/api'
 import type { ManagedUser, MigrationStatus, MigrationResult, Property } from '@/types'
@@ -19,7 +19,9 @@ const DEFAULT_PROPERTY = 'Saratoga Villa'
 
 export default function Properties() {
   const queryClient = useQueryClient()
-  const [addOpen, setAddOpen] = useState(false)
+  // One dialog for both jobs: null while adding, the property being changed while editing.
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [editing, setEditing] = useState<Property | null>(null)
 
   const { data: properties, isLoading } = useQuery({
     queryKey: ['properties'],
@@ -54,7 +56,7 @@ export default function Properties() {
     mutationFn: (body: Record<string, unknown>) => api('/properties', { body }),
     onSuccess: () => {
       invalidate()
-      setAddOpen(false)
+      setDialogOpen(false)
       toast.success('Property added')
     },
     onError,
@@ -67,6 +69,17 @@ export default function Properties() {
     onError,
   })
 
+  const saveEdits = useMutation({
+    mutationFn: ({ id, body }: { id: string; body: Record<string, unknown> }) =>
+      api(`/properties/${id}`, { method: 'PATCH', body }),
+    onSuccess: () => {
+      invalidate()
+      setDialogOpen(false)
+      toast.success('Property updated')
+    },
+    onError,
+  })
+
   const deleteProperty = useMutation({
     mutationFn: (id: string) => api(`/properties/${id}`, { method: 'DELETE' }),
     onSuccess: () => {
@@ -76,16 +89,28 @@ export default function Properties() {
     onError,
   })
 
-  function onCreate(e: FormEvent<HTMLFormElement>) {
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const fd = new FormData(e.currentTarget)
-    createProperty.mutate({
+    const body = {
       name: fd.get('name'),
       location: fd.get('location'),
       address: fd.get('address'),
       gstin: fd.get('gstin'),
       invoicePrefix: fd.get('invoicePrefix') || 'INV',
-    })
+    }
+    if (editing) saveEdits.mutate({ id: editing.id, body })
+    else createProperty.mutate(body)
+  }
+
+  function openAdd() {
+    setEditing(null)
+    setDialogOpen(true)
+  }
+
+  function openEdit(property: Property) {
+    setEditing(property)
+    setDialogOpen(true)
   }
 
   const staffCount = (id: string) => (users ?? []).filter((u) => u.propertyId === id).length
@@ -95,7 +120,7 @@ export default function Properties() {
       <PageHeader
         title="Properties"
         description="Each property keeps its own bookings, expenses, leads and staff"
-        actions={<Button onClick={() => setAddOpen(true)}>Add property</Button>}
+        actions={<Button onClick={openAdd}>Add property</Button>}
       />
 
       {!!migration?.total && (
@@ -151,6 +176,15 @@ export default function Properties() {
                   />
                   <span className="text-xs text-muted-foreground">active</span>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  title="Edit"
+                  className="text-muted-foreground"
+                  onClick={() => openEdit(p)}
+                >
+                  <Pencil className="size-5" />
+                </Button>
                 <div className="flex w-8 justify-center">
                   <ConfirmDelete
                     title={`Remove ${p.name}?`}
@@ -165,35 +199,43 @@ export default function Properties() {
         </div>
       )}
 
-      <Dialog open={addOpen} onOpenChange={setAddOpen}>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-sm">
-          <DialogHeader><DialogTitle>Add property</DialogTitle></DialogHeader>
-          <form onSubmit={onCreate} className="mt-2 space-y-3">
+          <DialogHeader><DialogTitle>{editing ? `Edit ${editing.name}` : 'Add property'}</DialogTitle></DialogHeader>
+          {/* Keyed on the property so the fields reload when switching between rows. */}
+          <form key={editing?.id ?? 'new'} onSubmit={onSubmit} className="mt-2 space-y-3">
             <div className="space-y-1.5">
               <Label>Name</Label>
-              <Input name="name" required autoFocus placeholder="e.g. Saratoga Farms" />
+              <Input name="name" required autoFocus defaultValue={editing?.name ?? ''} placeholder="e.g. Saratoga Farms" />
             </div>
             <div className="space-y-1.5">
               <Label>Location</Label>
-              <Input name="location" placeholder="Optional" />
+              <Input name="location" defaultValue={editing?.location ?? ''} placeholder="Optional" />
             </div>
             <div className="space-y-1.5">
               <Label>Invoice address</Label>
-              <Input name="address" placeholder="Printed on sales invoices" />
+              <Input name="address" defaultValue={editing?.address ?? ''} placeholder="Printed on sales invoices" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label>GSTIN</Label>
-                <Input name="gstin" placeholder="Optional" autoCapitalize="characters" />
+                <Input name="gstin" defaultValue={editing?.gstin ?? ''} placeholder="Optional" autoCapitalize="characters" />
               </div>
               <div className="space-y-1.5">
                 <Label>Invoice prefix</Label>
-                <Input name="invoicePrefix" defaultValue="INV" maxLength={10} />
+                <Input name="invoicePrefix" defaultValue={editing?.invoicePrefix ?? 'INV'} maxLength={10} />
               </div>
             </div>
+            {editing && (
+              <p className="text-[11px] text-muted-foreground">
+                Changing the prefix only affects invoices issued from now on; ones already issued keep their number.
+              </p>
+            )}
             <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => setAddOpen(false)}>Cancel</Button>
-              <Button type="submit" disabled={createProperty.isPending}>Create</Button>
+              <Button type="button" variant="ghost" onClick={() => setDialogOpen(false)}>Cancel</Button>
+              <Button type="submit" disabled={createProperty.isPending || saveEdits.isPending}>
+                {editing ? 'Save' : 'Create'}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
