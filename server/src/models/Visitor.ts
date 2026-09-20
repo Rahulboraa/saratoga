@@ -1,6 +1,7 @@
 import { Schema, model } from 'mongoose'
 
 export const FU_STATUSES = ['', 'Hold', 'Closed', 'Cancelled'] as const
+export const VISITOR_TYPES = ['Guest', 'Vendor', 'Delivery', 'Staff', 'Other'] as const
 
 const visitorSchema = new Schema(
   {
@@ -9,6 +10,7 @@ const visitorSchema = new Schema(
     loggedAt: { type: String, default: () => new Date().toISOString() },
     name: { type: String, required: true, trim: true },
     phone: { type: String, required: true, trim: true },
+    type: { type: String, enum: VISITOR_TYPES, default: 'Guest', index: true },
     purpose: { type: String, default: '' },
     inTime: { type: String, default: '' },
     outTime: { type: String, default: '' },

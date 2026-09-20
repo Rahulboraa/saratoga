@@ -79,7 +79,7 @@ export async function buildWorkbook(scope: Scope = {}): Promise<Buffer> {
     Method: p.method, To: p.to, By: p.by, Notes: p.notes,
   }, p.propertyId)))
   add('Visitors', visitors.map((v) => withProperty({
-    Date: v.date, Name: v.name, Phone: v.phone, Purpose: v.purpose,
+    Date: v.date, Name: v.name, Phone: v.phone, Type: v.type, Purpose: v.purpose,
     'In Time': v.inTime, 'Out Time': v.outTime, Remarks: v.remarks,
     'Follow-up': v.fuStatus, 'Follow-up Note': v.fuRemark, 'Logged By': v.loggedBy,
   }, v.propertyId)))

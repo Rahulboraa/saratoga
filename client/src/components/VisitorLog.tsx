@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { fmtDate, nowHm } from '@/lib/format'
-import type { Visitor } from '@/types'
+import { VISITOR_TYPES, type Visitor } from '@/types'
 
 interface VisitorsResponse {
   rows: Visitor[]
@@ -116,7 +116,7 @@ export default function VisitorLog({ embedded = false }: { embedded?: boolean })
           <SelectTrigger className="h-10 w-[calc(50%-6px)] sm:w-64"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All types</SelectItem>
-            {['Guest', 'Vendor', 'Delivery', 'Staff', 'Other'].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+            {VISITOR_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
@@ -137,6 +137,7 @@ export default function VisitorLog({ embedded = false }: { embedded?: boolean })
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-semibold">{v.name}</span>
                         <span className="text-sm text-muted-foreground">{v.phone}</span>
+                        {v.type && <Badge variant="outline">{v.type}</Badge>}
                         {v.fuStatus && <Badge variant="info" withDot>{v.fuStatus}</Badge>}
                       </div>
                       <div className="mt-0.5 text-sm text-muted-foreground">

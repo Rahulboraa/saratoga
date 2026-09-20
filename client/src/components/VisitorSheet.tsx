@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { nowHm } from '@/lib/format'
-import { FU_STATUSES, type Visitor } from '@/types'
+import { FU_STATUSES, VISITOR_TYPES, type Visitor } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 interface FormValues {
   name: string
   phone: string
+  type: string
   purpose: string
   inTime: string
   outTime: string
@@ -29,6 +30,7 @@ function toForm(v?: Visitor | null): FormValues {
   return {
     name: v?.name ?? '',
     phone: v?.phone ?? '',
+    type: v?.type ?? 'Guest',
     purpose: v?.purpose ?? '',
     inTime: v?.inTime ?? nowHm(),
     outTime: v?.outTime ?? '',
@@ -65,7 +67,7 @@ export default function VisitorSheet({ open, onClose, visitor }: { open: boolean
 
   const onSubmit = handleSubmit((v) => {
     const body: Record<string, unknown> = {
-      name: v.name, phone: v.phone, purpose: v.purpose,
+      name: v.name, phone: v.phone, type: v.type, purpose: v.purpose,
       inTime: v.inTime, outTime: v.outTime, remarks: v.remarks,
     }
     if (!isCaretaker) {
@@ -95,7 +97,16 @@ export default function VisitorSheet({ open, onClose, visitor }: { open: boolean
               <Label>Mobile Number *</Label>
               <Input {...register('phone', { required: true })} inputMode="tel" aria-invalid={!!errors.phone} />
             </div>
-            <div className="space-y-2 sm:col-span-2">
+            <div className="space-y-2">
+              <Label>Visitor Type</Label>
+              <Select value={watch('type')} onValueChange={(v) => setValue('type', v)}>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {VISITOR_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
               <Label>Purpose of Visit</Label>
               <Input {...register('purpose')} placeholder="Delivery, Meeting, Event…" />
             </div>

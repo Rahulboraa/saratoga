@@ -17,6 +17,7 @@
     "seed": "npm run seed -w server",
     "import:legacy": "npm run import:legacy -w server",
     "seed:demo": "npm run seed:demo -w server",
-    "migrate:properties": "npm run migrate:properties -w server"
+    "migrate:properties": "npm run migrate:properties -w server",
+    "backfill:visitor-types": "npm run backfill:visitor-types -w server"
   }
 }

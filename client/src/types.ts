@@ -112,6 +112,8 @@ export interface ExpensePayment {
 }
 
 export const FU_STATUSES = ['Hold', 'Closed', 'Cancelled'] as const
+export const VISITOR_TYPES = ['Guest', 'Vendor', 'Delivery', 'Staff', 'Other'] as const
+export type VisitorType = (typeof VISITOR_TYPES)[number]
 
 export interface Visitor {
   id: string
@@ -119,6 +121,7 @@ export interface Visitor {
   loggedAt: string
   name: string
   phone: string
+  type: VisitorType
   purpose: string
   inTime: string
   outTime: string

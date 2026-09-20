@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { Visitor } from '../models/Visitor.js'
+import { Visitor, VISITOR_TYPES } from '../models/Visitor.js'
 import { requireRole } from '../middleware/auth.js'
 import { visitorSchema, visitorCaretakerSchema, visitorCaretakerPatchSchema } from '../validation/schemas.js'
 import { serializeVisitor } from '../lib/sanitize.js'
@@ -8,8 +8,6 @@ import { scoped, writeProperty } from '../middleware/scope.js'
 
 export const visitorsRouter = Router()
 
-const VISITOR_TYPES = ['Guest', 'Vendor', 'Delivery', 'Staff'] as const
-
 visitorsRouter.get('/', async (req, res) => {
   const { date, from, to, q, type } = req.query as Record<string, string | undefined>
   const filter: Record<string, unknown> = scoped(req)
@@ -17,10 +15,7 @@ visitorsRouter.get('/', async (req, res) => {
   else if (from || to) {
     filter.date = { ...(from ? { $gte: from } : {}), ...(to ? { $lte: to } : {}) }
   }
-  if (type) {
-    if (type === 'Other') filter.purpose = { $not: new RegExp(VISITOR_TYPES.join('|'), 'i') }
-    else if ((VISITOR_TYPES as readonly string[]).includes(type)) filter.purpose = new RegExp(type, 'i')
-  }
+  if (type && (VISITOR_TYPES as readonly string[]).includes(type)) filter.type = type
   if (q) {
     const rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
     filter.$or = [{ name: rx }, { phone: rx }, { purpose: rx }]

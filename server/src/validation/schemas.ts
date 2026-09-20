@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { PURPOSES, SOURCES } from '../models/Booking.js'
 import { EXPENSE_CATS } from '../models/Expense.js'
-import { FU_STATUSES } from '../models/Visitor.js'
+import { FU_STATUSES, VISITOR_TYPES } from '../models/Visitor.js'
 import { EVENT_TYPES, OUTCOMES, FLAGS } from '../models/Lead.js'
 import { YMD, HM } from '../lib/dates.js'
 
@@ -75,6 +75,7 @@ export const visitorSchema = z.object({
   date: ymd.optional(),
   name: str.min(1),
   phone: str.min(1),
+  type: z.enum(VISITOR_TYPES).default('Guest'),
   purpose: str.default(''),
   inTime: z.union([hm, z.literal('')]).default(''),
   outTime: z.union([hm, z.literal('')]).default(''),

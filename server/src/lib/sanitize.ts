@@ -46,7 +46,7 @@ export function serializeExpensePayment(doc: Doc) {
   return { ...base(doc), ...pick(doc, EXPENSE_PAYMENT_KEYS), expenseId: String(doc.expenseId) }
 }
 
-const VISITOR_KEYS = ['date', 'loggedAt', 'name', 'phone', 'purpose', 'inTime', 'outTime', 'remarks', 'loggedBy']
+const VISITOR_KEYS = ['date', 'loggedAt', 'name', 'phone', 'type', 'purpose', 'inTime', 'outTime', 'remarks', 'loggedBy']
 const VISITOR_FU_KEYS = [...VISITOR_KEYS, 'fuStatus', 'fuRemark']
 
 export function serializeVisitor(doc: Doc, role: Role) {

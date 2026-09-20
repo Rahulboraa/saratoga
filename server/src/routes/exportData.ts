@@ -100,7 +100,7 @@ exportRouter.get('/visitors', requireRole('admin', 'manager'), async (req, res) 
   }
   const visitors = await Visitor.find(filter).sort({ date: 1 })
   sendSheet(res, 'Visitors', visitors.map((v) => ({
-    Date: v.date, Name: v.name, Phone: v.phone, Purpose: v.purpose,
+    Date: v.date, Name: v.name, Phone: v.phone, Type: v.type, Purpose: v.purpose,
     'In Time': v.inTime, 'Out Time': v.outTime, Remarks: v.remarks,
     'Follow-up': v.fuStatus, 'Follow-up Note': v.fuRemark, 'Logged By': v.loggedBy,
   })))

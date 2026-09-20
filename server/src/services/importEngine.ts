@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { Booking, PURPOSES, SOURCES } from '../models/Booking.js'
 import { Payment } from '../models/Payment.js'
 import { Expense, EXPENSE_CATS } from '../models/Expense.js'
-import { Visitor, FU_STATUSES } from '../models/Visitor.js'
+import { Visitor, FU_STATUSES, VISITOR_TYPES } from '../models/Visitor.js'
 import { Lead, EVENT_TYPES, OUTCOMES } from '../models/Lead.js'
 import { User } from '../models/User.js'
 import { normalizeDate, normalizeNumber } from '../lib/dates.js'
@@ -66,6 +66,7 @@ const ALIASES: Record<ImportType, Record<string, string[]>> = {
     loggedAt: ['loggedat'],
     name: ['name', 'visitorname'],
     phone: ['phone', 'mobile', 'mobilenumber', 'contact'],
+    type: ['type', 'visitortype', 'typeofvisitor'],
     purpose: ['purpose', 'purposeofvisit'],
     inTime: ['intime'],
     outTime: ['outtime'],
@@ -207,6 +208,8 @@ export function normalizeRow(type: ImportType, m: Raw): Raw {
         loggedAt: str(m.loggedAt),
         name: str(m.name),
         phone: str(m.phone),
+        // Sheets rarely carry a clean type column, so fall back to reading the purpose text.
+        type: coerceEnum(m.type || m.purpose, VISITOR_TYPES, 'Guest'),
         purpose: str(m.purpose),
         inTime: coerceTime(m.inTime),
         outTime: coerceTime(m.outTime),
