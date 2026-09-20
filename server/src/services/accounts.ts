@@ -31,10 +31,12 @@ export async function accountReport(
 
   const months = [...new Set(all.map((p) => p.date.slice(0, 7)).filter(Boolean))].sort().reverse()
 
+  // Grouped case-insensitively: "Rajound paytm" and "Rajound Paytm" are one account.
   const byAccount = new Map<string, AccountRow>()
   for (const p of inScope) {
-    const key = p.dest?.trim() || UNASSIGNED
-    if (!byAccount.has(key)) byAccount.set(key, { account: key, received: 0, count: 0, lastDate: '', share: 0 })
+    const name = p.dest?.trim() || UNASSIGNED
+    const key = name.toLowerCase()
+    if (!byAccount.has(key)) byAccount.set(key, { account: name, received: 0, count: 0, lastDate: '', share: 0 })
     const row = byAccount.get(key)!
     row.received += p.amount
     row.count++
@@ -48,7 +50,7 @@ export async function accountReport(
   }
 
   const listed = account
-    ? inScope.filter((p) => (p.dest?.trim() || UNASSIGNED) === account)
+    ? inScope.filter((p) => (p.dest?.trim() || UNASSIGNED).toLowerCase() === account.toLowerCase())
     : inScope
   const recent = [...listed].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 200)
   const bookings = await Booking.find({ _id: { $in: recent.map((p) => p.bookingId) } }).select('guest')

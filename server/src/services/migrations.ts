@@ -2,7 +2,8 @@ import { Booking } from '../models/Booking.js'
 import { Payment } from '../models/Payment.js'
 import { Expense } from '../models/Expense.js'
 import { ExpensePayment } from '../models/ExpensePayment.js'
-import { Visitor, VISITOR_TYPES } from '../models/Visitor.js'
+import { Visitor } from '../models/Visitor.js'
+import { visitorTypeFromPurpose } from '../lib/visitorType.js'
 import { Lead } from '../models/Lead.js'
 import { User } from '../models/User.js'
 import { ensureDefaultProperty } from './defaultProperty.js'
@@ -20,7 +21,8 @@ export type ScopedCollection = keyof typeof SCOPED_MODELS
 
 /** Rows written before properties existed have no propertyId at all. */
 const MISSING_PROPERTY = { $or: [{ propertyId: { $exists: false } }, { propertyId: null }] }
-const MISSING_TYPE = { $or: [{ type: { $exists: false } }, { type: null }] }
+const MISSING_TYPE_CLAUSES: Record<string, unknown>[] = [{ type: { $exists: false } }, { type: null }]
+const MISSING_TYPE = { $or: MISSING_TYPE_CLAUSES }
 
 export interface MigrationStatus {
   pending: Record<string, number>
@@ -81,27 +83,22 @@ export async function stampExistingRecords() {
  * stores a real type. Done in a handful of bulk updates rather than row by row, so it
  * finishes inside a serverless request.
  */
-export async function backfillVisitorTypes() {
+export async function backfillVisitorTypes({ redoOther = false } = {}) {
+  // Rows that never got a type, plus — when asked — the ones an earlier, blunter pass
+  // dumped into Other. Types a person chose by hand are left alone.
+  const filter = { $or: redoOther ? [...MISSING_TYPE_CLAUSES, { type: 'Other' }] : MISSING_TYPE_CLAUSES }
+  const visitors = await Visitor.find(filter).select('purpose type')
+
   const counts: Record<string, number> = {}
+  const writes = visitors
+    .map((v) => ({ id: v._id, type: visitorTypeFromPurpose(v.purpose) }))
+    .filter((w, i) => w.type !== visitors[i].type)
 
-  for (const type of VISITOR_TYPES) {
-    if (type === 'Other') continue
-    const result = await Visitor.updateMany(
-      { ...MISSING_TYPE, purpose: new RegExp(type, 'i') },
-      { $set: { type } },
-    )
-    counts[type] = result.modifiedCount
+  for (const w of writes) counts[w.type] = (counts[w.type] ?? 0) + 1
+  if (writes.length) {
+    await Visitor.bulkWrite(writes.map((w) => ({
+      updateOne: { filter: { _id: w.id }, update: { $set: { type: w.type } } },
+    })))
   }
-
-  // Anything left with a purpose we could not read is Other; a blank purpose is a guest.
-  const other = await Visitor.updateMany(
-    { ...MISSING_TYPE, purpose: { $nin: ['', null] } },
-    { $set: { type: 'Other' } },
-  )
-  counts.Other = other.modifiedCount
-
-  const rest = await Visitor.updateMany(MISSING_TYPE, { $set: { type: 'Guest' } })
-  counts.Guest = (counts.Guest ?? 0) + rest.modifiedCount
-
   return counts
 }
