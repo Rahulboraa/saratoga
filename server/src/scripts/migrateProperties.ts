@@ -8,11 +8,16 @@ import { Visitor } from '../models/Visitor.js'
 import { Lead } from '../models/Lead.js'
 import { User } from '../models/User.js'
 import { ensureDefaultProperty } from '../services/defaultProperty.js'
+import { env } from '../env.js'
 
 /**
  * One-off: everything that existed before properties belongs to the original villa.
  * Safe to re-run — it only touches rows that have no property yet.
  */
+// State the target up front: running this against the wrong database is the one way
+// to make it unhelpful.
+console.log(`database: ${env.MONGODB_URI.replace(/\/\/[^:]+:[^@]+@/, '//***:***@')}`)
+
 await connectDb()
 const property = await ensureDefaultProperty()
 console.log(`default property: ${property.name} (${property.id})`)
