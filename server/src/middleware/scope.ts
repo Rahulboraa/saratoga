@@ -1,6 +1,8 @@
 import type { Request, Response, NextFunction } from 'express'
 import { Types } from 'mongoose'
 import { Property } from '../models/Property.js'
+import { User } from '../models/User.js'
+import { signToken } from './auth.js'
 
 export interface Scope {
   /** The property this request is pinned to, or null when an admin is viewing all of them. */
@@ -13,6 +15,22 @@ declare module 'express-serve-static-core' {
   interface Request {
     scope: Scope
   }
+}
+
+/**
+ * Tokens issued before properties existed carry no propertyId, so their holder would be
+ * refused every request for as long as the token lives — and refusing does not fix it,
+ * because the rolling refresh re-signs the same stale payload. Reading the assignment
+ * back from the user record repairs the session in place, without a forced sign-out.
+ */
+async function healStaleToken(req: Request, res: Response) {
+  const user = await User.findById(req.user.id).select('propertyId')
+  const propertyId = user?.propertyId ? String(user.propertyId) : null
+  if (!propertyId) return null
+  req.user.propertyId = propertyId
+  // requireAuth already queued a refresh built from the stale payload; replace it.
+  if (!res.headersSent) res.setHeader('x-refresh-token', signToken(req.user))
+  return propertyId
 }
 
 function requested(req: Request) {
@@ -28,8 +46,9 @@ function requested(req: Request) {
  */
 export async function resolveScope(req: Request, res: Response, next: NextFunction) {
   if (req.user.role !== 'admin') {
-    if (!req.user.propertyId) return res.status(403).json({ error: 'No property assigned. Ask an admin to assign one.' })
-    req.scope = { propertyId: req.user.propertyId, filter: { propertyId: new Types.ObjectId(req.user.propertyId) } }
+    const propertyId = req.user.propertyId ?? await healStaleToken(req, res)
+    if (!propertyId) return res.status(403).json({ error: 'No property assigned. Ask an admin to assign one.' })
+    req.scope = { propertyId, filter: { propertyId: new Types.ObjectId(propertyId) } }
     return next()
   }
 

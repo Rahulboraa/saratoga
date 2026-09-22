@@ -77,8 +77,11 @@ export function setActiveProperty(id: string | null) {
 function subjectOf(token: string | null) {
   if (!token) return null
   try {
-    const payload = token.split('.')[1]
-    const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
+    const raw = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+    // JWT payloads are base64url with the padding stripped, which atob rejects. Without
+    // this the decode throws, both sides read as null, and the identity check below
+    // silently passes anything through.
+    const json = atob(raw.padEnd(raw.length + ((4 - (raw.length % 4)) % 4), '='))
     return (JSON.parse(json) as { id?: string }).id ?? null
   } catch {
     return null
