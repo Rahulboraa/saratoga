@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { PURPOSES, SOURCES } from '../models/Booking.js'
 import { FU_STATUSES, VISITOR_TYPES } from '../models/Visitor.js'
 import { INVESTMENT_KINDS } from '../models/Investment.js'
+import { CALL_OUTCOMES, DURATION_SOURCES } from '../models/Call.js'
 import { EVENT_TYPES, OUTCOMES, FLAGS } from '../models/Lead.js'
 import { YMD, HM } from '../lib/dates.js'
 
@@ -70,6 +71,18 @@ export const expensePaymentSchema = z.object({
   to: str.default(''),
   by: str.default(''),
   notes: str.default(''),
+})
+
+export const callStartSchema = z.object({
+  // The client stamps the time it opened the dialer, so a slow network does not shift it.
+  startedAt: z.coerce.date().optional(),
+})
+
+export const callFinishSchema = z.object({
+  outcome: z.enum(CALL_OUTCOMES),
+  durationSec: z.coerce.number().int().min(0).max(4 * 60 * 60),
+  durationSource: z.enum(DURATION_SOURCES).default('estimated'),
+  notes: str.max(500).default(''),
 })
 
 export const investmentSchema = z.object({

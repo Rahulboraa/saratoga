@@ -95,7 +95,10 @@ export default function Invoice() {
         </p>
       )}
 
-      <div className="mx-auto max-w-3xl rounded-xl border border-border/60 bg-card p-8 shadow-sm print:border-0 print:p-0 print:shadow-none">
+      <div
+        data-invoice
+        className="mx-auto max-w-3xl rounded-xl border border-border/60 bg-card p-8 shadow-sm print:border-0 print:p-0 print:shadow-none"
+      >
         <div className="flex flex-wrap items-start justify-between gap-4 border-b pb-5">
           <div>
             <h1 className="text-[20px] font-bold tracking-tight">{property.name}</h1>
@@ -152,7 +155,7 @@ export default function Invoice() {
           </tbody>
         </table>
 
-        <div className="ml-auto mt-5 max-w-xs">
+        <div data-invoice-totals className="ml-auto mt-5 max-w-xs">
           <Row label={data.gstEnabled ? 'Taxable value' : 'Subtotal'} value={fmtMoney(data.taxable)} />
           {data.gstEnabled && (
             <>
@@ -178,7 +181,7 @@ export default function Invoice() {
         {property.terms.length > 0 && (
           <div className="mt-8 border-t pt-4">
             <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Terms</div>
-            <ul className="mt-2 space-y-1">
+            <ul data-invoice-terms className="mt-2 space-y-1">
               {property.terms.map((t) => (
                 <li key={t} className="flex gap-2 text-[11px] leading-relaxed text-muted-foreground">
                   <span aria-hidden>•</span><span>{t}</span>
