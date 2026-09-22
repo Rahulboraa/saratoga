@@ -194,4 +194,35 @@
   :root {
     color-scheme: light;
   }
+
+  /* Keep an invoice to a single sheet. The terms run to eleven lines, which pushed the
+     document onto a second page that carried nothing but the tail of the list. */
+  @page {
+    size: A4 portrait;
+  }
+
+  [data-invoice] {
+    font-size: 11px;
+    line-height: 1.35;
+  }
+
+  [data-invoice] [data-invoice-terms] {
+    /* Two columns turn eleven lines into six, which is what buys back the page. */
+    columns: 2;
+    column-gap: 18px;
+    font-size: 9.5px;
+    line-height: 1.3;
+  }
+
+  [data-invoice] [data-invoice-terms] li {
+    break-inside: avoid;
+  }
+
+  /* Nothing in an invoice should be broken across a page boundary. */
+  [data-invoice] table,
+  [data-invoice] thead,
+  [data-invoice] tr,
+  [data-invoice] [data-invoice-totals] {
+    break-inside: avoid;
+  }
 }
