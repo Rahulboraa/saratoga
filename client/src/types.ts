@@ -203,6 +203,32 @@ export interface Lead {
   adminComment?: string
 }
 
+export const CALL_OUTCOMES = ['connected', 'no-answer', 'busy', 'wrong-number', 'cancelled'] as const
+export type CallOutcome = (typeof CALL_OUTCOMES)[number]
+
+export interface CallRecord {
+  id: string
+  leadId: string
+  exec: string
+  execLabel: string
+  phone: string
+  startedAt: string
+  outcome: CallOutcome | null
+  durationSec: number
+  durationSource: 'estimated' | 'manual' | 'carrier'
+  notes: string
+  recordingUrl: string
+}
+
+export interface ExecCallStats {
+  exec: string
+  execLabel: string
+  calls: number
+  connected: number
+  talkTimeSec: number
+  connectRate: number
+}
+
 export interface ExecReportRow {
   exec: string
   execLabel: string

@@ -258,6 +258,33 @@ const after = await call(admin, '/leads/unassigned', { property: A })
 check('assigning a batch drops the total, so progress shows', after.body.total === 5, String(after.body.total))
 check('and refills with what is left', after.body.rows?.length === 5, String(after.body.rows?.length))
 
+console.log('\n6d. Call logs follow the same walls as leads')
+const salesA = await login('salesa')
+const mine = await call(admin, '/leads', { property: A, body: { date: '2026-10-02', name: 'Mine', phone: '9111111111', exec: 'salesa' } })
+const theirs = await call(admin, '/leads', { property: A, body: { date: '2026-10-02', name: 'Theirs', phone: '9222222222', exec: 'mgra' } })
+
+const started = await call(salesA, `/calls/lead/${mine.body.id}`, { property: A, body: {} })
+check('a sales exec can log a call on their own lead', started.status === 201, JSON.stringify(started.body))
+const poach = await call(salesA, `/calls/lead/${theirs.body.id}`, { property: A, body: {} })
+check("but not on someone else's lead", poach.status === 403, String(poach.status))
+// A sales exec's property comes from their token, so naming another one in the header
+// changes nothing: the call is still filed under theirs rather than refused or leaked.
+const crossProperty = await call(salesA, `/calls/lead/${mine.body.id}`, { property: B, body: {} })
+check('asking for another property does not move the call', crossProperty.status === 201, String(crossProperty.status))
+
+const finished = await call(salesA, `/calls/${started.body.id}`, { property: A, method: 'PATCH', body: { outcome: 'connected', durationSec: 95, durationSource: 'manual' } })
+check('the outcome and duration save', finished.body.outcome === 'connected' && finished.body.durationSec === 95, JSON.stringify(finished.body))
+check('a typed duration is not marked estimated', finished.body.durationSource === 'manual', String(finished.body.durationSource))
+
+const mgrCalls = await call(mgrA, '/calls', { property: A })
+check("a manager sees their property's calls", mgrCalls.body?.length === 2, JSON.stringify(mgrCalls.body?.length))
+const salesBCalls = await call(await login('salesb'), '/calls', { property: B })
+check('and none of them reached property B', salesBCalls.body?.length === 0, JSON.stringify(salesBCalls.body))
+const statsForSales = await call(salesA, '/calls/stats', { property: A })
+check('call stats stay with admin and manager', statsForSales.status === 403, String(statsForSales.status))
+const stats = await call(mgrA, '/calls/stats', { property: A })
+check('talk time counts the connected call', stats.body?.[0]?.talkTimeSec === 95, JSON.stringify(stats.body))
+
 console.log('\n7. Incentives need one property')
 const incAll = await call(admin, '/stats/incentives?month=all')
 check('incentives refuse an all-properties view', incAll.status === 400, String(incAll.status))

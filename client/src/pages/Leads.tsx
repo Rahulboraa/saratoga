@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
-import { Pencil, Trash2, CheckCircle2, PhoneCall, CalendarClock, AlertCircle, UserX, Lock, TriangleAlert, CircleAlert } from 'lucide-react'
+import { Pencil, Trash2, CheckCircle2, PhoneCall, Phone, CalendarClock, AlertCircle, UserX, Lock, TriangleAlert, CircleAlert } from 'lucide-react'
 import toast from 'react-hot-toast'
 import type { ColumnDef } from '@tanstack/react-table'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { fmtDate, todayYmd } from '@/lib/format'
-import { EVENT_TYPES, OUTCOMES, LEAD_FLAGS, type Lead, type ExecReportRow, type CallActivity } from '@/types'
+import { EVENT_TYPES, OUTCOMES, LEAD_FLAGS, type Lead, type ExecReportRow, type CallActivity, type ExecCallStats } from '@/types'
 import { CallingChart } from '@/components/charts'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -21,6 +21,8 @@ import EmptyState from '@/components/EmptyState'
 import { DataTable, type Paged } from '@/components/DataTable'
 import ExportButton from '@/components/ExportButton'
 import { PageHeader } from '@/components/PageHeader'
+import { useCall } from '@/lib/useCall'
+import CallOutcomeSheet from '@/components/CallOutcomeSheet'
 
 const OUTCOME_VARIANT: Record<string, 'success' | 'warning' | 'destructive' | 'info' | 'purple'> = {
   'Interested': 'success',
@@ -54,6 +56,13 @@ function FlagChip({ flag }: { flag?: string }) {
   return <span className="inline-flex items-center gap-1 whitespace-nowrap text-[12px]">{icon}{meta.label}</span>
 }
 
+function fmtTalkTime(sec: number) {
+  if (sec < 60) return `${sec}s`
+  const m = Math.floor(sec / 60)
+  if (m < 60) return `${m}m ${String(sec % 60).padStart(2, '0')}s`
+  return `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, '0')}m`
+}
+
 export default function Leads() {
   const { user } = useAuth()
   const isManager = user?.role === 'admin' || user?.role === 'manager'
@@ -70,6 +79,7 @@ export default function Leads() {
   const [activityDays, setActivityDays] = useState('14')
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editing, setEditing] = useState<Lead | null>(null)
+  const call = useCall()
 
   const params = new URLSearchParams({ page: String(page), limit: String(limit) })
   if (q) params.set('q', q)
@@ -105,6 +115,11 @@ export default function Leads() {
     enabled: isManager,
   })
 
+  const { data: callStats = [] } = useQuery({
+    queryKey: ['calls', 'stats'],
+    queryFn: () => api<ExecCallStats[]>('/calls/stats'),
+    enabled: isManager,
+  })
   const { data: report = [] } = useQuery({
     queryKey: ['leads', 'report'],
     queryFn: () => api<ExecReportRow[]>('/leads/report'),
@@ -188,6 +203,15 @@ export default function Leads() {
 
   const actions = (l: Lead) => (
     <div className="flex justify-end gap-1">
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        className="text-primary"
+        title={`Call ${l.phone}`}
+        onClick={() => call.start(l).catch((e) => toast.error(e instanceof Error ? e.message : 'Could not start the call'))}
+      >
+        <Phone className="size-5" />
+      </Button>
       {l.outcome !== 'Converted' && (
         <Button variant="ghost" size="icon-sm" className="text-success" title="Mark converted" onClick={() => markConverted.mutate(l.id)}>
           <CheckCircle2 className="size-5" />
@@ -381,6 +405,41 @@ export default function Leads() {
         </Card>
       )}
 
+      {showReport && callStats.length > 0 && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-[15px]">Calling activity</CardTitle>
+            <p className="text-[12px] text-muted-foreground">
+              Calls placed from the app. Time on call is what the caller recorded, not carrier data.
+            </p>
+          </CardHeader>
+          <CardContent className="overflow-x-auto px-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Executive</TableHead>
+                  <TableHead className="text-right">Calls</TableHead>
+                  <TableHead className="text-right">Connected</TableHead>
+                  <TableHead className="text-right">Connect rate</TableHead>
+                  <TableHead className="text-right">Time on call</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {callStats.map((r) => (
+                  <TableRow key={r.exec}>
+                    <TableCell className="font-medium">{r.execLabel}</TableCell>
+                    <TableCell className="text-right tabular-nums">{r.calls}</TableCell>
+                    <TableCell className="text-right tabular-nums">{r.connected}</TableCell>
+                    <TableCell className="text-right tabular-nums">{r.connectRate}%</TableCell>
+                    <TableCell className="text-right tabular-nums">{fmtTalkTime(r.talkTimeSec)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+
       {overdueLeads.length > 0 && (
         <Card className="mb-6 border-destructive/25 bg-destructive/5 py-4">
           <CardContent className="px-5">
@@ -529,6 +588,12 @@ export default function Leads() {
       />
 
       <LeadSheet open={sheetOpen} onClose={() => setSheetOpen(false)} lead={editing} />
+      <CallOutcomeSheet
+        pending={call.pending}
+        awaySec={call.awaySec}
+        onDone={call.clear}
+        onDiscard={call.discard}
+      />
     </div>
   )
 }
