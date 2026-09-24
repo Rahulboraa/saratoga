@@ -26,6 +26,24 @@ function shortDate(ymd: string) {
   return new Date(y, m - 1, d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
 }
 
+/**
+ * Every upcoming booking, not just the page on screen. The share image was built from a
+ * single page of 20, so anything past that was quietly left out of what got sent.
+ */
+async function fetchAllUpcoming(q: string, purpose: string) {
+  const rows: Booking[] = []
+  const pageSize = 100 // the server's ceiling for one request
+  for (let page = 1; ; page++) {
+    const p = new URLSearchParams({ page: String(page), limit: String(pageSize) })
+    if (q) p.set('q', q)
+    if (purpose !== 'all') p.set('purpose', purpose)
+    const res = await api<Paged<Booking>>(`/bookings/upcoming?${p}`)
+    rows.push(...res.rows)
+    // Stop on the last page, and on an empty one so a miscount cannot spin forever.
+    if (res.rows.length === 0 || rows.length >= res.total) return rows
+  }
+}
+
 async function generateImage(rows: Booking[]) {
   const W = 860
   const rowH = 36
@@ -204,9 +222,9 @@ export default function Upcoming() {
             onClick={async () => {
               setSharing(true)
               try {
-                const res = await api<Paged<Booking>>(`/bookings/upcoming?limit=20&page=1${q ? `&q=${encodeURIComponent(q)}` : ''}${purpose !== 'all' ? `&purpose=${purpose}` : ''}`)
-                if (res.rows.length === 0) return void toast.error('No upcoming bookings to share')
-                const img = await generateImage(res.rows)
+                const rows = await fetchAllUpcoming(q, purpose)
+                if (rows.length === 0) return void toast.error('No upcoming bookings to share')
+                const img = await generateImage(rows)
                 if (!img) return
                 const file = new File([img.blob], `upcoming-bookings-${todayYmd()}.png`, { type: 'image/png' })
                 const isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent)
