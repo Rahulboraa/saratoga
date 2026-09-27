@@ -101,6 +101,9 @@ export default function Properties() {
       gstin: fd.get('gstin'),
       invoicePrefix: fd.get('invoicePrefix') || 'INV',
       invoiceTerms: fd.get('invoiceTerms'),
+      inclusions: fd.get('inclusions'),
+      exclusions: fd.get('exclusions'),
+      confirmationNotes: fd.get('confirmationNotes'),
       imageUrl: fd.get('imageUrl'),
       color: fd.get('color'),
     }
@@ -276,6 +279,21 @@ export default function Properties() {
                 className="text-[12px]"
               />
               <p className="text-[11px] text-muted-foreground">One per line — printed under the totals on every invoice.</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Confirmation inclusions</Label>
+              <Textarea name="inclusions" rows={3} defaultValue={editing?.inclusions ?? ''} placeholder="One per line" className="text-[12px]" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Confirmation exclusions</Label>
+              <Textarea name="exclusions" rows={3} defaultValue={editing?.exclusions ?? ''} placeholder="One per line" className="text-[12px]" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Confirmation notes</Label>
+              <Textarea name="confirmationNotes" rows={3} defaultValue={editing?.confirmationNotes ?? ''} placeholder="One per line" className="text-[12px]" />
+              <p className="text-[11px] text-muted-foreground">
+                These three fill the WhatsApp confirmation sent from a booking. It stays editable before sending.
+              </p>
             </div>
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => setDialogOpen(false)}>Cancel</Button>

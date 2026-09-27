@@ -29,6 +29,10 @@ const propertySchema = new Schema(
     color: { type: String, default: '' },
     // One term per line.
     invoiceTerms: { type: String, default: DEFAULT_INVOICE_TERMS },
+    // Defaults for the WhatsApp booking confirmation, one item per line.
+    inclusions: { type: String, default: '' },
+    exclusions: { type: String, default: '' },
+    confirmationNotes: { type: String, default: '' },
     // Invoice serials restart each financial year, per property.
     invoiceFy: { type: String, default: '' },
     invoiceSeq: { type: Number, default: 0 },

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { FileText, Pencil, Trash2, Wallet, CalendarDays } from 'lucide-react'
+import { FileText, MessageCircle, Pencil, Trash2, Wallet, CalendarDays } from 'lucide-react'
 import toast from 'react-hot-toast'
 import type { ColumnDef } from '@tanstack/react-table'
 import { api } from '@/lib/api'
@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import BookingSheet from '@/components/BookingSheet'
+import ConfirmationDialog from '@/components/ConfirmationDialog'
 import PaymentPanel from '@/components/PaymentPanel'
 import ConfirmDelete from '@/components/ConfirmDelete'
 import EmptyState from '@/components/EmptyState'
@@ -44,6 +45,7 @@ export default function Bookings() {
   const [external, setExternal] = useState<Booking | null>(null)
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
+  const [confirming, setConfirming] = useState<Booking | null>(null)
 
   useEffect(() => {
     const focus = searchParams.get('focus')
@@ -94,6 +96,17 @@ export default function Bookings() {
       {canMoney && (
         <Button variant="ghost" size="icon-sm" title="Payments" onClick={() => setPayFor(b.id)}>
           <Wallet className="size-5" />
+        </Button>
+      )}
+      {canEdit && (
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="text-success"
+          title="Send confirmation on WhatsApp"
+          onClick={() => setConfirming(b)}
+        >
+          <MessageCircle className="size-5" />
         </Button>
       )}
       {canEdit && (
@@ -283,6 +296,7 @@ export default function Bookings() {
       />
 
       <BookingSheet open={sheetOpen} onClose={() => setSheetOpen(false)} booking={editing} />
+      <ConfirmationDialog booking={confirming} onClose={() => setConfirming(null)} />
       {payBooking && <PaymentPanel booking={payBooking} onClose={() => setPayFor(null)} />}
     </div>
   )

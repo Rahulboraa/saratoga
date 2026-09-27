@@ -146,6 +146,20 @@ const afterSecond = await call(admin, `/bookings/${quoteBooking.body.id}/invoice
 check('a second payment does not take another number', afterSecond.body.invoiceNo === afterPay.body.invoiceNo, String(afterSecond.body.invoiceNo))
 check('terms come through for printing', Array.isArray(afterPay.body.property.terms) && afterPay.body.property.terms.length > 0, String(afterPay.body.property.terms?.length))
 
+console.log('\n5c. WhatsApp confirmation')
+await call(admin, `/properties/${A}`, { method: 'PATCH', body: {
+  inclusions: 'glasshouse table and chairs\n15kva generator',
+  exclusions: 'decor\nbar tender',
+  confirmationNotes: '20% to be cleared 1 week prior.',
+} })
+const conf = await call(admin, `/bookings/${bookA.body.id}/confirmation`, { property: A })
+check('confirmation is built from the booking', conf.status === 200 && conf.body.text.includes('Guest A'), String(conf.status))
+check('it carries the rent recorded on the booking', conf.body.text.includes('Rent : ₹27,000'), JSON.stringify(conf.body.text?.slice(0, 80)))
+check("it carries the property's inclusions and notes", conf.body.text.includes('15kva generator') && conf.body.text.includes('20% to be cleared'), 'missing property text')
+check('it returns the number to send to', conf.body.phone === '1', String(conf.body.phone))
+const confB = await call(mgrA, `/bookings/${bookB.body.id}/confirmation`)
+check("a manager cannot pull another property's confirmation", confB.status === 404, String(confB.status))
+
 console.log('\n6. Investments')
 await call(admin, '/investments', { property: A, body: { partner: 'Rahul', date: '2026-04-01', kind: 'Investment', amount: 500000 } })
 await call(admin, '/investments', { property: A, body: { partner: 'Rahul', date: '2026-06-01', kind: 'Withdrawal', amount: 100000 } })

@@ -24,6 +24,9 @@ export interface Property {
   invoiceTerms: string
   imageUrl: string
   color: string
+  inclusions: string
+  exclusions: string
+  confirmationNotes: string
 }
 
 export const PURPOSES = ['Party', 'Shoot', 'Pre-wedding', 'Kids Birthday', 'Other'] as const

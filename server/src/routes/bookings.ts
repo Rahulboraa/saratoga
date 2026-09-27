@@ -9,6 +9,7 @@ import { paymentSums, withFinance } from '../services/finance.js'
 import { scoped, writeProperty } from '../middleware/scope.js'
 import { Property } from '../models/Property.js'
 import { invoiceLines, nextInvoiceNo, GST_RATE } from '../services/invoice.js'
+import { buildConfirmation } from '../services/confirmation.js'
 import { todayYmd } from '../lib/dates.js'
 
 export const bookingsRouter = Router()
@@ -226,6 +227,29 @@ export async function issueInvoice(booking: InstanceType<typeof Booking>) {
   await booking.save()
   return booking.invoiceNo
 }
+
+// The WhatsApp confirmation, built from the booking so the figures cannot drift.
+bookingsRouter.get('/:id/confirmation', requireRole('admin', 'manager'), async (req, res) => {
+  const booking = await Booking.findOne(scoped(req, { _id: req.params.id }))
+  if (!booking) return res.status(404).json({ error: 'Booking not found' })
+  const property = await Property.findById(booking.propertyId)
+  const sums = await paymentSums([booking._id])
+  const collected = (booking.legacyReceived ?? 0) + (sums.get(String(booking._id)) ?? 0)
+  const payable = booking.amount + (booking.breakdown?.license ?? 0) + (booking.breakdown?.security ?? 0)
+
+  res.json({
+    phone: booking.phone,
+    text: buildConfirmation(
+      { ...booking.toObject(), collected, due: Math.max(payable - collected, 0) },
+      {
+        name: property?.name ?? '',
+        inclusions: property?.inclusions ?? '',
+        exclusions: property?.exclusions ?? '',
+        confirmationNotes: property?.confirmationNotes ?? '',
+      },
+    ),
+  })
+})
 
 bookingsRouter.get('/:id/invoice', requireRole('admin', 'manager'), async (req, res) => {
   const payload = await invoicePayload(req, String(req.params.id))
