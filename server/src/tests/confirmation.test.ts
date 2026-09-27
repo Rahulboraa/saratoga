@@ -109,6 +109,17 @@ describe('buildConfirmation', () => {
     expect(out.indexOf('Security')).toBeGreaterThan(out.indexOf('Total :'))
   })
 
+  it('never prints a charge above a total that excludes it', () => {
+    // Licence is recovered at actuals and is not in the total, so it cannot sit above it.
+    const out = buildConfirmation(
+      { ...booking, breakdown: { venue: 50000, catering: 119000, license: 16000, security: 10000 } },
+      property,
+    )
+    expect(out).toContain('Total : ₹1,69,000')
+    expect(out.indexOf('License')).toBeGreaterThan(out.indexOf('Total :'))
+    expect(out.indexOf('Security')).toBeGreaterThan(out.indexOf('License'))
+  })
+
   it('skips a total that would just repeat the only charge', () => {
     const out = buildConfirmation({ ...booking, breakdown: { venue: 39000 } }, property)
     expect(out).toContain('Rent : ₹39,000')

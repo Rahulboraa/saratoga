@@ -105,13 +105,15 @@ export function buildConfirmation(booking: ConfirmationBooking, property: Confir
   charge('Decor', b.decor)
   charge('Led wall / speaker', b.music)
   charge('Cleaning', b.cleaning)
-  charge('License', b.license)
 
   // The total only earns its line when there is more than one charge to add up.
   const total = (b.venue ?? 0) + (b.catering ?? 0) + (b.decor ?? 0) + (b.music ?? 0) + (b.cleaning ?? 0)
   if (out.length - before > 1 && total > 0) out.push(`Total : ${money(total)}`)
 
-  // Kept below the total: it is a deposit coming back, not part of the price.
+  // Both sit below the total rather than inside it: the licence is recovered at actuals,
+  // and the deposit is money coming back. Printing either above a total that excludes it
+  // makes the column look like it does not add up.
+  charge('License', b.license)
   charge('Security', b.security, ' (refundable)')
 
   if (booking.collected > 0) out.push(`Advance received : ${money(booking.collected)}`)
