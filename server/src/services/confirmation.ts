@@ -49,6 +49,7 @@ export interface ConfirmationBooking {
   checkinTime: string
   checkoutTime: string
   pax: string
+  purpose?: string
   notes?: string
   breakdown?: Partial<Record<'venue' | 'catering' | 'decor' | 'music' | 'cleaning' | 'license' | 'security', number>> | null
   collected: number
@@ -78,6 +79,7 @@ export function buildConfirmation(booking: ConfirmationBooking, property: Confir
   out.push('')
 
   if (booking.pax) out.push(`Pax : ${booking.pax}`)
+  if (booking.purpose && booking.purpose !== 'Other') out.push(`Event : ${booking.purpose}`)
   if (booking.checkinTime) out.push(`Check in : ${booking.checkinTime}`)
   if (booking.checkoutTime) {
     const sameDay = !booking.checkoutDate || booking.checkoutDate === booking.checkinDate
@@ -91,6 +93,7 @@ export function buildConfirmation(booking: ConfirmationBooking, property: Confir
     out.push(`${label} : ${money(amount)}${suffix}`)
   }
 
+  const before = out.length
   charge('Rent', b.venue)
   if (b.catering) {
     // Catering is quoted per head when it divides cleanly; otherwise the total stands alone.
@@ -103,6 +106,12 @@ export function buildConfirmation(booking: ConfirmationBooking, property: Confir
   charge('Led wall / speaker', b.music)
   charge('Cleaning', b.cleaning)
   charge('License', b.license)
+
+  // The total only earns its line when there is more than one charge to add up.
+  const total = (b.venue ?? 0) + (b.catering ?? 0) + (b.decor ?? 0) + (b.music ?? 0) + (b.cleaning ?? 0)
+  if (out.length - before > 1 && total > 0) out.push(`Total : ${money(total)}`)
+
+  // Kept below the total: it is a deposit coming back, not part of the price.
   charge('Security', b.security, ' (refundable)')
 
   if (booking.collected > 0) out.push(`Advance received : ${money(booking.collected)}`)

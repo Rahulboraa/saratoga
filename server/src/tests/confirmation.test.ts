@@ -70,6 +70,7 @@ describe('buildConfirmation', () => {
         '',
         'Rent : ₹1,10,000',
         'Dinner : ₹1,500/- per pax (100 pax = ₹1,50,000)',
+        'Total : ₹2,60,000',
         'Security : ₹15,000 (refundable)',
         'Advance received : ₹30,000',
         'Balance : ₹2,45,000',
@@ -93,6 +94,30 @@ describe('buildConfirmation', () => {
     expect(agreed).toBeGreaterThan(out.indexOf('Balance'))
     expect(agreed).toBeLessThan(out.indexOf('Inclusions:'))
     expect(out).toContain('Led wall / speaker optional : inclusive')
+  })
+
+  it('carries the event type and totals the charges', () => {
+    const out = buildConfirmation(
+      { ...booking, purpose: 'Party', breakdown: { venue: 39000, cleaning: 2500, security: 10000 } },
+      property,
+    )
+    expect(out).toContain('Event : Party')
+    expect(out).toContain('Rent : ₹39,000')
+    expect(out).toContain('Cleaning : ₹2,500')
+    expect(out).toContain('Total : ₹41,500')
+    // The refundable deposit sits below the total rather than inside it.
+    expect(out.indexOf('Security')).toBeGreaterThan(out.indexOf('Total :'))
+  })
+
+  it('skips a total that would just repeat the only charge', () => {
+    const out = buildConfirmation({ ...booking, breakdown: { venue: 39000 } }, property)
+    expect(out).toContain('Rent : ₹39,000')
+    expect(out).not.toContain('Total :')
+  })
+
+  it('leaves out an unspecified event type', () => {
+    expect(buildConfirmation({ ...booking, purpose: 'Other' }, property)).not.toContain('Event :')
+    expect(buildConfirmation(booking, property)).not.toContain('Event :')
   })
 
   it('quotes catering as a total when it does not divide by the head count', () => {
