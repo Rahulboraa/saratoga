@@ -112,9 +112,12 @@ export function buildConfirmation(booking: ConfirmationBooking, property: Confir
   const exclusions = lines(property.exclusions)
   const notes = lines(property.confirmationNotes)
 
+  // What was agreed for this booking sits with the figures it qualifies — a line like
+  // "200 per pax if outside vendor" belongs next to the charges, not after the boilerplate.
+  if (booking.notes) out.push('', booking.notes)
+
   if (inclusions.length) out.push('', `Inclusions: ${inclusions.join(', ')}`)
   if (exclusions.length) out.push('', `Exclusions: ${exclusions.join(', ')}`)
-  if (booking.notes) out.push('', booking.notes)
   if (notes.length) out.push('', ...notes)
 
   return out.join('\n').replace(/\n{3,}/g, '\n\n').trim()

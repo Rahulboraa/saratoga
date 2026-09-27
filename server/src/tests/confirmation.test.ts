@@ -84,6 +84,17 @@ describe('buildConfirmation', () => {
     )
   })
 
+  it('puts what was agreed for this booking with the figures, above the boilerplate', () => {
+    const out = buildConfirmation(
+      { ...booking, notes: '200 per pax if outside vendor\nLed wall / speaker optional : inclusive' },
+      property,
+    )
+    const agreed = out.indexOf('200 per pax if outside vendor')
+    expect(agreed).toBeGreaterThan(out.indexOf('Balance'))
+    expect(agreed).toBeLessThan(out.indexOf('Inclusions:'))
+    expect(out).toContain('Led wall / speaker optional : inclusive')
+  })
+
   it('quotes catering as a total when it does not divide by the head count', () => {
     const out = buildConfirmation({ ...booking, breakdown: { catering: 145050 }, pax: '100' }, property)
     expect(out).toContain('Dinner : ₹1,45,050')
