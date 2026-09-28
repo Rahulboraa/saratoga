@@ -45,7 +45,7 @@ async function fetchAllUpcoming(q: string, purpose: string) {
 }
 
 async function generateImage(rows: Booking[]) {
-  const W = 860
+  const W = 940
   const rowH = 36
   const top = 78
   const H = top + 34 + rows.length * rowH + 26
@@ -66,16 +66,18 @@ async function generateImage(rows: Booking[]) {
   font('400 12px')
   ctx.fillText(`${fmtDate(todayYmd())} · next ${rows.length} booking${rows.length === 1 ? '' : 's'}`, 28, 56)
 
-  const col = { date: 28, guest: 210, phone: 420, source: 560, ci: 700, co: 780 }
+  // Phone sits last: it is looked up when someone needs to call, not scanned down the list.
+  const col = { date: 28, guest: 173, type: 323, pax: 438, ci: 518, co: 578, phone: 640 }
   ctx.fillStyle = '#94a3b8'
   font('600 10.5px')
   const headerY = top + 8
   ctx.fillText('DATE', col.date, headerY)
   ctx.fillText('GUEST', col.guest, headerY)
-  ctx.fillText('PHONE', col.phone, headerY)
-  ctx.fillText('SOURCE', col.source, headerY)
+  ctx.fillText('TYPE', col.type, headerY)
+  ctx.fillText('PAX', col.pax, headerY)
   ctx.fillText('IN', col.ci, headerY)
   ctx.fillText('OUT', col.co, headerY)
+  ctx.fillText('PHONE', col.phone, headerY)
 
   rows.forEach((b, i) => {
     const y = top + 34 + i * rowH
@@ -93,17 +95,20 @@ async function generateImage(rows: Booking[]) {
     ctx.fillText(range, col.date, y)
     ctx.fillStyle = '#0f172a'
     font('600 13px')
-    let guest = b.guest
-    while (ctx.measureText(guest).width > col.phone - col.guest - 16 && guest.length > 3) guest = guest.slice(0, -1)
-    ctx.fillText(guest === b.guest ? guest : `${guest}…`, col.guest, y)
+    // Trim anything that would run into the next column rather than overlap it.
+    const fit = (text: string, width: number) => {
+      let out = text
+      while (ctx.measureText(out).width > width && out.length > 3) out = out.slice(0, -1)
+      return out === text ? text : `${out}…`
+    }
+    ctx.fillText(fit(b.guest, col.type - col.guest - 16), col.guest, y)
     ctx.fillStyle = '#334155'
     font('400 13px')
-    ctx.fillText(b.phone || '—', col.phone, y)
-    let src = b.source || '—'
-    while (ctx.measureText(src).width > col.ci - col.source - 16 && src.length > 3) src = src.slice(0, -1)
-    ctx.fillText(src === (b.source || '—') ? src : `${src}…`, col.source, y)
+    ctx.fillText(fit(b.purpose || '—', col.pax - col.type - 16), col.type, y)
+    ctx.fillText(fit(b.pax || '—', col.ci - col.pax - 16), col.pax, y)
     ctx.fillText(b.checkinTime || '—', col.ci, y)
     ctx.fillText(b.checkoutTime || '—', col.co, y)
+    ctx.fillText(b.phone || '—', col.phone, y)
   })
 
   const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'))
