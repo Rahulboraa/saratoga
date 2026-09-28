@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import { FileText, MessageCircle, Pencil, Trash2, Wallet, CalendarDays } from 'lucide-react'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
+import { useSearchParams } from 'react-router-dom'
+import { CalendarDays } from 'lucide-react'
 import toast from 'react-hot-toast'
 import type { ColumnDef } from '@tanstack/react-table'
 import { api } from '@/lib/api'
@@ -13,10 +13,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import BookingSheet from '@/components/BookingSheet'
-import ConfirmationDialog from '@/components/ConfirmationDialog'
-import PaymentPanel from '@/components/PaymentPanel'
-import ConfirmDelete from '@/components/ConfirmDelete'
+import { useBookingActions } from '@/lib/useBookingActions'
 import EmptyState from '@/components/EmptyState'
 import { DataTable, type Paged } from '@/components/DataTable'
 import ExportButton from '@/components/ExportButton'
@@ -30,7 +27,6 @@ export default function Bookings() {
   const isAdmin = user?.role === 'admin'
   const canEdit = isAdmin || user?.role === 'manager'
   const canMoney = canEdit
-  const queryClient = useQueryClient()
 
   const [q, setQ] = useState('')
   // Opens on this month — that is the window the team works in day to day.
@@ -39,13 +35,8 @@ export default function Bookings() {
   const [purpose, setPurpose] = useState('all')
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(20)
-  const [sheetOpen, setSheetOpen] = useState(false)
-  const [editing, setEditing] = useState<Booking | null>(null)
-  const [payFor, setPayFor] = useState<string | null>(null)
-  const [external, setExternal] = useState<Booking | null>(null)
+  const { actions, panels, openEdit } = useBookingActions()
   const [searchParams, setSearchParams] = useSearchParams()
-  const navigate = useNavigate()
-  const [confirming, setConfirming] = useState<Booking | null>(null)
 
   useEffect(() => {
     const focus = searchParams.get('focus')
@@ -53,13 +44,12 @@ export default function Bookings() {
     setSearchParams({}, { replace: true })
     api<Booking>(`/bookings/${focus}`)
       .then((b) => {
-        setExternal(b)
         // The list opens on the current month, so move it to the month this booking is
         // in — otherwise closing the sheet leaves no trace of what was just opened.
         setMonth(b.checkinDate.slice(0, 7))
         // Opening a booking from the calendar, search or Upcoming means editing it.
         // Payments have their own button on the row.
-        if (canEdit) { setEditing(b); setSheetOpen(true) }
+        if (canEdit) openEdit(b)
         else setQ(b.guest)
       })
       .catch(() => toast.error('Booking not found'))
@@ -82,62 +72,7 @@ export default function Bookings() {
   // explicitly — otherwise the default selection would show a blank trigger.
   const monthOptions = [...new Set([currentMonth(), ...(data?.months ?? [])])].sort().reverse()
 
-  const deleteBooking = useMutation({
-    mutationFn: (id: string) => api(`/bookings/${id}`, { method: 'DELETE' }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['bookings'] })
-      queryClient.invalidateQueries({ queryKey: ['stats'] })
-      toast.success('Booking deleted')
-    },
-    onError: (e) => toast.error(e instanceof Error ? e.message : 'Failed'),
-  })
-
   const resetPage = () => setPage(1)
-  const payBooking = payFor ? (data?.rows ?? []).find((b) => b.id === payFor) ?? (external?.id === payFor ? external : null) : null
-
-  const actions = (b: Booking) => (
-    <div className="flex justify-end gap-1">
-      {canMoney && (
-        <Button variant="ghost" size="icon-sm" title="Payments" onClick={() => setPayFor(b.id)}>
-          <Wallet className="size-5" />
-        </Button>
-      )}
-      {canEdit && (
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className="text-success"
-          title="Send confirmation on WhatsApp"
-          onClick={() => setConfirming(b)}
-        >
-          <MessageCircle className="size-5" />
-        </Button>
-      )}
-      {canEdit && (
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          title={b.invoiceNo ? `Invoice ${b.invoiceNo}` : 'Invoice'}
-          onClick={() => navigate(`/bookings/${b.id}/invoice`)}
-        >
-          <FileText className={`size-5 ${b.invoiceNo ? 'text-primary' : ''}`} />
-        </Button>
-      )}
-      {canEdit && (
-        <Button variant="ghost" size="icon-sm" title="Edit" onClick={() => { setEditing(b); setSheetOpen(true) }}>
-          <Pencil className="size-5" />
-        </Button>
-      )}
-      {isAdmin && (
-        <ConfirmDelete
-          title={`Delete booking for ${b.guest}?`}
-          description="All payment records for this booking will also be deleted."
-          onConfirm={() => deleteBooking.mutate(b.id)}
-          trigger={<Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-destructive"><Trash2 className="size-5" /></Button>}
-        />
-      )}
-    </div>
-  )
 
   const purposePill = (b: Booking) => (
     <span className="whitespace-nowrap rounded-md px-2.5 py-1 text-[12px] font-medium" style={{ background: `${PURPOSE_COLORS[b.purpose]}1c`, color: PURPOSE_COLORS[b.purpose] }}>
@@ -221,7 +156,7 @@ export default function Bookings() {
               if (purpose !== 'all') p.set('purpose', purpose)
               return <ExportButton path="/export/bookings" name="bookings" params={p} />
             })()}
-            {canEdit && <Button onClick={() => { setEditing(null); setSheetOpen(true) }}>New booking</Button>}
+            {canEdit && <Button onClick={() => openEdit(null)}>New booking</Button>}
           </>
         }
       />
@@ -299,9 +234,7 @@ export default function Bookings() {
         )}
       />
 
-      <BookingSheet open={sheetOpen} onClose={() => setSheetOpen(false)} booking={editing} />
-      <ConfirmationDialog booking={confirming} onClose={() => setConfirming(null)} />
-      {payBooking && <PaymentPanel booking={payBooking} onClose={() => setPayFor(null)} />}
+      {panels}
     </div>
   )
 }
