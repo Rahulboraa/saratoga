@@ -54,8 +54,12 @@ export default function Bookings() {
     api<Booking>(`/bookings/${focus}`)
       .then((b) => {
         setExternal(b)
-        if (canMoney) setPayFor(b.id)
-        else if (canEdit) { setEditing(b); setSheetOpen(true) }
+        // The list opens on the current month, so move it to the month this booking is
+        // in — otherwise closing the sheet leaves no trace of what was just opened.
+        setMonth(b.checkinDate.slice(0, 7))
+        // Opening a booking from the calendar, search or Upcoming means editing it.
+        // Payments have their own button on the row.
+        if (canEdit) { setEditing(b); setSheetOpen(true) }
         else setQ(b.guest)
       })
       .catch(() => toast.error('Booking not found'))
