@@ -16,6 +16,7 @@ export const breakdownSchema = z.object({
   catering: money.default(0),
   decor: money.default(0),
   music: money.default(0),
+  valet: money.default(0),
   cleaning: money.default(0),
   license: money.default(0),
   security: money.default(0),

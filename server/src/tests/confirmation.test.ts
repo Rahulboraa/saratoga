@@ -120,6 +120,15 @@ describe('buildConfirmation', () => {
     expect(out.indexOf('Security')).toBeGreaterThan(out.indexOf('License'))
   })
 
+  it('carries valet, and counts it in the total', () => {
+    const out = buildConfirmation(
+      { ...booking, breakdown: { venue: 39000, valet: 4000, security: 10000 } },
+      property,
+    )
+    expect(out).toContain('Valet : ₹4,000')
+    expect(out).toContain('Total : ₹43,000')
+  })
+
   it('skips a total that would just repeat the only charge', () => {
     const out = buildConfirmation({ ...booking, breakdown: { venue: 39000 } }, property)
     expect(out).toContain('Rent : ₹39,000')

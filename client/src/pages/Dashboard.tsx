@@ -183,6 +183,7 @@ export default function Dashboard() {
             { label: 'Catering', amount: bb.reduce((s, m) => s + m.catering, 0), color: 'hsl(270 80% 62%)' },
             { label: 'Decor', amount: bb.reduce((s, m) => s + m.decor, 0), color: 'hsl(330 77% 58%)' },
             { label: 'Music', amount: bb.reduce((s, m) => s + m.music, 0), color: 'hsl(30 95% 55%)' },
+            { label: 'Valet', amount: bb.reduce((s, m) => s + m.valet, 0), color: 'hsl(43 90% 50%)' },
             { label: 'Cleaning', amount: bb.reduce((s, m) => s + m.cleaning, 0), color: 'hsl(152 60% 44%)' },
           ].filter((t) => t.amount > 0).sort((a, b) => b.amount - a.amount)
           const grand = totals.reduce((s, t) => s + t.amount, 0)

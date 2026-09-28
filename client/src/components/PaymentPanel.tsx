@@ -100,6 +100,7 @@ export default function PaymentPanel({ booking, onClose }: { booking: Booking | 
                   ['Catering', booking.breakdown.catering],
                   ['Decor', booking.breakdown.decor],
                   ['Music', booking.breakdown.music],
+                  ['Valet', booking.breakdown.valet],
                   ['Cleaning', booking.breakdown.cleaning],
                 ] as [string, number][]).filter(([, v]) => v > 0).map(([label, v]) => (
                   <div key={label} className="flex justify-between">

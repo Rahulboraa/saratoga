@@ -45,6 +45,7 @@ export function invoiceLines(booking: BookingDoc) {
     ['Catering', b?.catering ?? 0],
     ['Decor', b?.decor ?? 0],
     ['Music', b?.music ?? 0],
+    ['Valet', b?.valet ?? 0],
     ['Cleaning', b?.cleaning ?? 0],
   ] as [string, number][]).filter(([, amount]) => amount > 0).map(([label, amount]) => ({ label, amount }))
 

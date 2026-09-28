@@ -50,6 +50,7 @@ interface FormValues {
   catering: number;
   decor: number;
   music: number;
+  valet: number;
   cleaning: number;
   license: number;
   security: number;
@@ -63,6 +64,7 @@ const MONEY_FIELDS = [
   "catering",
   "decor",
   "music",
+  "valet",
   "cleaning",
 ] as const;
 
@@ -83,6 +85,7 @@ function toForm(b?: Booking | null): FormValues {
     catering: b?.breakdown?.catering ?? 0,
     decor: b?.breakdown?.decor ?? 0,
     music: b?.breakdown?.music ?? 0,
+    valet: b?.breakdown?.valet ?? 0,
     cleaning: b?.breakdown?.cleaning ?? 0,
     license: b?.breakdown?.license ?? 0,
     security: b?.breakdown?.security ?? 0,
@@ -209,6 +212,7 @@ export default function BookingSheet({
         catering: +v.catering || 0,
         decor: +v.decor || 0,
         music: +v.music || 0,
+        valet: +v.valet || 0,
         cleaning: +v.cleaning || 0,
         license: +v.license || 0,
         security: +v.security || 0,

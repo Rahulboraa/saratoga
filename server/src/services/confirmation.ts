@@ -51,7 +51,7 @@ export interface ConfirmationBooking {
   pax: string
   purpose?: string
   notes?: string
-  breakdown?: Partial<Record<'venue' | 'catering' | 'decor' | 'music' | 'cleaning' | 'license' | 'security', number>> | null
+  breakdown?: Partial<Record<'venue' | 'catering' | 'decor' | 'music' | 'valet' | 'cleaning' | 'license' | 'security', number>> | null
   collected: number
   due: number
 }
@@ -104,10 +104,12 @@ export function buildConfirmation(booking: ConfirmationBooking, property: Confir
   }
   charge('Decor', b.decor)
   charge('Led wall / speaker', b.music)
+  charge('Valet', b.valet)
   charge('Cleaning', b.cleaning)
 
   // The total only earns its line when there is more than one charge to add up.
-  const total = (b.venue ?? 0) + (b.catering ?? 0) + (b.decor ?? 0) + (b.music ?? 0) + (b.cleaning ?? 0)
+  const total = (b.venue ?? 0) + (b.catering ?? 0) + (b.decor ?? 0)
+    + (b.music ?? 0) + (b.valet ?? 0) + (b.cleaning ?? 0)
   if (out.length - before > 1 && total > 0) out.push(`Total : ${money(total)}`)
 
   // Both sit below the total rather than inside it: the licence is recovered at actuals,

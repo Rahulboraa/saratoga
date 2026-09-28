@@ -71,7 +71,7 @@ export function serializeLead(doc: Doc, role: Role) {
 
 export const FINANCIAL_KEYS = [
   'amount', 'breakdown', 'collected', 'due', 'received', 'legacyReceived', 'dest',
-  'venue', 'catering', 'decor', 'music', 'cleaning', 'license', 'security',
+  'venue', 'catering', 'decor', 'music', 'valet', 'cleaning', 'license', 'security',
   'totalBooked', 'totalCollected', 'outstanding', 'revenue', 'expenses', 'profit',
 ]
 

@@ -2,7 +2,7 @@ import { Schema, model } from 'mongoose'
 
 export const PURPOSES = ['Party', 'Shoot', 'Pre-wedding', 'Kids Birthday', 'Other'] as const
 export const SOURCES = ['Airbnb', 'Direct', 'Referral', ''] as const
-export const BREAKDOWN_KEYS = ['venue', 'catering', 'decor', 'music', 'cleaning', 'license', 'security'] as const
+export const BREAKDOWN_KEYS = ['venue', 'catering', 'decor', 'music', 'valet', 'cleaning', 'license', 'security'] as const
 
 const bookingSchema = new Schema(
   {
@@ -23,6 +23,7 @@ const bookingSchema = new Schema(
       catering: { type: Number, default: 0, min: 0 },
       decor: { type: Number, default: 0, min: 0 },
       music: { type: Number, default: 0, min: 0 },
+      valet: { type: Number, default: 0, min: 0 },
       cleaning: { type: Number, default: 0, min: 0 },
       license: { type: Number, default: 0, min: 0 },
       security: { type: Number, default: 0, min: 0 },
@@ -42,7 +43,8 @@ const bookingSchema = new Schema(
 bookingSchema.pre('validate', function () {
   if (!this.checkoutDate) this.checkoutDate = this.checkinDate
   const b = this.breakdown
-  this.amount = (b?.venue ?? 0) + (b?.catering ?? 0) + (b?.decor ?? 0) + (b?.music ?? 0) + (b?.cleaning ?? 0)
+  this.amount = (b?.venue ?? 0) + (b?.catering ?? 0) + (b?.decor ?? 0)
+    + (b?.music ?? 0) + (b?.valet ?? 0) + (b?.cleaning ?? 0)
 })
 
 bookingSchema.index({ propertyId: 1, legacyId: 1 }, { unique: true, partialFilterExpression: { legacyId: { $type: 'string' } } })

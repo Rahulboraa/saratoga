@@ -178,6 +178,7 @@ const C = {
   green: 'hsl(152 60% 44%)',
   orange: 'hsl(25 95% 53%)',
   red: 'hsl(0 79% 63%)',
+  amber: 'hsl(43 90% 50%)',
   track: 'var(--muted)',
 }
 
@@ -261,6 +262,7 @@ export function BreakupChart({ data }: { data: MoneyPoint[] }) {
         { key: 'catering', label: 'Catering', color: C.violet },
         { key: 'decor', label: 'Decor', color: C.teal },
         { key: 'music', label: 'Music', color: C.orange },
+        { key: 'valet', label: 'Valet', color: C.amber },
         { key: 'cleaning', label: 'Cleaning', color: C.green },
       ]}
     />

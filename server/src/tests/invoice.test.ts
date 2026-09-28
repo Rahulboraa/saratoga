@@ -28,6 +28,13 @@ describe('invoiceLines', () => {
     expect(out.total).toBe(30_000 + 5_400 + 5_000 + 20_000)
   })
 
+  it('taxes valet like any other service line', () => {
+    const out = invoiceLines(bookingWith({ venue: 20_000, valet: 5_000 }))
+    expect(out.items.map((i) => i.label)).toContain('Valet')
+    expect(out.taxable).toBe(25_000)
+    expect(out.total).toBe(25_000 + 4_500)
+  })
+
   it('drops zero lines', () => {
     const out = invoiceLines(bookingWith({ venue: 27_000, catering: 0, decor: 0 }))
     expect(out.items).toEqual([{ label: 'Venue rental', amount: 27_000 }])

@@ -38,6 +38,7 @@ export interface Breakdown {
   catering: number
   decor: number
   music: number
+  valet: number
   cleaning: number
   license: number
   security: number
@@ -217,7 +218,7 @@ export interface DashboardStats {
   outstanding?: number
   upcomingUnpaid?: number
   monthlySeries?: MonthlyPoint[]
-  bookedBreakup?: { month: string; venue: number; catering: number; decor: number; music: number; cleaning: number }[]
+  bookedBreakup?: { month: string; venue: number; catering: number; decor: number; music: number; valet: number; cleaning: number }[]
 }
 
 export interface IncentiveMonth {

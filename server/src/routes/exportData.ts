@@ -47,7 +47,7 @@ exportRouter.get('/bookings', requireRole('admin', 'manager'), async (req, res) 
     Guest: b.guest, Phone: b.phone, 'Check-in': b.checkinDate, 'Check-out': b.checkoutDate,
     'In Time': b.checkinTime, 'Out Time': b.checkoutTime, Pax: b.pax, Purpose: b.purpose, Source: b.source,
     Venue: b.breakdown?.venue ?? 0, Catering: b.breakdown?.catering ?? 0, Decor: b.breakdown?.decor ?? 0,
-    Music: b.breakdown?.music ?? 0, Cleaning: b.breakdown?.cleaning ?? 0,
+    Music: b.breakdown?.music ?? 0, Valet: b.breakdown?.valet ?? 0, Cleaning: b.breakdown?.cleaning ?? 0,
     License: b.breakdown?.license ?? 0, Security: b.breakdown?.security ?? 0,
     Amount: b.amount, Received: fin.collected, Due: fin.due, Status: fin.status,
     Destination: b.dest, Notes: b.notes,
