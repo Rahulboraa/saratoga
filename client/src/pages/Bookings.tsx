@@ -203,7 +203,7 @@ export default function Bookings() {
           cell: ({ row: { original: b } }) => <Badge variant={STATUS_VARIANT[b.status ?? 'pending']} withDot>{b.status}</Badge>,
         }] satisfies ColumnDef<Booking>[])
       : []),
-    { id: 'actions', header: '', cell: ({ row: { original: b } }) => actions(b) },
+    { id: 'actions', header: 'Action', meta: { headClass: 'text-right' }, cell: ({ row: { original: b } }) => actions(b) },
   ]
 
   return (

@@ -225,7 +225,7 @@ export default function Leads() {
           },
         ] satisfies ColumnDef<Lead>[])
       : []),
-    { id: 'actions', header: '', cell: ({ row: { original: l } }) => actions(l) },
+    { id: 'actions', header: 'Action', meta: { headClass: 'text-right' }, cell: ({ row: { original: l } }) => actions(l) },
   ]
 
   return (

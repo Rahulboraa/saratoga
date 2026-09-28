@@ -213,7 +213,8 @@ export default function Upcoming() {
     ...(canOpen
       ? [{
           id: 'actions',
-          header: '',
+          header: 'Action',
+          meta: { headClass: 'text-right' },
           cell: ({ row: { original: b } }: { row: { original: Booking } }) => (
             <div className="flex justify-end">
               <Button variant="ghost" size="icon-sm" title="Edit booking" onClick={() => setEditing(b)}>

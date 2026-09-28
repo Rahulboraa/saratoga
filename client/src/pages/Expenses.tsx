@@ -377,7 +377,7 @@ export default function Expenses() {
       cell: ({ row: { original: e } }) => <span className={e.due > 0 ? 'text-destructive' : 'text-success'}>{fmtMoney(e.due)}</span>,
     },
     { id: 'status', header: 'Status', cell: ({ row: { original: e } }) => <Badge variant={STATUS_VARIANT[e.status]} withDot>{e.status}</Badge> },
-    { id: 'actions', header: '', cell: ({ row: { original: e } }) => actions(e) },
+    { id: 'actions', header: 'Action', meta: { headClass: 'text-right' }, cell: ({ row: { original: e } }) => actions(e) },
   ]
 
   return (
