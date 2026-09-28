@@ -1,10 +1,11 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, hashKey } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
 import { Analytics } from "@vercel/analytics/react";
 import { ServerOff } from "lucide-react";
+import { getActiveProperty } from "./lib/api";
 import { AuthProvider } from "./lib/auth";
 import { PropertyProvider } from "./lib/property";
 import App from "./App";
@@ -28,7 +29,17 @@ function ServiceHold() {
 }
 
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 30_000,
+      // Every cached result belongs to the property it was fetched under. Without this
+      // the two share a cache entry, and a second property shows the first one's figures
+      // until they go stale — which is how Saratõga's incentives appeared under 2.0.
+      // Partitioning here rather than in each key means a new query cannot forget to.
+      queryKeyHashFn: (key) => hashKey([getActiveProperty(), ...key]),
+    },
+  },
 });
 
 // One-time self-heal for already-installed clients, who can't be asked to clear
