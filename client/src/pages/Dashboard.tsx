@@ -81,19 +81,20 @@ export default function Dashboard() {
               hint={data.totalBooked ? `${Math.round(((data.totalCollected ?? 0) / data.totalBooked) * 100)}% of booked` : '—'}
             />
             <StatCard icon={AlertCircle} tint="destructive" label="Outstanding" value={fmtMoney(data.outstanding)} hint={`${data.upcomingUnpaid} upcoming unpaid`} />
-            <StatCard icon={Layers} tint="purple" label="Total Events" value={data.totalBookings} hint={`${data.uniqueDates} unique dates`} />
+            <StatCard icon={Layers} tint="purple" label="Total Events" value={data.totalBookings} hint={`${data.uniqueDates} unique dates`} to="/bookings" />
             <StatCard
               icon={CalendarClock}
               tint="warning"
               label="Upcoming"
               value={data.upcomingCount}
               hint={data.overlapCount ? <span className="font-medium text-destructive">{data.overlapCount} overlaps</span> : 'no overlaps'}
+              to="/upcoming"
             />
           </>
         ) : (
           <>
-            <StatCard icon={Layers} tint="purple" label="Total Events" value={data.totalBookings} hint={`${data.uniqueDates} unique dates`} />
-            <StatCard icon={CalendarClock} tint="info" label="Upcoming" value={data.upcomingCount} />
+            <StatCard icon={Layers} tint="purple" label="Total Events" value={data.totalBookings} hint={`${data.uniqueDates} unique dates`} to="/bookings" />
+            <StatCard icon={CalendarClock} tint="info" label="Upcoming" value={data.upcomingCount} to="/upcoming" />
             <StatCard icon={CalendarDays} tint="success" label="This Month" value={countSeries.at(-1)?.count ?? 0} hint="bookings" />
             <StatCard
               icon={AlertCircle}
