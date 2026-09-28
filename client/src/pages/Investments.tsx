@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Landmark, Trash2, TrendingDown, TrendingUp, Wallet } from 'lucide-react'
+import { Landmark, Pencil, Trash2, TrendingDown, TrendingUp, Wallet } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { api } from '@/lib/api'
 import { fmtMoney, fmtDate, todayYmd } from '@/lib/format'
@@ -31,6 +31,8 @@ export default function Investments() {
   const queryClient = useQueryClient()
   const { activeId, active, canSwitch } = useProperty()
   const [addOpen, setAddOpen] = useState(false)
+  // Null while recording a new entry, the entry being corrected while editing.
+  const [editing, setEditing] = useState<InvestmentEntry | null>(null)
   const [kind, setKind] = useState('Investment')
   const [date, setDate] = useState(todayYmd())
   const [partner, setPartner] = useState('')
@@ -51,6 +53,18 @@ export default function Investments() {
       setAddOpen(false)
       setPartner('')
       toast.success('Entry recorded')
+    },
+    onError,
+  })
+
+  const saveEntry = useMutation({
+    mutationFn: ({ id, body }: { id: string; body: Record<string, unknown> }) =>
+      api(`/investments/${id}`, { method: 'PATCH', body }),
+    onSuccess: () => {
+      invalidate()
+      setAddOpen(false)
+      setEditing(null)
+      toast.success('Entry updated')
     },
     onError,
   })
@@ -80,17 +94,35 @@ export default function Investments() {
     )
   }
 
-  function onCreate(e: FormEvent<HTMLFormElement>) {
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const fd = new FormData(e.currentTarget)
-    addEntry.mutate({
+    const body = {
       partner: String(fd.get('partner')).trim(),
       date,
       kind,
       amount: Number(fd.get('amount')),
       mode: fd.get('mode'),
       notes: fd.get('notes'),
-    })
+    }
+    if (editing) saveEntry.mutate({ id: editing.id, body })
+    else addEntry.mutate(body)
+  }
+
+  function openAdd() {
+    setEditing(null)
+    setPartner('')
+    setKind('Investment')
+    setDate(todayYmd())
+    setAddOpen(true)
+  }
+
+  function openEdit(entry: InvestmentEntry) {
+    setEditing(entry)
+    setPartner(entry.partner)
+    setKind(entry.kind)
+    setDate(entry.date)
+    setAddOpen(true)
   }
 
   const partners = data?.partners ?? []
@@ -105,7 +137,7 @@ export default function Investments() {
         description={`Partner capital in ${active?.name ?? 'this property'}`}
         actions={<>
           <ExportButton path="/export/investments" name="investments" />
-          <Button onClick={() => { setDate(todayYmd()); setKind('Investment'); setAddOpen(true) }}>Record entry</Button>
+          <Button onClick={openAdd}>Record entry</Button>
         </>}
       />
 
@@ -180,6 +212,9 @@ export default function Investments() {
                       <TableCell className="text-muted-foreground">{r.mode || '—'}</TableCell>
                       <TableCell className="max-w-48 truncate text-muted-foreground">{r.notes || '—'}</TableCell>
                       <TableCell className="text-right">
+                        <Button variant="ghost" size="icon-sm" title="Edit entry" onClick={() => openEdit(r)}>
+                          <Pencil className="size-5" />
+                        </Button>
                         <ConfirmDelete
                           title={`Remove this ${r.kind.toLowerCase()} by ${r.partner}?`}
                           onConfirm={() => removeEntry.mutate(r.id)}
@@ -197,8 +232,9 @@ export default function Investments() {
 
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent className="sm:max-w-sm">
-          <DialogHeader><DialogTitle>Record entry</DialogTitle></DialogHeader>
-          <form onSubmit={onCreate} className="mt-2 space-y-3">
+          <DialogHeader><DialogTitle>{editing ? 'Edit entry' : 'Record entry'}</DialogTitle></DialogHeader>
+          {/* Keyed on the entry so the amount, mode and notes reload when switching rows. */}
+          <form key={editing?.id ?? 'new'} onSubmit={onSubmit} className="mt-2 space-y-3">
             <div className="space-y-1.5">
               <Label>Partner *</Label>
               <Input
@@ -233,20 +269,20 @@ export default function Investments() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label>Amount *</Label>
-                <Input name="amount" type="number" min="1" required />
+                <Input name="amount" type="number" min="1" required defaultValue={editing?.amount ?? ''} />
               </div>
               <div className="space-y-1.5">
                 <Label>Mode</Label>
-                <Input name="mode" placeholder="Bank / UPI / Cash" />
+                <Input name="mode" placeholder="Bank / UPI / Cash" defaultValue={editing?.mode ?? ''} />
               </div>
             </div>
             <div className="space-y-1.5">
               <Label>Notes</Label>
-              <Input name="notes" />
+              <Input name="notes" defaultValue={editing?.notes ?? ''} />
             </div>
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => setAddOpen(false)}>Cancel</Button>
-              <Button type="submit" disabled={addEntry.isPending}>Save</Button>
+              <Button type="submit" disabled={addEntry.isPending || saveEntry.isPending}>Save</Button>
             </DialogFooter>
           </form>
         </DialogContent>

@@ -169,6 +169,19 @@ const invA = await call(admin, '/investments', { property: A })
 check('A has two partners, B is not mixed in', invA.body.partners?.length === 2, JSON.stringify(invA.body.partners?.map((p: Json) => p.partner)))
 check('net and share are right', invA.body.partners?.[0]?.net === 400000 && invA.body.partners?.[0]?.share === 66.7, JSON.stringify(invA.body.partners?.[0]))
 
+console.log('\n6b. An investment entry can be corrected')
+const entry = await call(admin, '/investments', { property: A, body: { partner: 'Typo', date: '2026-07-01', kind: 'Investment', amount: 111, mode: 'Csh' } })
+const fixed = await call(admin, `/investments/${entry.body.id}`, { method: 'PATCH', body: { partner: 'Rahul', amount: 50000, mode: 'Cash', kind: 'Withdrawal' } })
+check('partner, amount, mode and type can all be corrected', fixed.status === 200
+  && fixed.body.partner === 'Rahul' && fixed.body.amount === 50000
+  && fixed.body.mode === 'Cash' && fixed.body.kind === 'Withdrawal', JSON.stringify(fixed.body))
+const afterEdit = await call(admin, '/investments', { property: A })
+const rahul = afterEdit.body.partners?.find((p: Json) => p.partner === 'Rahul')
+check('the corrected figure lands in the ledger', rahul && rahul.withdrawn === 150000, JSON.stringify(rahul))
+check('the mistyped partner is gone from the ledger', !afterEdit.body.partners?.some((p: Json) => p.partner === 'Typo'), 'Typo still listed')
+const crossEdit = await call(mgrA, `/investments/${entry.body.id}`, { method: 'PATCH', body: { amount: 1 } })
+check('a manager cannot touch investments at all', crossEdit.status === 403, String(crossEdit.status))
+
 console.log('\n7. Incentives need one property')
 const incAll = await call(admin, '/stats/incentives?month=all')
 check('incentives refuse an all-properties view', incAll.status === 400, String(incAll.status))
