@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
-import { CalendarClock, Share2, Copy, Download } from 'lucide-react'
+import { CalendarClock, Share2, Copy, Download, Pencil } from 'lucide-react'
 import type { ColumnDef } from '@tanstack/react-table'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import EmptyState from '@/components/EmptyState'
 import { DataTable, type Paged } from '@/components/DataTable'
 import { PageHeader } from '@/components/PageHeader'
+import BookingSheet from '@/components/BookingSheet'
 import ExportButton from '@/components/ExportButton'
 import { cn } from '@/lib/utils'
 
@@ -127,6 +128,9 @@ export default function Upcoming() {
   const [limit, setLimit] = useState(20)
   const [sharing, setSharing] = useState(false)
   const [shareImg, setShareImg] = useState<{ blob: Blob; dataUrl: string } | null>(null)
+  // Edited here rather than by sending the user off to Bookings; saving invalidates the
+  // 'bookings' key, which this list is under, so it refreshes itself.
+  const [editing, setEditing] = useState<Booking | null>(null)
 
   const params = new URLSearchParams({ page: String(page), limit: String(limit) })
   if (q) params.set('q', q)
@@ -205,6 +209,19 @@ export default function Upcoming() {
             cell: ({ row: { original: b } }) => <Badge variant={STATUS_VARIANT[b.status ?? 'pending']} withDot>{b.status}</Badge>,
           },
         ] satisfies ColumnDef<Booking>[])
+      : []),
+    ...(canOpen
+      ? [{
+          id: 'actions',
+          header: '',
+          cell: ({ row: { original: b } }: { row: { original: Booking } }) => (
+            <div className="flex justify-end">
+              <Button variant="ghost" size="icon-sm" title="Edit booking" onClick={() => setEditing(b)}>
+                <Pencil className="size-5" />
+              </Button>
+            </div>
+          ),
+        } satisfies ColumnDef<Booking>]
       : []),
   ]
 
@@ -293,6 +310,8 @@ export default function Upcoming() {
           </Card>
         )}
       />
+
+      <BookingSheet open={!!editing} onClose={() => setEditing(null)} booking={editing} />
 
       <Dialog open={!!shareImg} onOpenChange={(o) => !o && setShareImg(null)}>
         <DialogContent className="sm:max-w-xl">
