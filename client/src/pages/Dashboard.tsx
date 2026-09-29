@@ -69,6 +69,12 @@ export default function Dashboard() {
           </Button>
         )}
       />
+      {/* First on the page: whether a date is free is the question this screen is opened
+          for, far more often than any of the figures below it. */}
+      <div className="mb-8">
+        <MonthCalendar />
+      </div>
+
       <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-5">
         {isAdmin ? (
           <>
@@ -229,7 +235,6 @@ export default function Dashboard() {
             </Card>
           )
         })()}
-        <MonthCalendar />
         <Card className="h-full">
           <CardHeader><CardTitle className="text-[15px]">Bookings by type</CardTitle></CardHeader>
           <CardContent className="flex h-full flex-col items-center justify-center gap-8 py-6 sm:flex-row">
