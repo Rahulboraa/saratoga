@@ -6,6 +6,18 @@ import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { fmtMoney, fmtDate, todayYmd } from "@/lib/format";
 import { PURPOSES, SOURCES, type Booking } from "@/types";
+
+function addDays(ymd: string, n: number) {
+  const [y, m, d] = ymd.split("-").map(Number);
+  const next = new Date(y, m - 1, d + n);
+  return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}-${String(next.getDate()).padStart(2, "0")}`;
+}
+
+/** The day after a date, which is when an event booked for a night actually ends. */
+const nextDay = (ymd: string) => addDays(ymd, 1);
+
+const nightsBetween = (from: string, to: string) =>
+  Math.round((Date.parse(to) - Date.parse(from)) / 86_400_000);
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -73,7 +85,8 @@ function toForm(b?: Booking | null): FormValues {
     guest: b?.guest ?? "",
     phone: b?.phone ?? "",
     checkinDate: b?.checkinDate ?? todayYmd(),
-    checkoutDate: b?.checkoutDate ?? "",
+    // Almost every event runs into the next morning, so that is the sensible default.
+    checkoutDate: b?.checkoutDate ?? nextDay(todayYmd()),
     checkinTime: b?.checkinTime ?? "15:00",
     checkoutTime: b?.checkoutTime ?? "10:00",
     pax: b?.pax ?? "",
@@ -263,7 +276,15 @@ export default function BookingSheet({
                 <Label>Check-in date *</Label>
                 <DatePicker
                   value={checkinDate}
-                  onChange={(v) => setValue("checkinDate", v)}
+                  onChange={(v) => {
+                    // Move the checkout with it, keeping the same number of nights, so a
+                    // same-day event stays same-day and a two-night one stays two nights.
+                    // A cleared checkout means same day and is left cleared.
+                    if (checkoutDate && checkinDate) {
+                      setValue("checkoutDate", addDays(v, Math.max(nightsBetween(checkinDate, checkoutDate), 0)));
+                    }
+                    setValue("checkinDate", v);
+                  }}
                 />
               </div>
               <div className="space-y-2">
