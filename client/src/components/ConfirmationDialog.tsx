@@ -37,7 +37,10 @@ export default function ConfirmationDialog({ booking, onClose }: { booking: Book
 
   return (
     <Dialog open={!!booking} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-lg">
+      {/* Capped and scrollable: a long confirmation used to push the dialog past the
+          screen with nothing to scroll, so Copy and WhatsApp sat below the fold. The
+          message area takes the slack and scrolls inside, keeping the buttons in view. */}
+      <DialogContent className="flex max-h-[85dvh] flex-col sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Send confirmation</DialogTitle>
           <DialogDescription>
@@ -46,13 +49,13 @@ export default function ConfirmationDialog({ booking, onClose }: { booking: Book
         </DialogHeader>
 
         {isLoading ? (
-          <Skeleton className="h-72" />
+          <Skeleton className="min-h-40 flex-1" />
         ) : (
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            rows={16}
-            className="font-mono text-[12px] leading-relaxed"
+            rows={12}
+            className="min-h-40 flex-1 resize-none overflow-y-auto font-mono text-[12px] leading-relaxed"
           />
         )}
 
