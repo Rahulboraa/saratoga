@@ -24,8 +24,9 @@ describe('invoiceLines', () => {
     expect(out.cgst).toBe(2_700)
     expect(out.sgst).toBe(2_700)
     expect(out.cgst + out.sgst).toBe(Math.round(30_000 * GST_RATE))
-    // Licence and deposit ride along untaxed.
-    expect(out.total).toBe(30_000 + 5_400 + 5_000 + 20_000)
+    // The licence rides along untaxed; the deposit is listed but not added in.
+    expect(out.total).toBe(30_000 + 5_400 + 5_000)
+    expect(out.security).toBe(20_000)
   })
 
   it('taxes valet like any other service line', () => {
@@ -47,7 +48,7 @@ describe('invoiceLines', () => {
     expect(out.taxable).toBe(27_000)
     expect(out.cgst).toBe(0)
     expect(out.sgst).toBe(0)
-    expect(out.total).toBe(37_000)
+    expect(out.total).toBe(27_000)
   })
 
   it('treats a booking with no flag as taxed, which is the default', () => {

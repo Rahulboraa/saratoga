@@ -49,13 +49,13 @@ export function withFinance(
   const totals = sums.get(String(doc._id)) ?? { collected: 0, refunded: 0 }
   const collected = (doc.legacyReceived ?? 0) + totals.collected
 
-  // A refund reduces what is owed as well as what was taken. Without this, handing back
-  // the security deposit — which the terms promise — turned a settled booking into one
-  // showing the deposit as still due.
-  const payable = doc.amount
-    + (doc.breakdown?.license ?? 0)
-    + (doc.breakdown?.security ?? 0)
-    - totals.refunded
+  // The security deposit is money held on the guest's behalf, not money earned, so it is
+  // no part of what the booking is worth: counting it inflated both the balance owed and
+  // the collections the accounts are built from.
+  //
+  // A refund still reduces what is owed, which is right for a cancellation or an
+  // overpayment handed back.
+  const payable = doc.amount + (doc.breakdown?.license ?? 0) - totals.refunded
 
   return { collected, refunded: totals.refunded, due: payable - collected, status: statusOf(payable, collected) }
 }

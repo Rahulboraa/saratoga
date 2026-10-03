@@ -240,10 +240,7 @@ bookingsRouter.get('/:id/confirmation', requireRole('admin', 'manager'), async (
   const sums = await paymentSums([booking._id])
   const { collected: paid = 0, refunded = 0 } = sums.get(String(booking._id)) ?? {}
   const collected = (booking.legacyReceived ?? 0) + paid
-  const payable = booking.amount
-    + (booking.breakdown?.license ?? 0)
-    + (booking.breakdown?.security ?? 0)
-    - refunded
+  const payable = booking.amount + (booking.breakdown?.license ?? 0) - refunded
 
   res.json({
     phone: booking.phone,

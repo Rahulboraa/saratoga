@@ -64,6 +64,8 @@ export function invoiceLines(booking: BookingDoc) {
     sgst,
     licence,
     security,
-    total: taxable + cgst + sgst + licence + security,
+    // Listed on the invoice so the guest sees it, but not added in: it is refundable and
+    // is collected and returned separately from what the event costs.
+    total: taxable + cgst + sgst + licence,
   }
 }

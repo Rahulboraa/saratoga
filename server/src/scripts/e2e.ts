@@ -132,6 +132,16 @@ check('issuing again keeps the same number', reissued.body.invoiceNo === 'VA/202
 const issuedB = await call(admin, `/bookings/${bookB.body.id}/invoice`, { property: B, method: 'POST' })
 check('B has its own series', issuedB.body.invoiceNo === 'VB/2026-27/001', String(issuedB.body.invoiceNo))
 
+console.log('\n5a. The security deposit stays out of the money')
+const depBooking = await call(admin, '/bookings', { property: A, body: { guest: 'Deposit', phone: '8', checkinDate: '2026-12-28', breakdown: { venue: 40000, security: 10000 } } })
+const depRow = await call(admin, `/bookings/${depBooking.body.id}`, { property: A })
+check('the booking is worth the rent, not rent plus deposit', depRow.body.due === 40000, String(depRow.body.due))
+await call(admin, `/bookings/${depBooking.body.id}/payments`, { property: A, body: { date: '2026-12-01', amount: 40000, dest: 'HDFC' } })
+const depPaid = await call(admin, `/bookings/${depBooking.body.id}`, { property: A })
+check('paying the rent settles it', depPaid.body.due === 0 && depPaid.body.status === 'paid', JSON.stringify({ due: depPaid.body.due, s: depPaid.body.status }))
+const depInv = await call(admin, `/bookings/${depBooking.body.id}/invoice`, { property: A })
+check('the invoice lists the deposit but does not add it in', depInv.body.security === 10000 && depInv.body.total === 40000 + 7200, JSON.stringify({ sec: depInv.body.security, total: depInv.body.total }))
+
 console.log('\n5b. Proforma becomes an invoice when money arrives')
 const quoteBooking = await call(admin, '/bookings', { property: A, body: { guest: 'Quote only', phone: '7', checkinDate: '2026-12-20', breakdown: { venue: 10000 } } })
 const quote = await call(admin, `/bookings/${quoteBooking.body.id}/invoice`, { property: A })

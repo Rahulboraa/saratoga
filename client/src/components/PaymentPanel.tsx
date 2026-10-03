@@ -51,7 +51,8 @@ export default function PaymentPanel({ booking, onClose }: { booking: Booking | 
   if (!booking) return null
 
   const paid = booking.collected ?? payments.reduce((s, p) => s + p.amount, 0)
-  const amount = (booking.amount ?? 0) + (booking.breakdown?.license ?? 0) + (booking.breakdown?.security ?? 0)
+  // The deposit is held rather than earned, so it is shown but not added in.
+  const amount = (booking.amount ?? 0) + (booking.breakdown?.license ?? 0)
   const due = amount - paid
   const pct = amount > 0 ? Math.min(Math.round((paid / amount) * 100), 100) : 0
 
@@ -117,13 +118,16 @@ export default function PaymentPanel({ booking, onClose }: { booking: Booking | 
                     {booking.breakdown.license > 0 && (
                       <div className="flex justify-between text-muted-foreground"><span>+ License</span><span className="tabular-nums">{fmtMoney(booking.breakdown.license)}</span></div>
                     )}
-                    {booking.breakdown.security > 0 && (
-                      <div className="flex justify-between text-muted-foreground"><span>+ Security deposit</span><span className="tabular-nums">{fmtMoney(booking.breakdown.security)}</span></div>
-                    )}
                     <div className="flex justify-between border-t pt-2.5 text-[16px] font-semibold">
                       <span>Total payable</span>
                       <span className="tabular-nums">{fmtMoney(amount)}</span>
                     </div>
+                    {booking.breakdown.security > 0 && (
+                      <div className="flex justify-between pt-1 text-[12px] text-muted-foreground">
+                        <span>Security deposit (held separately, refundable)</span>
+                        <span className="tabular-nums">{fmtMoney(booking.breakdown.security)}</span>
+                      </div>
+                    )}
                   </>
                 )}
               </div>

@@ -388,6 +388,9 @@ export default function BookingSheet({
                     <div className="space-y-2">
                       <Label>Security deposit</Label>
                       <Input type="number" min="0" {...register("security")} />
+                      <p className="text-[11px] text-muted-foreground">
+                        Refundable — not counted in the booking amount or collections.
+                      </p>
                     </div>
                   </div>
                 </div>
