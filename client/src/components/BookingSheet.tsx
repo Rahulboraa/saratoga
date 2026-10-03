@@ -318,7 +318,7 @@ export default function BookingSheet({
                 />
               </div>
               <div className="space-y-2">
-                <Label>Purpose</Label>
+                <Label>Event Type</Label>
                 <Select
                   value={purpose}
                   onValueChange={(v) => setValue("purpose", v)}

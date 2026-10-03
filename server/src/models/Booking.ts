@@ -1,6 +1,10 @@
 import { Schema, model } from 'mongoose'
 
-export const PURPOSES = ['Party', 'Shoot', 'Pre-wedding', 'Kids Birthday', 'Other'] as const
+import { EVENT_TYPES } from './eventTypes.js'
+
+export { EVENT_TYPES }
+/** Kept as a name so existing imports of PURPOSES still read sensibly. */
+export const PURPOSES = EVENT_TYPES
 export const SOURCES = ['Airbnb', 'Direct', 'Referral', ''] as const
 export const BREAKDOWN_KEYS = ['venue', 'catering', 'decor', 'music', 'valet', 'cleaning', 'license', 'security'] as const
 
@@ -14,7 +18,7 @@ const bookingSchema = new Schema(
     checkinTime: { type: String, default: '15:00' },
     checkoutTime: { type: String, default: '10:00' },
     pax: { type: String, default: '' },
-    purpose: { type: String, enum: PURPOSES, default: 'Other' },
+    purpose: { type: String, enum: EVENT_TYPES, default: 'Other' },
     source: { type: String, enum: SOURCES, default: '' },
     dest: { type: String, default: '' },
     notes: { type: String, default: '' },

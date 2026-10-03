@@ -46,11 +46,17 @@ export function nowHm() {
 }
 
 export const PURPOSE_COLORS: Record<string, string> = {
-  'Party': '#7B6EF6',
+  'Birthday/Anniversary': '#F0A500',
+  'Corporate Party': '#7B6EF6',
+  'Kitty Party': '#E0609A',
+  'Wedding/Pre-wedding': '#D4537E',
   'Shoot': '#1D9E75',
+  'Stays': '#2F8FD6',
+  'Other': '#888780',
+  // Anything left over from the old lists still gets a colour rather than nothing.
+  'Party': '#7B6EF6',
   'Pre-wedding': '#D4537E',
   'Kids Birthday': '#F0A500',
-  'Other': '#888780',
 }
 
 export const STATUS_VARIANT: Record<string, 'success' | 'warning' | 'destructive'> = {

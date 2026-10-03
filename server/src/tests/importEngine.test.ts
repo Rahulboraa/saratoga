@@ -31,7 +31,8 @@ describe('booking import', () => {
     const out = normalizeRow('bookings', mapRow('bookings', raw)) as Record<string, unknown>
     expect(out.legacyId).toBe('42')
     expect(out.checkinDate).toBe('2026-08-15')
-    expect(out.purpose).toBe('Party')
+    // A bare "party" says nothing about which kind, so it lands on Other.
+    expect(out.purpose).toBe('Other')
     expect(out.source).toBe('Airbnb')
     expect((out.breakdown as Record<string, number>).venue).toBe(40000)
     expect(out.legacyReceived).toBe(5000)
@@ -52,7 +53,7 @@ describe('lead import', () => {
     }
     const out = normalizeRow('leads', mapRow('leads', raw)) as Record<string, unknown>
     expect(out.phone).toBe('+918076031930')
-    expect(out.eventType).toBe('Wedding / Engagement')
+    expect(out.eventType).toBe('Wedding/Pre-wedding')
     expect(out.notes).toContain('call evening')
     expect(out.notes).toContain('Email: p@x.com')
     expect(out.notes).toContain('State: Delhi')

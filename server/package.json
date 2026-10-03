@@ -12,7 +12,8 @@
     "seed:demo": "tsx src/scripts/seedDemo.ts",
     "migrate:properties": "tsx src/scripts/migrateProperties.ts",
     "backfill:visitor-types": "tsx src/scripts/backfillVisitorTypes.ts",
-    "test:e2e": "tsx src/scripts/e2e.ts"
+    "test:e2e": "tsx src/scripts/e2e.ts",
+    "migrate:event-types": "tsx src/scripts/migrateEventTypes.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

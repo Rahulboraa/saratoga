@@ -29,8 +29,19 @@ export interface Property {
   confirmationNotes: string
 }
 
-export const PURPOSES = ['Party', 'Shoot', 'Pre-wedding', 'Kids Birthday', 'Other'] as const
-export type Purpose = (typeof PURPOSES)[number]
+/** One list for a booking's event type and a lead's — they describe the same thing. */
+export const EVENT_TYPES = [
+  'Birthday/Anniversary',
+  'Corporate Party',
+  'Kitty Party',
+  'Wedding/Pre-wedding',
+  'Shoot',
+  'Stays',
+  'Other',
+] as const
+export type EventType = (typeof EVENT_TYPES)[number]
+export const PURPOSES = EVENT_TYPES
+export type Purpose = EventType
 export const SOURCES = ['Airbnb', 'Direct', 'Referral'] as const
 
 export interface Breakdown {
@@ -146,10 +157,6 @@ export interface Visitor {
   fuRemark?: string
 }
 
-export const EVENT_TYPES = [
-  'Birthday / Anniversary / Milestone', 'Corporate / Office Party',
-  'Wedding / Engagement', 'Shoot', 'Other',
-] as const
 export const OUTCOMES = ['Interested', 'Not Interested', 'Callback', 'Converted'] as const
 export const LEAD_FLAGS = [
   { value: 'review', label: 'Review' },
@@ -163,7 +170,7 @@ export interface Lead {
   time: string
   name: string
   phone: string
-  eventType: (typeof EVENT_TYPES)[number]
+  eventType: EventType
   outcome: string
   followup: string
   notes: string

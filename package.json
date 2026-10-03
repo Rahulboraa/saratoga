@@ -19,6 +19,7 @@
     "seed:demo": "npm run seed:demo -w server",
     "migrate:properties": "npm run migrate:properties -w server",
     "backfill:visitor-types": "npm run backfill:visitor-types -w server",
-    "test:e2e": "npm run test:e2e -w server"
+    "test:e2e": "npm run test:e2e -w server",
+    "migrate:event-types": "npm run migrate:event-types -w server"
   }
 }

@@ -5,6 +5,7 @@ import { Payment } from '../models/Payment.js'
 import { Expense, DEFAULT_EXPENSE_CATS } from '../models/Expense.js'
 import { activeCategoryNames } from './expenseCategories.js'
 import { Visitor, FU_STATUSES } from '../models/Visitor.js'
+import { eventTypeFrom } from '../models/eventTypes.js'
 import { visitorTypeFromPurpose } from '../lib/visitorType.js'
 import { Lead, EVENT_TYPES, OUTCOMES } from '../models/Lead.js'
 import { User } from '../models/User.js'
@@ -171,7 +172,7 @@ export function normalizeRow(type: ImportType, m: Raw, cats: readonly string[] =
         checkinTime: coerceTime(m.checkinTime) || '15:00',
         checkoutTime: coerceTime(m.checkoutTime) || '10:00',
         pax: str(m.pax),
-        purpose: coerceEnum(m.purpose, PURPOSES, 'Other'),
+        purpose: eventTypeFrom(m.purpose),
         source: coerceEnum(m.source, SOURCES, ''),
         dest: str(m.dest),
         notes: str(m.notes),
@@ -241,7 +242,7 @@ export function normalizeRow(type: ImportType, m: Raw, cats: readonly string[] =
         time: coerceTime(m.time),
         name: str(m.name),
         phone: str(m.phone).replace(/^p:/i, '').replace(/[^\d+]/g, ''),
-        eventType: coerceEnum(m.eventType, EVENT_TYPES, 'Other'),
+        eventType: eventTypeFrom(m.eventType),
         outcome: coerceEnum(m.outcome, OUTCOMES, ''),
         followup: normalizeDate(m.followup),
         notes: [str(m.notes), ...extras].filter(Boolean).join(' | '),

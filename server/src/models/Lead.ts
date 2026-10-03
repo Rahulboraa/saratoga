@@ -1,9 +1,7 @@
 import { Schema, model } from 'mongoose'
+import { EVENT_TYPES } from './eventTypes.js'
 
-export const EVENT_TYPES = [
-  'Birthday / Anniversary / Milestone', 'Corporate / Office Party',
-  'Wedding / Engagement', 'Shoot', 'Other',
-] as const
+export { EVENT_TYPES } from './eventTypes.js'
 export const OUTCOMES = ['', 'Interested', 'Not Interested', 'Callback', 'Converted'] as const
 export const FLAGS = ['', 'review', 'good', 'escalate'] as const
 
