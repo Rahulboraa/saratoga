@@ -1,8 +1,17 @@
 import { z } from 'zod'
-import { PURPOSES, SOURCES } from '../models/Booking.js'
+import { SOURCES } from '../models/Booking.js'
+import { eventTypeFrom } from '../models/eventTypes.js'
+
+/**
+ * Accepts anything and settles on a value from the shared list. A record written before
+ * the lists were merged still carries its old type, and the form sends back whatever it
+ * was given — rejecting that makes an old booking impossible to edit at all, which is
+ * worse than quietly bringing it onto the current list as it is saved.
+ */
+const eventType = z.unknown().optional().transform(eventTypeFrom)
 import { FU_STATUSES, VISITOR_TYPES } from '../models/Visitor.js'
 import { INVESTMENT_KINDS } from '../models/Investment.js'
-import { EVENT_TYPES, OUTCOMES, FLAGS } from '../models/Lead.js'
+import { OUTCOMES, FLAGS } from '../models/Lead.js'
 import { YMD, HM } from '../lib/dates.js'
 
 const ymd = z.string().regex(YMD, 'Expected YYYY-MM-DD')
@@ -30,7 +39,7 @@ const bookingCommon = z.object({
   checkinTime: hm.default('15:00'),
   checkoutTime: hm.default('10:00'),
   pax: str.default(''),
-  purpose: z.enum(PURPOSES).default('Other'),
+  purpose: eventType,
   source: z.enum(SOURCES).default(''),
   notes: str.default(''),
   allowOverlap: z.boolean().default(false),
@@ -107,7 +116,7 @@ export const leadCommonSchema = z.object({
   time: z.union([hm, z.literal('')]).default(''),
   name: str.min(1),
   phone: str.min(1),
-  eventType: z.enum(EVENT_TYPES).default('Other'),
+  eventType,
   outcome: z.enum(OUTCOMES).default(''),
   followup: ymdOrEmpty.default(''),
   notes: str.default(''),
