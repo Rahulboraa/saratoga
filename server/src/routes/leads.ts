@@ -55,9 +55,20 @@ leadsRouter.get('/summary', async (req, res) => {
   })
 })
 
+const UNASSIGNED_BATCH = 25
+
 leadsRouter.get('/unassigned', requireRole('admin', 'manager'), async (req, res) => {
-  const leads = await Lead.find(scoped(req, { exec: '' })).sort({ date: -1 }).limit(10)
-  res.json(leads.map((l) => ({ id: l.id, name: l.name, phone: l.phone, eventType: l.eventType })))
+  const filter = scoped(req, { exec: '' })
+  // The count as well as the batch: assigning a batch out of hundreds otherwise looks
+  // like nothing happened, because the next batch refills it to the same length.
+  const [leads, total] = await Promise.all([
+    Lead.find(filter).sort({ date: -1 }).limit(UNASSIGNED_BATCH),
+    Lead.countDocuments(filter),
+  ])
+  res.json({
+    rows: leads.map((l) => ({ id: l.id, name: l.name, phone: l.phone, eventType: l.eventType })),
+    total,
+  })
 })
 
 leadsRouter.get('/overdue', async (req, res) => {

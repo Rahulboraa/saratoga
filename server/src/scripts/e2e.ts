@@ -182,6 +182,18 @@ check('the mistyped partner is gone from the ledger', !afterEdit.body.partners?.
 const crossEdit = await call(mgrA, `/investments/${entry.body.id}`, { method: 'PATCH', body: { amount: 1 } })
 check('a manager cannot touch investments at all', crossEdit.status === 403, String(crossEdit.status))
 
+console.log('\n6c. Unassigned leads')
+for (let i = 0; i < 30; i++) {
+  await call(admin, '/leads', { property: A, body: { date: '2026-10-01', name: `Lead ${i}`, phone: `90000000${String(i).padStart(2, '0')}`, exec: '' } })
+}
+const un = await call(admin, '/leads/unassigned', { property: A })
+check('the batch is 25, not 10', un.body.rows?.length === 25, String(un.body.rows?.length))
+check('the real total comes with it', un.body.total === 30, String(un.body.total))
+await call(admin, '/leads/assign', { property: A, body: { ids: un.body.rows.map((l: Json) => l.id), exec: 'mgra' } })
+const after = await call(admin, '/leads/unassigned', { property: A })
+check('assigning a batch drops the total, so progress shows', after.body.total === 5, String(after.body.total))
+check('and refills with what is left', after.body.rows?.length === 5, String(after.body.rows?.length))
+
 console.log('\n7. Incentives need one property')
 const incAll = await call(admin, '/stats/incentives?month=all')
 check('incentives refuse an all-properties view', incAll.status === 400, String(incAll.status))

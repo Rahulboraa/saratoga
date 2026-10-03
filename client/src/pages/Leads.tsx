@@ -91,9 +91,9 @@ export default function Leads() {
     queryFn: () => api<Lead[]>('/leads/overdue'),
   })
 
-  const { data: unassignedLeads = [] } = useQuery({
+  const { data: unassigned } = useQuery({
     queryKey: ['leads', 'unassigned'],
-    queryFn: () => api<UnassignedLead[]>('/leads/unassigned'),
+    queryFn: () => api<{ rows: UnassignedLead[]; total: number }>('/leads/unassigned'),
     enabled: isManager,
   })
 
@@ -322,23 +322,28 @@ export default function Leads() {
         </Card>
       )}
 
-      {isManager && unassignedLeads.length > 0 && (
+      {isManager && !!unassigned?.total && (
         <Card className="mb-6 border-warning/25 bg-warning/5 py-4">
           <CardContent className="px-5">
             <div className="mb-2 flex flex-wrap items-center gap-2 text-[13px] font-semibold text-warning">
               <UserX className="size-5" />
-              {unassignedLeads.length} unassigned lead{unassignedLeads.length > 1 ? 's' : ''} need an executive
-              {unassignedLeads.length > 1 && (
-                <Select onValueChange={(v) => assign.mutate({ ids: unassignedLeads.map((l) => l.id), exec: v })}>
-                  <SelectTrigger className="ml-auto h-7 w-44 bg-background text-[12px] font-medium text-foreground"><SelectValue placeholder="Assign all to…" /></SelectTrigger>
+              {unassigned.total} unassigned lead{unassigned.total > 1 ? 's' : ''} need an executive
+              {unassigned.total > unassigned.rows.length && (
+                <span className="font-normal text-muted-foreground">· showing the oldest {unassigned.rows.length}</span>
+              )}
+              {unassigned.rows.length > 1 && (
+                <Select onValueChange={(v) => assign.mutate({ ids: unassigned.rows.map((l) => l.id), exec: v })}>
+                  <SelectTrigger className="ml-auto h-7 w-44 bg-background text-[12px] font-medium text-foreground">
+                    <SelectValue placeholder={`Assign these ${unassigned.rows.length} to…`} />
+                  </SelectTrigger>
                   <SelectContent>
                     {execs.map((u) => <SelectItem key={u.username} value={u.username}>{u.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               )}
             </div>
-            <div className="space-y-1.5">
-              {unassignedLeads.slice(0, 5).map((l) => (
+            <div className="max-h-72 space-y-1.5 overflow-y-auto pr-1">
+              {unassigned.rows.map((l) => (
                 <div key={l.id} className="flex flex-wrap items-center justify-between gap-2 py-1 text-[13px]">
                   <span>{l.name} · {l.phone}</span>
                   <Select onValueChange={(v) => assign.mutate({ ids: [l.id], exec: v })}>
