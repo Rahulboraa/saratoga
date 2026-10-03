@@ -165,6 +165,7 @@ export default function Invoice() {
           )}
           {data.licence > 0 && <Row label="Licence fee (no GST)" value={fmtMoney(data.licence)} />}
           {data.security > 0 && <Row label="Security deposit (refundable)" value={fmtMoney(data.security)} />}
+          {data.refunded > 0 && <Row label="Less: refunded" value={`− ${fmtMoney(data.refunded)}`} />}
           <div className="mt-1.5 border-t pt-1.5">
             <Row label="Total" value={fmtMoney(data.total)} strong />
           </div>

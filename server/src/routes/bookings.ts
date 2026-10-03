@@ -5,7 +5,7 @@ import { requireRole } from '../middleware/auth.js'
 import { bookingAdminSchema, paymentSchema } from '../validation/schemas.js'
 import { serializeBooking, serializeCalendarBooking, serializePayment } from '../lib/sanitize.js'
 import { overlaps, overlapIdSet } from '../lib/overlap.js'
-import { paymentSums, withFinance } from '../services/finance.js'
+import { paymentSums, withFinance, type PaymentTotals } from '../services/finance.js'
 import { scoped, writeProperty } from '../middleware/scope.js'
 import { Property } from '../models/Property.js'
 import { invoiceLines, nextInvoiceNo, GST_RATE } from '../services/invoice.js'
@@ -175,7 +175,7 @@ bookingsRouter.patch('/:id', requireRole('admin', 'manager'), async (req, res) =
   }
   booking.set(body)
   await booking.save()
-  const sums = req.user.role !== 'sales' ? await paymentSums([booking._id]) : new Map<string, number>()
+  const sums = req.user.role !== 'sales' ? await paymentSums([booking._id]) : new Map<string, PaymentTotals>()
   const row = { ...booking.toObject(), id: booking.id, ...(req.user.role !== 'sales' ? withFinance(booking, sums) : {}) }
   res.json(serializeBooking(row, req.user.role))
 })
@@ -194,7 +194,8 @@ async function invoicePayload(req: Parameters<typeof scoped>[0], id: string) {
   const property = await Property.findById(booking.propertyId)
   const sums = await paymentSums([booking._id])
   const lines = invoiceLines(booking)
-  const received = (booking.legacyReceived ?? 0) + (sums.get(String(booking._id)) ?? 0)
+  const { collected: paid = 0, refunded = 0 } = sums.get(String(booking._id)) ?? {}
+  const received = (booking.legacyReceived ?? 0) + paid
   return {
     invoiceNo: booking.invoiceNo,
     invoiceDate: booking.invoiceDate,
@@ -214,6 +215,9 @@ async function invoicePayload(req: Parameters<typeof scoped>[0], id: string) {
       terms: (property?.invoiceTerms ?? '').split('\n').map((t) => t.trim()).filter(Boolean),
     },
     ...lines,
+    // A refunded deposit is no longer part of what the guest owes.
+    refunded,
+    total: lines.total - refunded,
     received,
   }
 }
@@ -234,8 +238,12 @@ bookingsRouter.get('/:id/confirmation', requireRole('admin', 'manager'), async (
   if (!booking) return res.status(404).json({ error: 'Booking not found' })
   const property = await Property.findById(booking.propertyId)
   const sums = await paymentSums([booking._id])
-  const collected = (booking.legacyReceived ?? 0) + (sums.get(String(booking._id)) ?? 0)
-  const payable = booking.amount + (booking.breakdown?.license ?? 0) + (booking.breakdown?.security ?? 0)
+  const { collected: paid = 0, refunded = 0 } = sums.get(String(booking._id)) ?? {}
+  const collected = (booking.legacyReceived ?? 0) + paid
+  const payable = booking.amount
+    + (booking.breakdown?.license ?? 0)
+    + (booking.breakdown?.security ?? 0)
+    - refunded
 
   res.json({
     phone: booking.phone,

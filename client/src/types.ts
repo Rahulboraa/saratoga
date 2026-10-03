@@ -314,6 +314,7 @@ export interface InvoicePayload {
   sgst: number
   licence: number
   security: number
+  refunded: number
   total: number
   received: number
 }

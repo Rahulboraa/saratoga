@@ -2,13 +2,29 @@ import { Payment } from '../models/Payment.js'
 import { ExpensePayment } from '../models/ExpensePayment.js'
 import type { Types } from 'mongoose'
 
+export interface PaymentTotals {
+  /** Net of refunds — what the guest is actually out of pocket. */
+  collected: number
+  /** Money handed back, which a refunded deposit makes up most of. */
+  refunded: number
+}
+
 export async function paymentSums(bookingIds?: Types.ObjectId[], scope: Record<string, unknown> = {}) {
   const rows = await Payment.aggregate([
     ...(bookingIds ? [{ $match: { bookingId: { $in: bookingIds } } }] : []),
     ...(Object.keys(scope).length ? [{ $match: scope }] : []),
-    { $group: { _id: '$bookingId', sum: { $sum: '$amount' } } },
+    {
+      $group: {
+        _id: '$bookingId',
+        collected: { $sum: '$amount' },
+        // Refunds are recorded as negative payments.
+        refunded: { $sum: { $cond: [{ $lt: ['$amount', 0] }, { $abs: '$amount' }, 0] } },
+      },
+    },
   ])
-  return new Map<string, number>(rows.map((r) => [String(r._id), r.sum]))
+  return new Map<string, PaymentTotals>(
+    rows.map((r) => [String(r._id), { collected: r.collected, refunded: r.refunded }]),
+  )
 }
 
 export async function expensePaymentSums(expenseIds?: Types.ObjectId[], scope: Record<string, unknown> = {}) {
@@ -28,9 +44,18 @@ export function statusOf(amount: number, collected: number) {
 
 export function withFinance(
   doc: { _id: unknown; amount: number; legacyReceived?: number; breakdown?: { license?: number; security?: number } | null },
-  sums: Map<string, number>,
+  sums: Map<string, PaymentTotals>,
 ) {
-  const collected = (doc.legacyReceived ?? 0) + (sums.get(String(doc._id)) ?? 0)
-  const payable = doc.amount + (doc.breakdown?.license ?? 0) + (doc.breakdown?.security ?? 0)
-  return { collected, due: payable - collected, status: statusOf(payable, collected) }
+  const totals = sums.get(String(doc._id)) ?? { collected: 0, refunded: 0 }
+  const collected = (doc.legacyReceived ?? 0) + totals.collected
+
+  // A refund reduces what is owed as well as what was taken. Without this, handing back
+  // the security deposit — which the terms promise — turned a settled booking into one
+  // showing the deposit as still due.
+  const payable = doc.amount
+    + (doc.breakdown?.license ?? 0)
+    + (doc.breakdown?.security ?? 0)
+    - totals.refunded
+
+  return { collected, refunded: totals.refunded, due: payable - collected, status: statusOf(payable, collected) }
 }
