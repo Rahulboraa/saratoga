@@ -7,6 +7,7 @@ import { visitorTypeFromPurpose } from '../lib/visitorType.js'
 import { Lead } from '../models/Lead.js'
 import { User } from '../models/User.js'
 import { ensureDefaultProperty } from './defaultProperty.js'
+import { EVENT_TYPES, LEGACY_EVENT_TYPES, type EventType } from '../models/eventTypes.js'
 
 const SCOPED_MODELS = {
   bookings: Booking,
@@ -24,6 +25,47 @@ const MISSING_PROPERTY = { $or: [{ propertyId: { $exists: false } }, { propertyI
 const MISSING_TYPE_CLAUSES: Record<string, unknown>[] = [{ type: { $exists: false } }, { type: null }]
 const MISSING_TYPE = { $or: MISSING_TYPE_CLAUSES }
 
+const ON_LIST = new Set<string>(EVENT_TYPES)
+
+/** Records still carrying a value from the old, separate booking and lead lists. */
+function offList(field: string) {
+  return { [field]: { $nin: [...ON_LIST] } }
+}
+
+/**
+ * Moves bookings and leads onto the shared event-type list, keeping the old value on the
+ * record. "Party" has no equivalent — it covered birthdays, kitty parties and corporate
+ * alike and nothing says which — so it becomes Other rather than a guess that would make
+ * next year's targeting look authoritative while being invented. The kept value means
+ * that call can be revisited, and it survives where a backup file could not: this runs in
+ * a serverless function with no disk to write to.
+ */
+export async function migrateEventTypes() {
+  const counts: Record<string, number> = {}
+
+  const move = async (
+    model: typeof Booking | typeof Lead,
+    field: 'purpose' | 'eventType',
+    keep: 'legacyPurpose' | 'legacyEventType',
+  ) => {
+    const rows = await (model as typeof Booking).find(offList(field)).select(field).lean()
+    for (const row of rows) {
+      const from = String((row as Record<string, unknown>)[field] ?? '')
+      const to: EventType = LEGACY_EVENT_TYPES[from] ?? 'Other'
+      await (model as typeof Booking).updateOne(
+        { _id: row._id },
+        { $set: { [field]: to, [keep]: from } },
+      )
+      const label = `${from || '(blank)'} → ${to}`
+      counts[label] = (counts[label] ?? 0) + 1
+    }
+  }
+
+  await move(Booking, 'purpose', 'legacyPurpose')
+  await move(Lead, 'eventType', 'legacyEventType')
+  return counts
+}
+
 export interface MigrationStatus {
   pending: Record<string, number>
   total: number
@@ -39,6 +81,8 @@ export async function migrationStatus(): Promise<MigrationStatus> {
   const pending: Record<string, number> = Object.fromEntries(entries)
   pending.users = await User.countDocuments({ role: { $ne: 'admin' }, ...MISSING_PROPERTY })
   pending.visitorTypes = await Visitor.countDocuments(MISSING_TYPE)
+  pending.bookingEventTypes = await Booking.countDocuments(offList('purpose'))
+  pending.leadEventTypes = await Lead.countDocuments(offList('eventType'))
 
   return { pending, total: Object.values(pending).reduce((sum, n) => sum + n, 0) }
 }

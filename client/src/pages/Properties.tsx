@@ -17,8 +17,6 @@ import { propertyColor } from '@/lib/propertyLook'
 import EmptyState from '@/components/EmptyState'
 import { PageHeader } from '@/components/PageHeader'
 
-const DEFAULT_PROPERTY = 'Saratoga Villa'
-
 export default function Properties() {
   const queryClient = useQueryClient()
   // One dialog for both jobs: null while adding, the property being changed while editing.
@@ -135,10 +133,10 @@ export default function Properties() {
         <div className="mb-5 flex flex-wrap items-start gap-3 rounded-xl border border-warning/40 bg-warning/5 px-4 py-3.5">
           <AlertTriangle className="mt-0.5 size-5 shrink-0 text-warning" />
           <div className="min-w-0 flex-1">
-            <div className="text-[13px] font-semibold">{migration.total} records are not in any property yet</div>
+            <div className="text-[13px] font-semibold">{migration.total} records need migrating</div>
             <p className="mt-0.5 text-[12px] text-muted-foreground">
-              These were created before properties existed, so they only show under “All properties”, and staff
-              cannot sign in until they have one. This moves them into {DEFAULT_PROPERTY} and can be run again safely.
+              Records created before a change that has since landed — bookings and leads still on the old event
+              type lists, or rows predating properties. Their old value is kept, and this can be run again safely.
             </p>
             <p className="mt-1 text-[12px] text-muted-foreground">
               {Object.entries(migration.pending)

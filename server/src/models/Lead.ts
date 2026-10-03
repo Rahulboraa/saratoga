@@ -13,6 +13,7 @@ const leadSchema = new Schema(
     name: { type: String, required: true, trim: true },
     phone: { type: String, required: true, trim: true, index: true },
     eventType: { type: String, enum: EVENT_TYPES, default: 'Other' },
+    legacyEventType: { type: String, default: '' },
     outcome: { type: String, enum: OUTCOMES, default: '' },
     followup: { type: String, default: '' },
     notes: { type: String, default: '' },

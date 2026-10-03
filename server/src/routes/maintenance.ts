@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { requireRole } from '../middleware/auth.js'
-import { migrationStatus, stampExistingRecords, backfillVisitorTypes } from '../services/migrations.js'
+import { migrationStatus, stampExistingRecords, backfillVisitorTypes, migrateEventTypes } from '../services/migrations.js'
 
 export const maintenanceRouter = Router()
 maintenanceRouter.use(requireRole('admin'))
@@ -16,7 +16,8 @@ maintenanceRouter.post('/migrate', async (req, res) => {
     const redoOther = String(req.query.redoOther ?? '') === '1'
     const stamped = await stampExistingRecords()
     const visitorTypes = await backfillVisitorTypes({ redoOther })
-    res.json({ ...stamped, visitorTypes, status: await migrationStatus() })
+    const eventTypes = await migrateEventTypes()
+    res.json({ ...stamped, visitorTypes, eventTypes, status: await migrationStatus() })
   } catch (err) {
     // Admin-only, and the admin is the one who has to decide what to do about it.
     console.error('migration failed', err)

@@ -19,6 +19,9 @@ const bookingSchema = new Schema(
     checkoutTime: { type: String, default: '10:00' },
     pax: { type: String, default: '' },
     purpose: { type: String, enum: EVENT_TYPES, default: 'Other' },
+    // What this was before the lists were merged. Kept so "Party" — which covered
+    // several kinds of event with nothing to tell them apart — can be revisited.
+    legacyPurpose: { type: String, default: '' },
     source: { type: String, enum: SOURCES, default: '' },
     dest: { type: String, default: '' },
     notes: { type: String, default: '' },
