@@ -40,7 +40,7 @@ export function createApp() {
   app.get('/api/health', (_req, res) => res.json({ ok: true }))
   app.use('/api/cron', cronRouter)
   app.use('/api/auth', authRouter)
-  app.use('/api/users', requireAuth, usersRouter)
+  app.use('/api/users', requireAuth, resolveScope, usersRouter)
   app.use('/api/properties', requireAuth, propertiesRouter)
   app.use('/api/maintenance', requireAuth, maintenanceRouter)
   app.use('/api/expense-categories', requireAuth, expenseCategoriesRouter)

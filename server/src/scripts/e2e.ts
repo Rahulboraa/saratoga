@@ -33,6 +33,8 @@ await User.create([
   { username: 'mgra', passwordHash: hash, name: 'Mgr A', role: 'manager', active: true, propertyId: a._id },
   { username: 'mgrb', passwordHash: hash, name: 'Mgr B', role: 'manager', active: true, propertyId: b._id },
   { username: 'orphan', passwordHash: hash, name: 'Orphan', role: 'manager', active: true, propertyId: null },
+  { username: 'salesa', passwordHash: hash, name: 'Sales A', role: 'sales', active: true, propertyId: a._id },
+  { username: 'salesb', passwordHash: hash, name: 'Sales B', role: 'sales', active: true, propertyId: b._id },
 ])
 
 const server = createApp().listen(5199)
@@ -181,6 +183,13 @@ check('the corrected figure lands in the ledger', rahul && rahul.withdrawn === 1
 check('the mistyped partner is gone from the ledger', !afterEdit.body.partners?.some((p: Json) => p.partner === 'Typo'), 'Typo still listed')
 const crossEdit = await call(mgrA, `/investments/${entry.body.id}`, { method: 'PATCH', body: { amount: 1 } })
 check('a manager cannot touch investments at all', crossEdit.status === 403, String(crossEdit.status))
+
+console.log('\n6bb. Who a lead can be assigned to')
+// mgrA manages property A; sales users belong to one property each.
+const execsA = await call(admin, '/users/execs', { property: A })
+const namesA = (execsA.body as Json[]).map((u: Json) => u.username)
+check('managers are not offered as sales people', !namesA.includes('mgra') && !namesA.includes('mgrb'), JSON.stringify(namesA))
+check("another property's people are not offered", !namesA.includes('salesb'), JSON.stringify(namesA))
 
 console.log('\n6c. Unassigned leads')
 for (let i = 0; i < 30; i++) {

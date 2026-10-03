@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { User, ROLES } from '../models/User.js'
 import { requireRole } from '../middleware/auth.js'
 import { Property } from '../models/Property.js'
+import { scoped } from '../middleware/scope.js'
 
 const createSchema = z.object({
   username: z.string().min(2).max(30).regex(/^[a-z0-9_.-]+$/i).transform((s) => s.toLowerCase()),
@@ -44,9 +45,11 @@ async function isLastActiveAdmin(id: string) {
 
 export const usersRouter = Router()
 
+// Who a lead can be assigned to: the sales people of the property being looked at.
+// Managers run the property rather than work the leads, and someone belonging to another
+// property has no business appearing here at all.
 usersRouter.get('/execs', requireRole('admin', 'manager'), async (req, res) => {
-  const scope = req.user.role === 'admin' ? {} : { propertyId: req.user.propertyId }
-  const users = await User.find({ ...scope, active: true, role: { $in: ['sales', 'manager'] } }).sort({ name: 1 })
+  const users = await User.find(scoped(req, { active: true, role: 'sales' })).sort({ name: 1 })
   res.json(users.map((u) => ({ username: u.username, name: u.name })))
 })
 
