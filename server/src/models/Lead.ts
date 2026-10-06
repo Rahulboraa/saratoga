@@ -2,7 +2,12 @@ import { Schema, model } from 'mongoose'
 import { EVENT_TYPES } from './eventTypes.js'
 
 export { EVENT_TYPES } from './eventTypes.js'
-export const OUTCOMES = ['', 'Interested', 'Not Interested', 'Callback', 'Converted'] as const
+// '' is a lead nobody has called yet. 'Did Not Pick' is one that was called and did not
+// answer — a distinction worth keeping, because the second still owes a call back.
+export const OUTCOMES = ['', 'Did Not Pick', 'Interested', 'Not Interested', 'Callback', 'Converted'] as const
+
+/** Outcomes that leave the lead still needing a call. */
+export const OPEN_OUTCOMES = ['', 'Did Not Pick', 'Interested', 'Callback'] as const
 export const FLAGS = ['', 'review', 'good', 'escalate'] as const
 
 const leadSchema = new Schema(

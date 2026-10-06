@@ -49,7 +49,10 @@ leadsRouter.get('/summary', async (req, res) => {
   res.json({
     total: leads.length,
     converted: leads.filter((l) => l.outcome === 'Converted').length,
-    callbacks: leads.filter((l) => l.outcome === 'Callback' && (!l.followup || l.followup >= today)).length,
+    // A number that did not answer is as much a call to make as a promised callback.
+    callbacks: leads.filter(
+      (l) => (l.outcome === 'Callback' || l.outcome === 'Did Not Pick') && (!l.followup || l.followup >= today),
+    ).length,
     overdue: leads.filter((l) => l.followup && l.followup < today && l.outcome !== 'Converted' && l.outcome !== 'Not Interested').length,
     unassigned: req.user.role === 'sales' ? 0 : leads.filter((l) => !l.exec).length,
   })
@@ -93,7 +96,7 @@ leadsRouter.get('/report', requireRole('admin', 'manager'), async (req, res) => 
     const row = byExec.get(key)!
     row.calls++
     if (l.outcome === 'Interested') row.interested++
-    if (l.outcome === 'Callback') row.callbacks++
+    if (l.outcome === 'Callback' || l.outcome === 'Did Not Pick') row.callbacks++
     if (l.outcome === 'Converted') row.converted++
   }
   res.json([...byExec.values()].map((r) => ({

@@ -100,6 +100,24 @@ const ALIASES: Record<ImportType, Record<string, string[]>> = {
 
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '')
 
+/** How a call went, as a sheet is likely to spell it. */
+const OUTCOME_WORDS: [(typeof OUTCOMES)[number], string[]][] = [
+  ['Did Not Pick', ['dnp', 'didnotpick', 'notpicked', 'noanswer', 'notanswered', 'notreachable', 'unreachable', 'nopickup', 'missed']],
+  ['Not Interested', ['notinterested', 'notintrested', 'rejected', 'lost']],
+  ['Interested', ['interested', 'intrested', 'hot', 'warm']],
+  ['Callback', ['callback', 'calllater', 'followup']],
+  ['Converted', ['converted', 'booked', 'won', 'closed']],
+]
+
+function leadOutcomeFrom(value: unknown): (typeof OUTCOMES)[number] {
+  const text = norm(String(value ?? ''))
+  if (!text) return ''
+  for (const [outcome, words] of OUTCOME_WORDS) {
+    if (words.some((w) => text.includes(w))) return outcome
+  }
+  return ''
+}
+
 function coerceEnum<T extends readonly string[]>(value: unknown, options: T, fallback: T[number]): T[number] {
   const v = norm(String(value ?? ''))
   if (!v) return fallback
@@ -243,7 +261,7 @@ export function normalizeRow(type: ImportType, m: Raw, cats: readonly string[] =
         name: str(m.name),
         phone: str(m.phone).replace(/^p:/i, '').replace(/[^\d+]/g, ''),
         eventType: eventTypeFrom(m.eventType),
-        outcome: coerceEnum(m.outcome, OUTCOMES, ''),
+        outcome: leadOutcomeFrom(m.outcome),
         followup: normalizeDate(m.followup),
         notes: [str(m.notes), ...extras].filter(Boolean).join(' | '),
         exec: str(m.exec).toLowerCase(),

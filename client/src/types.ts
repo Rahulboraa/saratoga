@@ -157,7 +157,7 @@ export interface Visitor {
   fuRemark?: string
 }
 
-export const OUTCOMES = ['Interested', 'Not Interested', 'Callback', 'Converted'] as const
+export const OUTCOMES = ['Did Not Pick', 'Interested', 'Not Interested', 'Callback', 'Converted'] as const
 export const LEAD_FLAGS = [
   { value: 'review', label: 'Review' },
   { value: 'good', label: 'Good Call' },
