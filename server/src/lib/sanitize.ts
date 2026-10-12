@@ -16,10 +16,14 @@ const BOOKING_COMMON = [
   'guest', 'phone', 'checkinDate', 'checkoutDate', 'checkinTime', 'checkoutTime',
   'pax', 'purpose', 'source', 'notes', 'createdBy', 'overlap',
 ]
-const BOOKING_ADMIN = [...BOOKING_COMMON, 'dest', 'breakdown', 'amount', 'collected', 'due', 'status', 'invoiceNo']
+const BOOKING_ADMIN = [...BOOKING_COMMON, 'dest', 'breakdown', 'amount', 'collected', 'due', 'status', 'invoiceNo', 'createdAt']
 
 export function serializeBooking(doc: Doc, role: Role) {
-  return { ...base(doc), ...pick(doc, role === 'admin' || role === 'manager' ? BOOKING_ADMIN : BOOKING_COMMON) }
+  const out: Doc = { ...base(doc), ...pick(doc, role === 'admin' || role === 'manager' ? BOOKING_ADMIN : BOOKING_COMMON) }
+  // When the booking was taken, as distinct from when the event is — what tells you how
+  // much was closed on a given day.
+  if (out.createdAt instanceof Date) out.createdAt = out.createdAt.toISOString().slice(0, 10)
+  return out
 }
 
 const CALENDAR_KEYS = ['guest', 'checkinDate', 'checkoutDate', 'checkinTime', 'checkoutTime', 'pax', 'purpose', 'overlap']
@@ -59,7 +63,7 @@ export function serializeVisitor(doc: Doc, role: Role) {
 
 const LEAD_COMMON = [
   'date', 'time', 'name', 'phone', 'eventType', 'outcome', 'followup',
-  'notes', 'exec', 'execLabel', 'importedBy', 'createdAt',
+  'notes', 'exec', 'execLabel', 'importedBy', 'createdAt', 'calledAt',
 ]
 const LEAD_MANAGER = [...LEAD_COMMON, 'flag', 'adminComment']
 

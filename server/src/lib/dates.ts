@@ -1,8 +1,12 @@
 export const YMD = /^\d{4}-\d{2}-\d{2}$/
 export const HM = /^\d{2}:\d{2}$/
 
+export function istYmd(at: Date) {
+  return at.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
+}
+
 export function todayYmd() {
-  return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
+  return istYmd(new Date())
 }
 
 export function monthOf(date: string) {

@@ -91,6 +91,15 @@ export default function Bookings() {
         </div>
       ),
     },
+    ...(canEdit
+      ? [{
+          id: 'booked',
+          header: 'Booked On',
+          cell: ({ row: { original: b } }: { row: { original: Booking } }) => (
+            <span className="whitespace-nowrap text-[12px] text-muted-foreground">{fmtDate(b.createdAt)}</span>
+          ),
+        } as ColumnDef<Booking>]
+      : []),
     {
       id: 'guest',
       header: 'Guest',

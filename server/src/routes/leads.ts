@@ -1,10 +1,11 @@
 import { Router } from 'express'
 import { z } from 'zod'
-import { Lead } from '../models/Lead.js'
+import { Lead, CLOSED_OUTCOMES } from '../models/Lead.js'
 import { User } from '../models/User.js'
 import { requireRole } from '../middleware/auth.js'
 import { leadCommonSchema, leadManagerSchema } from '../validation/schemas.js'
 import { serializeLead } from '../lib/sanitize.js'
+import { callActivity } from '../services/callActivity.js'
 import { scoped, writeProperty } from '../middleware/scope.js'
 
 export const leadsRouter = Router()
@@ -53,7 +54,9 @@ leadsRouter.get('/summary', async (req, res) => {
     callbacks: leads.filter(
       (l) => (l.outcome === 'Callback' || l.outcome === 'Did Not Pick') && (!l.followup || l.followup >= today),
     ).length,
-    overdue: leads.filter((l) => l.followup && l.followup < today && l.outcome !== 'Converted' && l.outcome !== 'Not Interested').length,
+    overdue: leads.filter(
+      (l) => l.followup && l.followup < today && !(CLOSED_OUTCOMES as readonly string[]).includes(l.outcome),
+    ).length,
     unassigned: req.user.role === 'sales' ? 0 : leads.filter((l) => !l.exec).length,
   })
 })
@@ -78,11 +81,16 @@ leadsRouter.get('/overdue', async (req, res) => {
   const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
   const filter: Record<string, unknown> = scoped(req, {
     followup: { $gt: '', $lt: today },
-    outcome: { $nin: ['Converted', 'Not Interested'] },
+    outcome: { $nin: CLOSED_OUTCOMES },
   })
   if (req.user.role === 'sales') filter.exec = req.user.username
   const leads = await Lead.find(filter).sort({ followup: 1 }).limit(8)
   res.json(leads.map((l) => serializeLead(l.toObject(), req.user.role)))
+})
+
+leadsRouter.get('/activity', requireRole('admin', 'manager'), async (req, res) => {
+  const days = Math.min(Math.max(parseInt(String(req.query.days)) || 14, 1), 90)
+  res.json(await callActivity(scoped(req), days))
 })
 
 leadsRouter.get('/report', requireRole('admin', 'manager'), async (req, res) => {

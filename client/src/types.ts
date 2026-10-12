@@ -59,6 +59,8 @@ export type BookingStatus = 'paid' | 'partial' | 'pending'
 
 export interface Booking {
   invoiceNo?: string
+  /** The day the booking was taken, not the day of the event. */
+  createdAt?: string
   id: string
   guest: string
   phone: string
@@ -157,7 +159,17 @@ export interface Visitor {
   fuRemark?: string
 }
 
-export const OUTCOMES = ['Did Not Pick', 'Interested', 'Not Interested', 'Callback', 'Converted'] as const
+export const OUTCOMES = [
+  'Did Not Pick',
+  'Interested',
+  'Planning to Visit',
+  'Callback',
+  'Converted',
+  'Not Interested',
+  'Out of Budget',
+  'Venue is Small',
+  'Sold Out',
+] as const
 export const LEAD_FLAGS = [
   { value: 'review', label: 'Review' },
   { value: 'good', label: 'Good Call' },
@@ -174,6 +186,7 @@ export interface Lead {
   outcome: string
   followup: string
   notes: string
+  calledAt?: string | null
   exec: string
   execLabel: string
   importedBy: string
@@ -190,6 +203,14 @@ export interface ExecReportRow {
   callbacks: number
   converted: number
   conversionRate: number
+}
+
+export interface CallActivity {
+  from: string
+  to: string
+  execs: { exec: string; execLabel: string; total: number }[]
+  perDay: ({ date: string } & Record<string, string | number>)[]
+  perOutcome: ({ outcome: string } & Record<string, string | number>)[]
 }
 
 export interface MonthlyPoint {

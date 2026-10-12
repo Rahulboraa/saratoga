@@ -6,7 +6,8 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { fmtDate, todayYmd } from '@/lib/format'
-import { EVENT_TYPES, OUTCOMES, LEAD_FLAGS, type Lead, type ExecReportRow } from '@/types'
+import { EVENT_TYPES, OUTCOMES, LEAD_FLAGS, type Lead, type ExecReportRow, type CallActivity } from '@/types'
+import { CallingChart } from '@/components/charts'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -66,6 +67,7 @@ export default function Leads() {
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(20)
   const [showReport, setShowReport] = useState(false)
+  const [activityDays, setActivityDays] = useState('14')
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editing, setEditing] = useState<Lead | null>(null)
 
@@ -109,9 +111,40 @@ export default function Leads() {
     enabled: isManager && showReport,
   })
 
+  const { data: activity } = useQuery({
+    queryKey: ['leads', 'activity', activityDays],
+    queryFn: () => api<CallActivity>(`/leads/activity?days=${activityDays}`),
+    enabled: isManager && showReport,
+  })
+
   const today = todayYmd()
   const resetPage = () => setPage(1)
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['leads'] })
+
+  // Moving a caseload rather than one lead: when someone leaves or is overloaded, the
+  // manager filters to them and hands the whole set over. Pages through the filter so
+  // leads beyond the first page come too.
+  const transfer = useMutation({
+    mutationFn: async (to: string) => {
+      const ids: string[] = []
+      for (let page = 1; ; page++) {
+        const p = new URLSearchParams(params)
+        p.set('page', String(page))
+        p.set('limit', '100')
+        const res = await api<Paged<Lead>>(`/leads?${p}`)
+        ids.push(...res.rows.map((l) => l.id))
+        if (!res.rows.length || ids.length >= res.total) break
+      }
+      if (!ids.length) throw new Error('No leads to transfer')
+      await api('/leads/assign', { body: { ids, exec: to } })
+      return ids.length
+    },
+    onSuccess: (moved) => {
+      invalidate()
+      toast.success(`${moved} lead${moved === 1 ? '' : 's'} transferred`)
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : 'Transfer failed'),
+  })
 
   const assign = useMutation({
     mutationFn: ({ ids, exec }: { ids: string[]; exec: string }) => api('/leads/assign', { body: { ids, exec } }),
@@ -211,6 +244,18 @@ export default function Leads() {
           <span className="text-muted-foreground">—</span>
         ),
     },
+    {
+      id: 'remarks',
+      header: 'Remarks',
+      // What was actually said on the call — the reason the outcome is what it is, and
+      // the thing a manager reads before picking the lead up again.
+      cell: ({ row: { original: l } }) =>
+        l.notes ? (
+          <span className="block max-w-56 truncate" title={l.notes}>{l.notes}</span>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        ),
+    },
     ...(isManager
       ? ([
           {
@@ -265,6 +310,42 @@ export default function Leads() {
         {isManager && <StatCard icon={UserX} tint="purple" label="Unassigned" value={summary?.unassigned ?? 0} />}
       </div>
 
+      {isManager && showReport && !!activity?.execs.length && (
+        <Card className="mb-6">
+          <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 space-y-0">
+            <div>
+              <CardTitle className="text-[15px]">Calling activity</CardTitle>
+              <p className="mt-1 text-[12px] text-muted-foreground">Leads worked per day, by executive</p>
+            </div>
+            <Select value={activityDays} onValueChange={setActivityDays}>
+              <SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7">Last 7 days</SelectItem>
+                <SelectItem value="14">Last 14 days</SelectItem>
+                <SelectItem value="30">Last 30 days</SelectItem>
+                <SelectItem value="90">Last 90 days</SelectItem>
+              </SelectContent>
+            </Select>
+          </CardHeader>
+          <CardContent className="space-y-8 overflow-x-auto">
+            <CallingChart
+              execs={activity.execs}
+              data={activity.perDay.map((d) => ({
+                ...d,
+                label: new Date(`${d.date}T00:00:00`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+              }))}
+            />
+            <div>
+              <p className="mb-3 text-[13px] font-medium text-foreground/80">By outcome</p>
+              <CallingChart
+                execs={activity.execs}
+                data={activity.perOutcome.map((o) => ({ ...o, label: o.outcome || 'No outcome' }))}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {isManager && showReport && (
         <Card className="mb-6">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
@@ -318,6 +399,31 @@ export default function Leads() {
                 </div>
               ))}
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {isManager && exec !== 'all' && exec !== 'unassigned' && !!data?.total && (
+        <Card className="mb-6 border-info/25 bg-info/5 py-4">
+          <CardContent className="flex flex-wrap items-center gap-2 px-5 text-[13px]">
+            <span className="font-semibold text-info">
+              {data.total} lead{data.total === 1 ? '' : 's'} assigned to {execs.find((u) => u.username === exec)?.name ?? exec}
+            </span>
+            <span className="text-muted-foreground">matching the current filters</span>
+            <Select
+              key={exec}
+              disabled={transfer.isPending}
+              onValueChange={(v) => transfer.mutate(v)}
+            >
+              <SelectTrigger className="ml-auto h-7 w-48 bg-background text-[12px] font-medium text-foreground">
+                <SelectValue placeholder={transfer.isPending ? 'Transferring…' : 'Transfer all to…'} />
+              </SelectTrigger>
+              <SelectContent>
+                {execs.filter((u) => u.username !== exec).map((u) => (
+                  <SelectItem key={u.username} value={u.username}>{u.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </CardContent>
         </Card>
       )}

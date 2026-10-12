@@ -44,6 +44,7 @@ exportRouter.get('/bookings', requireRole('admin', 'manager'), async (req, res) 
   let rows = bookings.map((b) => ({ b, fin: withFinance(b, sums) }))
   if (status) rows = rows.filter((r) => r.fin.status === status)
   sendSheet(res, 'Bookings', rows.map(({ b, fin }) => ({
+    'Booked On': b.createdAt?.toISOString().slice(0, 10) ?? '',
     Guest: b.guest, Phone: b.phone, 'Check-in': b.checkinDate, 'Check-out': b.checkoutDate,
     'In Time': b.checkinTime, 'Out Time': b.checkoutTime, Pax: b.pax, Purpose: b.purpose, Source: b.source,
     Venue: b.breakdown?.venue ?? 0, Catering: b.breakdown?.catering ?? 0, Decor: b.breakdown?.decor ?? 0,

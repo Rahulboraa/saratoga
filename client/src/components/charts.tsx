@@ -376,3 +376,27 @@ export function DonutChart({ data, size = 190, thickness = 18, centerLabel, cent
     </svg>
   )
 }
+
+// Executives differ per property, so the series is built from whoever actually called.
+const EXEC_COLORS = [C.blue, C.teal, C.orange, C.violet, C.green, C.amber, C.red]
+
+export function CallingChart({ data, execs, height = 220 }: {
+  data: MoneyPoint[]
+  execs: { exec: string; execLabel: string }[]
+  height?: number
+}) {
+  return (
+    <Bars
+      data={data}
+      height={height}
+      showValues
+      fmt={(n) => String(Math.round(n))}
+      tooltipFmt={(n) => `${Math.round(n)} lead${n === 1 ? '' : 's'}`}
+      series={execs.map((e, i) => ({
+        key: e.exec,
+        label: e.execLabel,
+        color: EXEC_COLORS[i % EXEC_COLORS.length],
+      }))}
+    />
+  )
+}
