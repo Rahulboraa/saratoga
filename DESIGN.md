@@ -64,3 +64,6 @@ Lucide icons only, 16-18px, strokeWidth 2 (2.5 active nav). Never emojis anywher
 ## Voice
 
 Labels verb+object ("Record Payment", "Log Visitor", "Mark out"). Terse business language, no marketing tone. Money always `₹` en-IN formatted (`fmtMoney`/`fmtLakh`).
+Formated.
+
+
