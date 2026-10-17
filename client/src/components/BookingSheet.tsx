@@ -271,7 +271,7 @@ export default function BookingSheet({
           <div className="flex-1 space-y-6 overflow-y-auto px-6 py-6">
             <div className="grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Guest name *</Label>
+                <Label>Client name *</Label>
                 <Input
                   {...register("guest", { required: true })}
                   aria-invalid={!!errors.guest}
@@ -457,7 +457,7 @@ export default function BookingSheet({
                 <Label>Company name</Label>
                 <Input
                   {...register("billingName")}
-                  placeholder="Leave blank to bill the guest"
+                  placeholder="Leave blank to bill the client"
                 />
               </div>
               <div className="space-y-2">

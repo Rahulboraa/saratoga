@@ -80,7 +80,7 @@ export default function Users() {
     e.preventDefault()
     const fd = new FormData(e.currentTarget)
     if (newRole !== 'admin' && !newProperty) {
-      toast.error('Pick a property for this user')
+      toast.error('Pick a project for this user')
       return
     }
     createUser.mutate({
@@ -142,7 +142,7 @@ export default function Users() {
                   disabled={u.role === 'admin'}
                 >
                   <SelectTrigger className="h-8 w-36">
-                    <SelectValue placeholder={u.role === 'admin' ? 'All properties' : 'Property'} />
+                    <SelectValue placeholder={u.role === 'admin' ? 'All projects' : 'Project'} />
                   </SelectTrigger>
                   <SelectContent>
                     {properties.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
@@ -201,14 +201,14 @@ export default function Users() {
             </div>
             {newRole !== 'admin' && (
               <div className="space-y-1.5">
-                <Label>Property</Label>
+                <Label>Project</Label>
                 <Select value={newProperty} onValueChange={setNewProperty}>
-                  <SelectTrigger className="w-full"><SelectValue placeholder="Select a property" /></SelectTrigger>
+                  <SelectTrigger className="w-full"><SelectValue placeholder="Select a project" /></SelectTrigger>
                   <SelectContent>
                     {properties.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
-                <p className="text-[11px] text-muted-foreground">They will only ever see this property's data.</p>
+                <p className="text-[11px] text-muted-foreground">They will only ever see this project's data.</p>
               </div>
             )}
             <DialogFooter>

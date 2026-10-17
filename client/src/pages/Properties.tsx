@@ -57,7 +57,7 @@ export default function Properties() {
     onSuccess: () => {
       invalidate()
       setDialogOpen(false)
-      toast.success('Property added')
+      toast.success('Project added')
     },
     onError,
   })
@@ -75,7 +75,7 @@ export default function Properties() {
     onSuccess: () => {
       invalidate()
       setDialogOpen(false)
-      toast.success('Property updated')
+      toast.success('Project updated')
     },
     onError,
   })
@@ -84,7 +84,7 @@ export default function Properties() {
     mutationFn: (id: string) => api(`/properties/${id}`, { method: 'DELETE' }),
     onSuccess: () => {
       invalidate()
-      toast.success('Property removed')
+      toast.success('Project removed')
     },
     onError,
   })
@@ -127,8 +127,8 @@ export default function Properties() {
   return (
     <div>
       <PageHeader
-        title="Properties"
-        description="Each property keeps its own bookings, expenses, leads and staff"
+        title="Projects"
+        description="Each project keeps its own bookings, expenses, leads and staff"
         actions={<Button onClick={openAdd}>Add property</Button>}
       />
 
@@ -139,7 +139,7 @@ export default function Properties() {
             <div className="text-[13px] font-semibold">{migration.total} records need migrating</div>
             <p className="mt-0.5 text-[12px] text-muted-foreground">
               Records created before a change that has since landed — bookings and leads still on the old event
-              type lists, or rows predating properties. Their old value is kept, and this can be run again safely.
+              type lists, or rows predating projects. Their old value is kept, and this can be run again safely.
             </p>
             <p className="mt-1 text-[12px] text-muted-foreground">
               {Object.entries(migration.pending)
@@ -157,7 +157,7 @@ export default function Properties() {
       {isLoading ? (
         <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-16" />)}</div>
       ) : (properties ?? []).length === 0 ? (
-        <EmptyState icon={Building2} message="No properties yet" description="Add one to start recording bookings against it." />
+        <EmptyState icon={Building2} message="No projects yet" description="Add one to start recording bookings against it." />
       ) : (
         <div className="divide-y rounded-xl border border-border/60 bg-card shadow-sm">
           {(properties ?? []).map((p) => (
@@ -222,7 +222,7 @@ export default function Properties() {
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-md">
-          <DialogHeader><DialogTitle>{editing ? `Edit ${editing.name}` : 'Add property'}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editing ? `Edit ${editing.name}` : 'Add project'}</DialogTitle></DialogHeader>
           {/* Keyed on the property so the fields reload when switching between rows. */}
           <form key={editing?.id ?? 'new'} onSubmit={onSubmit} className="mt-2 space-y-3">
             <div className="space-y-1.5">

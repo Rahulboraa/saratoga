@@ -16,7 +16,7 @@ statsRouter.get('/accounts', requireRole('admin'), async (req, res) => {
 
 statsRouter.get('/incentives', requireRole('admin'), async (req, res) => {
   // Slabs run per property, so a combined view would invent a figure nobody is owed.
-  if (!req.scope.propertyId) return res.status(400).json({ error: 'Select a property to view incentives' })
+  if (!req.scope.propertyId) return res.status(400).json({ error: 'Select a project to view incentives' })
   const month = req.query.month ? String(req.query.month) : undefined
   res.json(await incentiveStats(req.scope.filter, month))
 })

@@ -163,7 +163,7 @@ export default function Upcoming() {
     },
     {
       id: 'guest',
-      header: 'Guest',
+      header: 'Client',
       cell: ({ row: { original: b } }) => (
         <div>
           <div
@@ -262,7 +262,7 @@ export default function Upcoming() {
       />
 
       <div className="mb-5 flex flex-wrap gap-3">
-        <Input placeholder="Search guest or phone…" value={q} onChange={(e) => { setQ(e.target.value); resetPage() }} className="h-10 w-full sm:w-64" />
+        <Input placeholder="Search client or phone…" value={q} onChange={(e) => { setQ(e.target.value); resetPage() }} className="h-10 w-full sm:w-64" />
         <Select value={purpose} onValueChange={(v) => { setPurpose(v); resetPage() }}>
           <SelectTrigger className="h-10 w-[calc(50%-6px)] sm:w-64"><SelectValue /></SelectTrigger>
           <SelectContent>

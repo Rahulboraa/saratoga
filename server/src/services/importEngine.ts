@@ -22,7 +22,7 @@ type Raw = Record<string, unknown>
 const ALIASES: Record<ImportType, Record<string, string[]>> = {
   bookings: {
     legacyId: ['id', 'legacyid'],
-    guest: ['guest', 'guestname', 'name'],
+    guest: ['client', 'clientname', 'guest', 'guestname', 'name'],
     phone: ['phone', 'mobile', 'contact'],
     checkinDate: ['checkindate', 'date', 'checkin', 'checkindt'],
     checkoutDate: ['checkoutdate', 'checkout'],
@@ -46,7 +46,7 @@ const ALIASES: Record<ImportType, Record<string, string[]>> = {
   payments: {
     legacyId: ['id', 'legacyid'],
     bookingLegacyId: ['bookingid'],
-    guest: ['guest', 'guestname'],
+    guest: ['client', 'clientname', 'guest', 'guestname'],
     date: ['date', 'paymentdate'],
     amount: ['amount'],
     method: ['method', 'mode', 'paymentmethod'],

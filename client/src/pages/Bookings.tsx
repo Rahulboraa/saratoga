@@ -127,7 +127,7 @@ export default function Bookings() {
       : []),
     {
       id: 'guest',
-      header: 'Guest',
+      header: 'Client',
       cell: ({ row: { original: b } }) => (
         <div>
           <div className="font-medium">{b.guest}</div>
@@ -197,7 +197,7 @@ export default function Bookings() {
 
       <div className="mb-5 flex flex-wrap gap-3">
         <Input
-          placeholder="Search guest or phone…"
+          placeholder="Search client or phone…"
           value={q}
           onChange={(e) => { setQ(e.target.value); resetPage() }}
           className="h-9 w-full sm:w-64"

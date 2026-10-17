@@ -74,7 +74,7 @@ propertiesRouter.use(requireRole('admin'))
 propertiesRouter.post('/', async (req, res) => {
   const body = createSchema.parse(req.body)
   if (await Property.exists({ name: body.name })) {
-    return res.status(409).json({ error: 'A property with that name already exists' })
+    return res.status(409).json({ error: 'A project with that name already exists' })
   }
   const property = await Property.create(body)
   res.status(201).json(shape(property))
@@ -83,7 +83,7 @@ propertiesRouter.post('/', async (req, res) => {
 propertiesRouter.patch('/:id', async (req, res) => {
   const body = updateSchema.parse(req.body)
   const property = await Property.findByIdAndUpdate(req.params.id, body, { new: true, runValidators: true })
-  if (!property) return res.status(404).json({ error: 'Property not found' })
+  if (!property) return res.status(404).json({ error: 'Project not found' })
   res.json(shape(property))
 })
 
@@ -93,6 +93,6 @@ propertiesRouter.delete('/:id', async (req, res) => {
     return res.status(409).json({ error: `${assigned} user(s) are still assigned to this property` })
   }
   const property = await Property.findByIdAndDelete(req.params.id)
-  if (!property) return res.status(404).json({ error: 'Property not found' })
+  if (!property) return res.status(404).json({ error: 'Project not found' })
   res.json({ ok: true })
 })

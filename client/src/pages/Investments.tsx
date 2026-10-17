@@ -82,13 +82,13 @@ export default function Investments() {
   if (!activeId) {
     return (
       <div>
-        <PageHeader title="Investments" description="Partner capital, tracked per property" />
+        <PageHeader title="Investments" description="Partner capital, tracked per project" />
         <EmptyState
           icon={Landmark}
-          message="Pick a property"
+          message="Pick a project"
           description={canSwitch
             ? 'Each property has its own partners and capital. Choose one from the switcher above.'
-            : 'No property is assigned to your account yet.'}
+            : 'No project is assigned to your account yet.'}
         />
       </div>
     )
@@ -134,7 +134,7 @@ export default function Investments() {
     <div>
       <PageHeader
         title="Investments"
-        description={`Partner capital in ${active?.name ?? 'this property'}`}
+        description={`Partner capital in ${active?.name ?? 'this project'}`}
         actions={<>
           <ExportButton path="/export/investments" name="investments" />
           <Button onClick={openAdd}>Record entry</Button>
@@ -150,7 +150,7 @@ export default function Investments() {
       {isLoading ? (
         <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-16" />)}</div>
       ) : partners.length === 0 ? (
-        <EmptyState icon={Landmark} message="No capital recorded yet" description="Record what each partner has put into this property." />
+        <EmptyState icon={Landmark} message="No capital recorded yet" description="Record what each partner has put into this project." />
       ) : (
         <>
           <Card className="mb-6">

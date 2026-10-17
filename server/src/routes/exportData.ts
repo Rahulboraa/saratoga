@@ -112,7 +112,7 @@ exportRouter.get('/visitors', requireRole('admin', 'manager'), async (req, res) 
 })
 
 exportRouter.get('/incentives', requireRole('admin'), async (req, res) => {
-  if (!req.scope.propertyId) return res.status(400).json({ error: 'Select a property to export incentives' })
+  if (!req.scope.propertyId) return res.status(400).json({ error: 'Select a project to export incentives' })
   const incentives = await incentiveStats(req.scope.filter)
   sendSheet(res, 'Incentives', incentives.trend.map((t) => ({
     Month: t.month, 'Booked Sales': t.sales, Expenses: t.expenses, Profit: t.profit,

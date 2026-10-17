@@ -37,17 +37,17 @@ export default function PropertySwitcher({ className }: { className?: string }) 
       value={activeId ?? ALL}
       onValueChange={(v) => setActive(v === ALL ? null : v)}
     >
-      <SelectTrigger className={className} aria-label="Property">
+      <SelectTrigger className={className} aria-label="Project">
         <span className="flex min-w-0 items-center gap-2">
           {active ? <Chip property={active} /> : <Building2 className="size-4 shrink-0 text-muted-foreground" />}
-          <span className="truncate">{active?.name ?? 'All properties'}</span>
+          <span className="truncate">{active?.name ?? 'All projects'}</span>
         </span>
       </SelectTrigger>
       <SelectContent>
         <SelectItem value={ALL}>
           <span className="flex items-center gap-2">
             <Building2 className="size-4 text-muted-foreground" />
-            All properties
+            All projects
           </span>
         </SelectItem>
         {properties.map((p) => (

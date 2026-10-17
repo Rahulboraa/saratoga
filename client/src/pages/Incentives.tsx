@@ -28,13 +28,13 @@ export default function Incentives() {
   if (!activeId) {
     return (
       <div>
-        <PageHeader title="Incentives" description="Slabs run separately for each property" />
+        <PageHeader title="Incentives" description="Slabs run separately for each project" />
         <EmptyState
           icon={Building2}
-          message="Pick a property"
+          message="Pick a project"
           description={canSwitch
-            ? 'Incentives are calculated per property. Choose one from the switcher above.'
-            : 'No property is assigned to your account yet.'}
+            ? 'Incentives are calculated per project. Choose one from the switcher above.'
+            : 'No project is assigned to your account yet.'}
         />
       </div>
     )

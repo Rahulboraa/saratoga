@@ -16,7 +16,7 @@ export default function PropertyBanner() {
       <div className="mb-5 flex items-center gap-3 rounded-xl border border-dashed border-border bg-muted/40 px-4 py-2.5 print:hidden">
         <Building2 className="size-4 shrink-0 text-muted-foreground" />
         <div className="text-[13px] font-medium text-muted-foreground">
-          All properties — combined view.{canSwitch && ' Pick one above before adding anything.'}
+          All projects — combined view.{canSwitch && ' Pick one above before adding anything.'}
         </div>
       </div>
     )

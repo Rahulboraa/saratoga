@@ -27,7 +27,7 @@ export async function nextInvoiceNo(propertyId: string, date: string) {
     { $set: { invoiceFy: fy, invoiceSeq: 1 } },
     { new: true },
   )
-  if (!property) throw Object.assign(new Error('Property not found'), { status: 400 })
+  if (!property) throw Object.assign(new Error('Project not found'), { status: 400 })
   return `${property.invoicePrefix || 'INV'}/${fy}/${String(property.invoiceSeq).padStart(3, '0')}`
 }
 

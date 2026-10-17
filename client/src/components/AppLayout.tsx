@@ -35,7 +35,7 @@ const NAV_ADMIN = [
   { to: '/incentives', label: 'Incentives', icon: Trophy },
   { to: '/investments', label: 'Investments', icon: Landmark },
   { to: '/import', label: 'Import', icon: Upload },
-  { to: '/properties', label: 'Properties', icon: Building2 },
+  { to: '/properties', label: 'Projects', icon: Building2 },
   { to: '/users', label: 'Users', icon: KeyRound },
 ]
 
@@ -132,7 +132,7 @@ function UserFooter() {
 const PAGE_LABELS: Record<string, string> = {
   '': 'Dashboard', bookings: 'Bookings', upcoming: 'Upcoming', visitors: 'Visitors', leads: 'CRM',
   expenses: 'Expenses', incentives: 'Incentives', import: 'Import', users: 'Users',
-  properties: 'Properties', investments: 'Investments', accounts: 'Accounts',
+  properties: 'Projects', investments: 'Investments', accounts: 'Accounts',
 }
 
 function TopBar() {

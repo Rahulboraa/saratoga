@@ -47,7 +47,7 @@ function requested(req: Request) {
 export async function resolveScope(req: Request, res: Response, next: NextFunction) {
   if (req.user.role !== 'admin') {
     const propertyId = req.user.propertyId ?? await healStaleToken(req, res)
-    if (!propertyId) return res.status(403).json({ error: 'No property assigned. Ask an admin to assign one.' })
+    if (!propertyId) return res.status(403).json({ error: 'No project assigned. Ask an admin to assign one.' })
     req.scope = { propertyId, filter: { propertyId: new Types.ObjectId(propertyId) } }
     return next()
   }
@@ -57,8 +57,8 @@ export async function resolveScope(req: Request, res: Response, next: NextFuncti
     req.scope = { propertyId: null, filter: {} }
     return next()
   }
-  if (!Types.ObjectId.isValid(wanted)) return res.status(400).json({ error: 'Invalid property' })
-  if (!(await Property.exists({ _id: wanted }))) return res.status(404).json({ error: 'Property not found' })
+  if (!Types.ObjectId.isValid(wanted)) return res.status(400).json({ error: 'Invalid project' })
+  if (!(await Property.exists({ _id: wanted }))) return res.status(404).json({ error: 'Project not found' })
   req.scope = { propertyId: wanted, filter: { propertyId: new Types.ObjectId(wanted) } }
   next()
 }
@@ -74,6 +74,6 @@ export function scoped(req: Request, filter: Record<string, unknown> = {}) {
  */
 export function writeProperty(req: Request, res: Response): string | null {
   if (req.scope.propertyId) return req.scope.propertyId
-  res.status(400).json({ error: 'Select a property before adding records' })
+  res.status(400).json({ error: 'Select a project before adding records' })
   return null
 }

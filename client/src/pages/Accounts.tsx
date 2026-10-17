@@ -106,7 +106,7 @@ export default function Accounts() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Date</TableHead>
-                    <TableHead>Guest</TableHead>
+                    <TableHead>Client</TableHead>
                     <TableHead>Account</TableHead>
                     <TableHead>Method</TableHead>
                     <TableHead className="text-right">Amount</TableHead>

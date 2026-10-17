@@ -76,3 +76,18 @@ describe('expense import', () => {
     expect(out.date).toBe('2026-07-01')
   })
 })
+
+describe('the booking name column, renamed from Guest to Client', () => {
+  it('reads a sheet written with the new Client header', () => {
+    expect(mapRow('bookings', { Client: 'Acme Ltd', Phone: '9' }).guest).toBe('Acme Ltd')
+    expect(mapRow('payments', { Client: 'Acme Ltd', Amount: 100 }).guest).toBe('Acme Ltd')
+  })
+
+  it('still reads every sheet already written with Guest', () => {
+    // The client has years of spreadsheets using the old header; renaming the template
+    // must not turn those into unmatched columns.
+    expect(mapRow('bookings', { Guest: 'Rahul', Phone: '9' }).guest).toBe('Rahul')
+    expect(mapRow('payments', { Guest: 'Rahul', Amount: 100 }).guest).toBe('Rahul')
+    expect(mapRow('bookings', { Name: 'Rahul' }).guest).toBe('Rahul')
+  })
+})

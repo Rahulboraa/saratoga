@@ -20,8 +20,8 @@ const TYPES = [
 ]
 
 const TEMPLATE_COLS: Record<string, string[]> = {
-  bookings: ['Guest', 'Phone', 'Check-in Date', 'Check-out Date', 'Check-in Time', 'Check-out Time', 'Pax', 'Purpose', 'Source', 'Venue', 'Catering', 'Decor', 'Music', 'Cleaning', 'License', 'Security', 'Notes'],
-  payments: ['Guest', 'Date', 'Amount', 'Method', 'Destination', 'Paid By', 'Notes'],
+  bookings: ['Client', 'Phone', 'Check-in Date', 'Check-out Date', 'Check-in Time', 'Check-out Time', 'Pax', 'Purpose', 'Source', 'Venue', 'Catering', 'Decor', 'Music', 'Cleaning', 'License', 'Security', 'Notes'],
+  payments: ['Client', 'Date', 'Amount', 'Method', 'Destination', 'Paid By', 'Notes'],
   expenses: ['Date', 'Category', 'Description', 'Amount', 'Vendor', 'Notes'],
   visitors: ['Date', 'Name', 'Phone', 'Purpose', 'In Time', 'Out Time', 'Remarks'],
   leads: ['Name', 'phone_number', 'email', 'state', 'Family_gathering_/party', 'Date', 'Remark 1', 'Assign'],
