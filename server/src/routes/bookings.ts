@@ -209,7 +209,7 @@ async function invoicePayload(req: Parameters<typeof scoped>[0], id: string) {
   if (!booking) return null
   const property = await Property.findById(booking.propertyId)
   const sums = await paymentSums([booking._id])
-  const lines = invoiceLines(booking)
+  const lines = invoiceLines(booking, property?.gstin)
   const { collected: paid = 0, refunded = 0 } = sums.get(String(booking._id)) ?? {}
   const received = (booking.legacyReceived ?? 0) + paid
   return {

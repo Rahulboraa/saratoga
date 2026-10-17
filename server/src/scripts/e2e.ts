@@ -25,7 +25,8 @@ const db = mongoose.connection.db!
 for (const c of await db.collections()) await c.deleteMany({})
 
 const [a, b] = await Property.create([
-  { name: 'Villa A', invoicePrefix: 'VA' },
+  // A is registered and raises tax invoices; B is not, which is what 5d turns on.
+  { name: 'Villa A', invoicePrefix: 'VA', gstin: '09AAACH7409R1ZZ' },
   { name: 'Villa B', invoicePrefix: 'VB' },
 ])
 const hash = await bcrypt.hash('pass1234', 10)
@@ -176,6 +177,16 @@ check('the legal name replaces the villa name', b2bInv.body.property.name === 'S
 check('header and footer reach the invoice', b2bInv.body.property.header === 'care@saratoga.in' && b2bInv.body.property.footer === 'Bank: HDFC\nA/c 123', JSON.stringify({ h: b2bInv.body.property.header, f: b2bInv.body.property.footer }))
 const b2bEdit = await call(admin, `/bookings/${b2b.body.id}`, { property: A })
 check('billing details come back when editing', b2bEdit.body.billingName === 'Acme Pvt Ltd' && b2bEdit.body.billingGstin === '09AAACH7409R1ZZ', JSON.stringify({ n: b2bEdit.body.billingName, g: b2bEdit.body.billingGstin }))
+
+console.log('\n5d. GST waits for the registration')
+const unregBooking = await call(admin, '/bookings', { property: B, body: { guest: 'Unreg', phone: '97', checkinDate: '2026-12-20', breakdown: { venue: 20000 } } })
+const unregInv = await call(admin, `/bookings/${unregBooking.body.id}/invoice`, { property: B })
+check('a seller with no GSTIN bills without GST', unregInv.body.gstEnabled === false && unregInv.body.cgst === 0, JSON.stringify({ g: unregInv.body.gstEnabled, c: unregInv.body.cgst }))
+check('and the document is not called a tax invoice', unregInv.body.kind !== 'Tax Invoice', String(unregInv.body.kind))
+await Property.updateOne({ _id: b._id }, { gstin: '09AAACH7409R1ZZ' })
+const regInv = await call(admin, `/bookings/${unregBooking.body.id}/invoice`, { property: B })
+check('registering turns GST on without touching the booking', regInv.body.gstEnabled === true && regInv.body.cgst === 1800, JSON.stringify({ g: regInv.body.gstEnabled, c: regInv.body.cgst }))
+await Property.updateOne({ _id: b._id }, { gstin: '' })
 
 console.log('\n5a. The security deposit stays out of the money')
 const depBooking = await call(admin, '/bookings', { property: A, body: { guest: 'Deposit', phone: '8', checkinDate: '2026-12-28', breakdown: { venue: 40000, security: 10000 } } })
