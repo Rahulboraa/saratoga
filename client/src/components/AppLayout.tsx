@@ -21,12 +21,14 @@ import PropertyBanner from '@/components/PropertyBanner'
 import { useProperty } from '@/lib/property'
 import { Search } from 'lucide-react'
 
+// Order matters: the phone's bottom bar shows the first four to an admin, so CRM sits
+// ahead of Visitors — it is worked every day, and the visitor book is not.
 const NAV_MAIN = [
   { to: '/', label: 'Dashboard', icon: Home },
   { to: '/bookings', label: 'Bookings', icon: CalendarDays },
   { to: '/upcoming', label: 'Upcoming', icon: CalendarClock },
-  { to: '/visitors', label: 'Visitors', icon: Users2 },
   { to: '/leads', label: 'CRM', icon: PhoneCall },
+  { to: '/visitors', label: 'Visitors', icon: Users2 },
 ]
 
 const NAV_ADMIN = [
