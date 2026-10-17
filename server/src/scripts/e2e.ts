@@ -276,6 +276,46 @@ const after = await call(admin, '/leads/unassigned', { property: A })
 check('assigning a batch drops the total, so progress shows', after.body.total === 5, String(after.body.total))
 check('and refills with what is left', after.body.rows?.length === 5, String(after.body.rows?.length))
 
+console.log('\n6e. The date a customer wants')
+const oct23 = await call(admin, '/leads', { property: A, body: { date: '2026-09-01', name: 'Wants 23 Oct', phone: '9301', exec: 'mgra', wantedFrom: '2026-10-23' } })
+check('a single date is stored as a one-day range', oct23.body.wantedFrom === '2026-10-23' && oct23.body.wantedTo === '2026-10-23', JSON.stringify({ f: oct23.body.wantedFrom, t: oct23.body.wantedTo }))
+await call(admin, '/leads', { property: A, body: { date: '2026-09-02', name: 'Wants Oct', phone: '9302', exec: 'mgra', wantedFrom: '2026-10-01', wantedTo: '2026-10-31' } })
+await call(admin, '/leads', { property: A, body: { date: '2026-09-03', name: 'Wants Dec', phone: '9303', exec: 'mgra', wantedFrom: '2026-12-31' } })
+const reversed = await call(admin, '/leads', { property: A, body: { date: '2026-09-04', name: 'Backwards', phone: '9304', wantedFrom: '2026-10-20', wantedTo: '2026-10-10' } })
+check('a backwards range is refused', reversed.status === 400, String(reversed.status))
+
+const octLeads = await call(admin, '/leads/wanted?month=2026-10', { property: A })
+const octNames = (octLeads.body.rows ?? []).map((l: Json) => l.name).sort()
+check('asking for October finds the exact date and the whole-month one', String(octNames) === 'Wants 23 Oct,Wants Oct', JSON.stringify(octNames))
+check('and not the December lead', !octNames.includes('Wants Dec'), JSON.stringify(octNames))
+const oneDay = await call(admin, '/leads/wanted?from=2026-10-23&to=2026-10-23', { property: A })
+const dayNames = (oneDay.body.rows ?? []).map((l: Json) => l.name).sort()
+check('a cancelled day finds whoever wanted it', String(dayNames) === 'Wants 23 Oct,Wants Oct', JSON.stringify(dayNames))
+const quietDay = await call(admin, '/leads/wanted?from=2026-10-05&to=2026-10-05', { property: A })
+check('a day only the month lead covers still matches it', (quietDay.body.rows ?? []).length === 1, JSON.stringify(quietDay.body.rows?.map((l: Json) => l.name)))
+const badWindow = await call(admin, '/leads/wanted', { property: A })
+check('asking with no window at all is refused', badWindow.status === 400, String(badWindow.status))
+const salesWanted = await call(await login('salesa'), '/leads/wanted?month=2026-10', { property: A })
+check('a sales exec sees only their own in that list', (salesWanted.body.rows ?? []).length === 0, JSON.stringify(salesWanted.body.rows?.length))
+
+console.log('\n6f. Conversations that went quiet')
+// These were written seconds ago, so nothing is quiet yet. Age them through the driver,
+// since mongoose will not let createdAt be set on an update.
+await db.collection('leads').updateMany(
+  { phone: { $in: ['9301', '9302', '9303'] } },
+  { $set: { createdAt: new Date(Date.now() - 10 * 86_400_000) } },
+)
+const quiet = await call(admin, '/leads/quiet?days=1', { property: A })
+const quietNames = (quiet.body ?? []).map((l: Json) => l.name)
+check('leads nobody has touched show up', quietNames.length > 0, JSON.stringify(quietNames.slice(0, 4)))
+const dated = quietNames.filter((n: string) => String(n).startsWith('Wants'))
+// Soonest first by the start of what they asked for: the whole-October lead opens on the
+// 1st, so it is nearer than the one wanting the 23rd.
+check('the nearest date leads the list', String(dated) === 'Wants Oct,Wants 23 Oct,Wants Dec', JSON.stringify(dated))
+await call(admin, `/leads/${oct23.body.id}`, { property: A, method: 'PATCH', body: { date: '2026-09-01', name: 'Wants 23 Oct', phone: '9301', outcome: 'Converted' } })
+const afterClose = await call(admin, '/leads/quiet?days=1', { property: A })
+check('a closed lead drops out of it', !(afterClose.body ?? []).some((l: Json) => l.name === 'Wants 23 Oct'), JSON.stringify((afterClose.body ?? []).map((l: Json) => l.name).slice(0, 4)))
+
 console.log('\n6d. Call logs follow the same walls as leads')
 const salesA = await login('salesa')
 const mine = await call(admin, '/leads', { property: A, body: { date: '2026-10-02', name: 'Mine', phone: '9111111111', exec: 'salesa' } })

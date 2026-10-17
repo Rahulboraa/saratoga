@@ -22,6 +22,8 @@ interface FormValues {
   eventType: string
   outcome: string
   followup: string
+  wantedFrom: string
+  wantedTo: string
   notes: string
   exec: string
   flag: string
@@ -37,6 +39,8 @@ function toForm(l?: Lead | null): FormValues {
     eventType: l?.eventType ?? 'Other',
     outcome: l?.outcome || 'none',
     followup: l?.followup ?? '',
+    wantedFrom: l?.wantedFrom ?? '',
+    wantedTo: l?.wantedTo ?? '',
     notes: l?.notes ?? '',
     exec: l?.exec || 'none',
     flag: l?.flag || 'none',
@@ -77,6 +81,10 @@ export default function LeadSheet({ open, onClose, lead }: { open: boolean; onCl
     const body: Record<string, unknown> = {
       date: v.date, time: v.time, name: v.name, phone: v.phone, eventType: v.eventType,
       outcome: v.outcome === 'none' ? '' : v.outcome, followup: v.followup, notes: v.notes,
+      // One date means a single day; the second is only for "the 14th or 15th" or a
+      // whole month, which is how most people actually ask.
+      wantedFrom: v.wantedFrom,
+      wantedTo: v.wantedTo || v.wantedFrom,
     }
     if (isManager) {
       body.exec = v.exec === 'none' ? '' : v.exec
@@ -139,6 +147,21 @@ export default function LeadSheet({ open, onClose, lead }: { open: boolean; onCl
             <div className="space-y-2 col-span-2">
               <Label>Next follow-up date</Label>
               <DatePicker value={watch('followup')} onChange={(v) => setValue('followup', v)} clearable placeholder="No follow-up" />
+            </div>
+            {/* The date they want, as against the day they enquired. It drives the
+                re-pitch list and the demand figures, so it is worth asking for. */}
+            <div className="space-y-2">
+              <Label>Date wanted</Label>
+              <DatePicker value={watch('wantedFrom')} onChange={(v) => setValue('wantedFrom', v)} clearable placeholder="Not given" />
+            </div>
+            <div className="space-y-2">
+              <Label>Until (if flexible)</Label>
+              <DatePicker
+                value={watch('wantedTo')}
+                onChange={(v) => setValue('wantedTo', v)}
+                clearable
+                placeholder={watch('wantedFrom') ? 'Same day' : '—'}
+              />
             </div>
           </div>
           <div className="space-y-2">

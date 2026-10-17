@@ -193,6 +193,9 @@ export interface Lead {
   eventType: EventType
   outcome: string
   followup: string
+  /** The date the customer wants, as a range — a single day has both ends equal. */
+  wantedFrom?: string
+  wantedTo?: string
   notes: string
   calledAt?: string | null
   exec: string

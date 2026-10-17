@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
-import { Pencil, Trash2, CheckCircle2, PhoneCall, Phone, CalendarClock, AlertCircle, UserX, Lock, TriangleAlert, CircleAlert } from 'lucide-react'
+import { Pencil, Trash2, CheckCircle2, PhoneCall, Phone, CalendarClock, AlertCircle, UserX, Lock, TriangleAlert, CircleAlert, MessageCircleOff, CalendarSearch } from 'lucide-react'
 import toast from 'react-hot-toast'
 import type { ColumnDef } from '@tanstack/react-table'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
+import { useProperty } from '@/lib/property'
 import { fmtDate, todayYmd } from '@/lib/format'
 import { EVENT_TYPES, OUTCOMES, LEAD_FLAGS, type Lead, type ExecReportRow, type CallActivity, type ExecCallStats } from '@/types'
 import { CallingChart } from '@/components/charts'
@@ -46,6 +47,21 @@ interface UnassignedLead {
   eventType: string
 }
 
+/** Opens WhatsApp to one lead with a message already typed. */
+function waTo(phone: string, text: string) {
+  // A number with no country code is assumed Indian, as everywhere else in the app.
+  const digits = (phone ?? '').replace(/\D/g, '')
+  const to = digits.length === 10 ? `91${digits}` : digits
+  window.open(`https://wa.me/${to}?text=${encodeURIComponent(text)}`, '_blank', 'noopener')
+}
+
+/** The dates a lead asked for, as one readable line. */
+function wantedLabel(l: Lead) {
+  if (!l.wantedFrom) return ''
+  if (!l.wantedTo || l.wantedTo === l.wantedFrom) return fmtDate(l.wantedFrom)
+  return `${fmtDate(l.wantedFrom)} – ${fmtDate(l.wantedTo)}`
+}
+
 function FlagChip({ flag }: { flag?: string }) {
   const meta = LEAD_FLAGS.find((f) => f.value === flag)
   if (!meta) return null
@@ -65,6 +81,7 @@ function fmtTalkTime(sec: number) {
 
 export default function Leads() {
   const { user } = useAuth()
+  const { active } = useProperty()
   const isManager = user?.role === 'admin' || user?.role === 'manager'
   const isAdmin = user?.role === 'admin'
   const queryClient = useQueryClient()
@@ -76,6 +93,7 @@ export default function Leads() {
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(20)
   const [showReport, setShowReport] = useState(false)
+  const [wantedMonth, setWantedMonth] = useState('')
   const [activityDays, setActivityDays] = useState('14')
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editing, setEditing] = useState<Lead | null>(null)
@@ -124,6 +142,19 @@ export default function Leads() {
     queryKey: ['leads', 'report'],
     queryFn: () => api<ExecReportRow[]>('/leads/report'),
     enabled: isManager && showReport,
+  })
+
+  // Conversations that stopped on their own. Distinct from Overdue, which only finds
+  // leads somebody remembered to set a follow-up date on.
+  const { data: quietLeads = [] } = useQuery({
+    queryKey: ['leads', 'quiet'],
+    queryFn: () => api<Lead[]>('/leads/quiet?days=3'),
+  })
+
+  const { data: wanted } = useQuery({
+    queryKey: ['leads', 'wanted', wantedMonth],
+    queryFn: () => api<{ from: string; to: string; total: number; rows: Lead[] }>(`/leads/wanted?month=${wantedMonth}`),
+    enabled: !!wantedMonth,
   })
 
   const { data: activity } = useQuery({
@@ -267,6 +298,14 @@ export default function Leads() {
         ) : (
           <span className="text-muted-foreground">—</span>
         ),
+    },
+    {
+      id: 'wanted',
+      header: 'Date wanted',
+      cell: ({ row: { original: l } }) =>
+        wantedLabel(l)
+          ? <span className="whitespace-nowrap">{wantedLabel(l)}</span>
+          : <span className="text-muted-foreground">—</span>,
     },
     {
       id: 'remarks',
@@ -440,6 +479,92 @@ export default function Leads() {
         </Card>
       )}
 
+      {quietLeads.length > 0 && (
+        <Card className="mb-6 border-warning/25 bg-warning/5 py-4">
+          <CardContent className="px-5">
+            <div className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-warning">
+              <MessageCircleOff className="size-5" />
+              {quietLeads.length} conversation{quietLeads.length > 1 ? 's have' : ' has'} gone quiet
+            </div>
+            <p className="mb-2 text-[12px] text-muted-foreground">
+              Still open, nothing recorded for three days. Nearest date first.
+            </p>
+            <div className="space-y-1">
+              {quietLeads.slice(0, 8).map((l) => (
+                <div key={l.id} className="flex flex-wrap items-center justify-between gap-2 py-1 text-[13px]">
+                  <span>
+                    <span className="font-medium">{l.name}</span>
+                    <span className="text-muted-foreground">
+                      {' · '}{l.phone}
+                      {wantedLabel(l) ? ` · wants ${wantedLabel(l)}` : ' · no date given'}
+                    </span>
+                  </span>
+                  <span className="flex gap-1">
+                    <Button
+                      variant="outline"
+                      size="xs"
+                      onClick={() => waTo(l.phone, `Hi ${l.name}, are you still considering us${wantedLabel(l) ? ` for ${wantedLabel(l)}` : ''}?`)}
+                    >
+                      WhatsApp
+                    </Button>
+                    <Button variant="outline" size="xs" onClick={() => { setEditing(l); setSheetOpen(true) }}>Update</Button>
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* A date freeing up is worth nothing unless you can find who wanted it. */}
+      <Card className="mb-6 py-4">
+        <CardContent className="px-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <CalendarSearch className="size-5 text-muted-foreground" />
+            <span className="text-[13px] font-semibold">Dates free? Find who asked for them</span>
+            <div className="flex-1" />
+            <Input
+              type="month"
+              value={wantedMonth}
+              onChange={(e) => setWantedMonth(e.target.value)}
+              className="h-9 w-[170px]"
+            />
+            {wantedMonth && (
+              <Button variant="ghost" size="sm" onClick={() => setWantedMonth('')}>Clear</Button>
+            )}
+          </div>
+          {wantedMonth && wanted && (
+            wanted.total === 0 ? (
+              <p className="mt-3 text-[13px] text-muted-foreground">Nobody on record asked for that month.</p>
+            ) : (
+              <div className="mt-3 space-y-1">
+                <p className="text-[12px] text-muted-foreground">
+                  {wanted.total} lead{wanted.total > 1 ? 's' : ''} asked for these dates.
+                </p>
+                {wanted.rows.map((l) => (
+                  <div key={l.id} className="flex flex-wrap items-center justify-between gap-2 py-1 text-[13px]">
+                    <span>
+                      <span className="font-medium">{l.name}</span>
+                      <span className="text-muted-foreground">
+                        {' · '}{l.phone} · {wantedLabel(l)}
+                        {l.outcome ? ` · ${l.outcome}` : ''}
+                      </span>
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="xs"
+                      onClick={() => waTo(l.phone, `Hi ${l.name}, ${wantedLabel(l)} has opened up at ${active?.name ?? 'our property'} — would you like to look at it?`)}
+                    >
+                      Pitch
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )
+          )}
+        </CardContent>
+      </Card>
+
       {overdueLeads.length > 0 && (
         <Card className="mb-6 border-destructive/25 bg-destructive/5 py-4">
           <CardContent className="px-5">
@@ -580,6 +705,7 @@ export default function Leads() {
                 )}
               </div>
               {l.notes && <div className="line-clamp-2 text-[13px]">{l.notes}</div>}
+              {wantedLabel(l) && <div className="text-[12px] text-muted-foreground">Wants {wantedLabel(l)}</div>}
               {isManager && l.adminComment && <div className="flex items-center gap-1 text-[12px] text-warning"><Lock className="size-3" /> {l.adminComment}</div>}
               <div className="flex justify-end gap-1 border-t pt-2">{actions(l)}</div>
             </CardContent>

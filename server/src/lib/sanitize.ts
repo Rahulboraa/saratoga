@@ -67,6 +67,7 @@ export function serializeVisitor(doc: Doc, role: Role) {
 const LEAD_COMMON = [
   'date', 'time', 'name', 'phone', 'eventType', 'outcome', 'followup',
   'notes', 'exec', 'execLabel', 'importedBy', 'createdAt', 'calledAt',
+  'wantedFrom', 'wantedTo',
 ]
 const LEAD_MANAGER = [...LEAD_COMMON, 'flag', 'adminComment']
 

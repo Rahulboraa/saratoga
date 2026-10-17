@@ -35,6 +35,11 @@ const leadSchema = new Schema(
     legacyEventType: { type: String, default: '' },
     outcome: { type: String, enum: OUTCOMES, default: '' },
     followup: { type: String, default: '' },
+    // The date the customer wants, not the day they enquired. Held as a range because
+    // people ask for "sometime in October" or "the 14th or 15th" far more often than for
+    // one fixed day; a single date is simply a range of one.
+    wantedFrom: { type: String, default: '' },
+    wantedTo: { type: String, default: '' },
     notes: { type: String, default: '' },
     exec: { type: String, default: '' },
     execLabel: { type: String, default: '' },
@@ -52,9 +57,15 @@ const leadSchema = new Schema(
 // the edit sheet, the convert button — dates it without having to remember.
 leadSchema.pre('save', function () {
   if (this.isModified('outcome') && this.outcome) this.calledAt = new Date()
+  // One date given means a one-day range, so every query can treat the two fields alike
+  // instead of each one checking whether an end date happens to be there.
+  if (this.wantedFrom && !this.wantedTo) this.wantedTo = this.wantedFrom
+  if (this.wantedTo && !this.wantedFrom) this.wantedFrom = this.wantedTo
 })
 
 leadSchema.index({ propertyId: 1, exec: 1, date: -1 })
+// Finding everyone who wanted a date reads both ends of the range.
+leadSchema.index({ propertyId: 1, wantedFrom: 1, wantedTo: 1 })
 
 leadSchema.index({ propertyId: 1, legacyId: 1 }, { unique: true, partialFilterExpression: { legacyId: { $type: 'string' } } })
 

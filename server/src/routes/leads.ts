@@ -3,9 +3,11 @@ import { z } from 'zod'
 import { Lead, CLOSED_OUTCOMES } from '../models/Lead.js'
 import { User } from '../models/User.js'
 import { requireRole } from '../middleware/auth.js'
-import { leadCommonSchema, leadManagerSchema } from '../validation/schemas.js'
+import { leadCommonSchema, leadManagerSchema, withWantedRange } from '../validation/schemas.js'
 import { serializeLead } from '../lib/sanitize.js'
 import { callActivity } from '../services/callActivity.js'
+import { quietLeads, wantedWithin, monthWindow } from '../services/leadDates.js'
+import { YMD } from '../lib/dates.js'
 import { scoped, writeProperty } from '../middleware/scope.js'
 
 export const leadsRouter = Router()
@@ -88,6 +90,32 @@ leadsRouter.get('/overdue', async (req, res) => {
   res.json(leads.map((l) => serializeLead(l.toObject(), req.user.role)))
 })
 
+// Conversations that stopped on their own, nearest event first. A sales exec sees only
+// their own, as everywhere else in the CRM.
+leadsRouter.get('/quiet', async (req, res) => {
+  const days = Math.min(Math.max(parseInt(String(req.query.days)) || 3, 1), 60)
+  const filter: Record<string, unknown> = scoped(req)
+  if (req.user.role === 'sales') filter.exec = req.user.username
+  const leads = await quietLeads(filter, { days })
+  res.json(leads.map((l) => serializeLead(l.toObject(), req.user.role)))
+})
+
+// Everyone who asked for a date that is now free. `month` covers "call the October
+// enquiries"; from/to narrows it to the day a booking just cancelled on.
+leadsRouter.get('/wanted', async (req, res) => {
+  const { month } = req.query as Record<string, string | undefined>
+  const window = month
+    ? monthWindow(month)
+    : { from: String(req.query.from ?? ''), to: String(req.query.to ?? req.query.from ?? '') }
+  if (!YMD.test(window.from) || !YMD.test(window.to)) {
+    return res.status(400).json({ error: 'Give a month, or a from and to date' })
+  }
+  const filter: Record<string, unknown> = scoped(req, wantedWithin(window.from, window.to))
+  if (req.user.role === 'sales') filter.exec = req.user.username
+  const leads = await Lead.find(filter).sort({ wantedFrom: 1 }).limit(200)
+  res.json({ ...window, total: leads.length, rows: leads.map((l) => serializeLead(l.toObject(), req.user.role)) })
+})
+
 leadsRouter.get('/activity', requireRole('admin', 'manager'), async (req, res) => {
   const days = Math.min(Math.max(parseInt(String(req.query.days)) || 14, 1), 90)
   res.json(await callActivity(scoped(req), days))
@@ -117,11 +145,11 @@ leadsRouter.post('/', async (req, res) => {
   const propertyId = writeProperty(req, res)
   if (!propertyId) return
   if (req.user.role === 'sales') {
-    const body = leadCommonSchema.parse(req.body)
+    const body = withWantedRange(leadCommonSchema).parse(req.body)
     const lead = await Lead.create({ ...body, propertyId, exec: req.user.username, execLabel: req.user.name })
     return res.status(201).json(serializeLead(lead.toObject(), req.user.role))
   }
-  const body = leadManagerSchema.parse(req.body)
+  const body = withWantedRange(leadManagerSchema).parse(req.body)
   const lead = await Lead.create({ ...body, propertyId, execLabel: await execLabelFor(body.exec) })
   res.status(201).json(serializeLead(lead.toObject(), req.user.role))
 })
@@ -131,9 +159,9 @@ leadsRouter.patch('/:id', async (req, res) => {
   if (!lead) return res.status(404).json({ error: 'Lead not found' })
   if (req.user.role === 'sales') {
     if (lead.exec !== req.user.username) return res.status(403).json({ error: 'Forbidden' })
-    lead.set(leadCommonSchema.partial().parse(req.body))
+    lead.set(withWantedRange(leadCommonSchema.partial()).parse(req.body))
   } else {
-    const body = leadManagerSchema.partial().parse(req.body)
+    const body = withWantedRange(leadManagerSchema.partial()).parse(req.body)
     lead.set(body)
     if (body.exec !== undefined) lead.execLabel = await execLabelFor(body.exec)
   }

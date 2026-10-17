@@ -137,8 +137,27 @@ export const leadCommonSchema = z.object({
   eventType,
   outcome: z.enum(OUTCOMES).default(''),
   followup: ymdOrEmpty.default(''),
+  // What the customer is asking for. Blank is allowed: a lead that never named a date
+  // still has to be saveable, or the team stops recording them at all.
+  wantedFrom: ymdOrEmpty.default(''),
+  wantedTo: ymdOrEmpty.default(''),
   notes: str.default(''),
 })
+
+/**
+ * Applied by the routes rather than baked into the schema: zod refuses `.partial()` on a
+ * schema carrying a refinement, and an edit sends only the fields that changed. Adding it
+ * last leaves both the full save and the partial one able to use it.
+ */
+export function withWantedRange<T extends z.ZodTypeAny>(schema: T) {
+  return schema.refine(
+    (value) => {
+      const v = value as { wantedFrom?: string; wantedTo?: string }
+      return !v.wantedFrom || !v.wantedTo || v.wantedTo >= v.wantedFrom
+    },
+    { message: 'The last date cannot be before the first', path: ['wantedTo'] },
+  )
+}
 
 export const leadManagerSchema = leadCommonSchema.extend({
   exec: str.default(''),

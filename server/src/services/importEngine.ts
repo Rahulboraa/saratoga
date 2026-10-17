@@ -88,6 +88,8 @@ const ALIASES: Record<ImportType, Record<string, string[]>> = {
     eventType: ['eventtype', 'event', 'familygatheringparty'],
     outcome: ['outcome', 'calloutcome', 'status'],
     followup: ['followup', 'followupdate', 'nextfollowup'],
+    wantedFrom: ['datewanted', 'eventdate', 'wanteddate', 'wantedfrom', 'requireddate'],
+    wantedTo: ['wantedto', 'dateuntil', 'tilldate'],
     notes: ['notes', 'note', 'remarks', 'remark', 'remark1'],
     exec: ['exec', 'assign', 'assignto', 'assignedto'],
     flag: ['flag'],
@@ -263,6 +265,9 @@ export function normalizeRow(type: ImportType, m: Raw, cats: readonly string[] =
         eventType: eventTypeFrom(m.eventType),
         outcome: leadOutcomeFrom(m.outcome),
         followup: normalizeDate(m.followup),
+        // One date given is a one-day range, matching what the model does on save.
+        wantedFrom: normalizeDate(m.wantedFrom) || normalizeDate(m.wantedTo),
+        wantedTo: normalizeDate(m.wantedTo) || normalizeDate(m.wantedFrom),
         notes: [str(m.notes), ...extras].filter(Boolean).join(' | '),
         exec: str(m.exec).toLowerCase(),
         flag: FLAG_MAP[flagRaw] ?? '',
