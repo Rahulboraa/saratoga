@@ -19,7 +19,7 @@ describe('editing a record written before the event type lists merged', () => {
   })
 
   it('still accepts the current list unchanged', () => {
-    for (const t of ['Kitty Party', 'Stays', 'Shoot', 'Corporate Party']) {
+    for (const t of ['Kitty / Private Party', 'Stays', 'Shoot', 'Corporate Party']) {
       expect(bookingAdminSchema.parse({ ...booking, purpose: t }).purpose).toBe(t)
     }
   })

@@ -6,7 +6,7 @@
 export const EVENT_TYPES = [
   'Birthday/Anniversary',
   'Corporate Party',
-  'Kitty Party',
+  'Kitty / Private Party',
   'Wedding/Pre-wedding',
   'Shoot',
   'Stays',
@@ -26,6 +26,7 @@ export const LEGACY_EVENT_TYPES: Record<string, EventType> = {
   'Kids Birthday': 'Birthday/Anniversary',
   'Pre-wedding': 'Wedding/Pre-wedding',
   // leads
+  'Kitty Party': 'Kitty / Private Party',
   'Birthday / Anniversary / Milestone': 'Birthday/Anniversary',
   'Corporate / Office Party': 'Corporate Party',
   'Wedding / Engagement': 'Wedding/Pre-wedding',
@@ -39,7 +40,9 @@ const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '')
  * which is the same call the migration makes and for the same reason.
  */
 const KEYWORDS: [EventType, string[]][] = [
-  ['Kitty Party', ['kitty']],
+  // Only "kitty": Meta's private_celebrations is a catch-all meaning some celebration
+  // or other, so matching "private" would file every one of them here on no evidence.
+  ['Kitty / Private Party', ['kitty']],
   ['Corporate Party', ['corporate', 'office', 'company', 'team', 'offsite', 'conference']],
   ['Wedding/Pre-wedding', ['wedding', 'prewedding', 'engagement', 'roka', 'sangeet', 'mehendi', 'haldi']],
   ['Birthday/Anniversary', ['birthday', 'bday', 'anniversary', 'milestone']],

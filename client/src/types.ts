@@ -33,7 +33,7 @@ export interface Property {
 export const EVENT_TYPES = [
   'Birthday/Anniversary',
   'Corporate Party',
-  'Kitty Party',
+  'Kitty / Private Party',
   'Wedding/Pre-wedding',
   'Shoot',
   'Stays',

@@ -30,8 +30,24 @@ async function findConflicts(
   return all.filter((b) => overlaps(candidate, b))
 }
 
+/**
+ * The list sorts by the day of the event by default. Sorting by when the booking was
+ * taken answers a different question — how much was closed in a given week — so both
+ * are offered rather than one replacing the other.
+ */
+const BOOKING_SORTS: Record<string, Record<string, 1 | -1>> = {
+  checkinDate: { checkinDate: -1, checkinTime: -1 },
+  createdAt: { createdAt: -1 },
+}
+
+function bookingSort(sort?: string, dir?: string) {
+  const base = BOOKING_SORTS[sort ?? ''] ?? BOOKING_SORTS.checkinDate
+  if (dir !== 'asc') return base
+  return Object.fromEntries(Object.entries(base).map(([k, v]) => [k, -v as 1 | -1]))
+}
+
 bookingsRouter.get('/', requireRole('admin', 'manager', 'sales'), async (req, res) => {
-  const { month, status, purpose, q } = req.query as Record<string, string | undefined>
+  const { month, status, purpose, q, sort, dir } = req.query as Record<string, string | undefined>
   if (status && req.user.role !== 'admin') return res.status(400).json({ error: 'Invalid filter' })
   const page = Math.max(parseInt(String(req.query.page)) || 1, 1)
   const limit = Math.min(Math.max(parseInt(String(req.query.limit)) || 20, 1), 100)
@@ -45,7 +61,7 @@ bookingsRouter.get('/', requireRole('admin', 'manager', 'sales'), async (req, re
   }
 
   const isAdmin = req.user.role !== 'sales'
-  const query = Booking.find(filter).sort({ checkinDate: -1, checkinTime: -1 })
+  const query = Booking.find(filter).sort(bookingSort(sort, dir))
   if (!isAdmin) query.select('-breakdown -amount -legacyReceived -dest')
   const bookings = await query
 

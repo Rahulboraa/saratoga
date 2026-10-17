@@ -6,7 +6,7 @@ describe('the shared event type list', () => {
     expect(EVENT_TYPES).toEqual([
       'Birthday/Anniversary',
       'Corporate Party',
-      'Kitty Party',
+      'Kitty / Private Party',
       'Wedding/Pre-wedding',
       'Shoot',
       'Stays',
@@ -50,9 +50,23 @@ describe('the shared event type list', () => {
 describe('eventTypeFrom', () => {
   it('reads the values on the list, however they are typed', async () => {
     const { eventTypeFrom } = await import('../models/eventTypes.js')
-    expect(eventTypeFrom('Kitty Party')).toBe('Kitty Party')
-    expect(eventTypeFrom('kitty party')).toBe('Kitty Party')
+    expect(eventTypeFrom('Kitty / Private Party')).toBe('Kitty / Private Party')
+    expect(eventTypeFrom('kitty party')).toBe('Kitty / Private Party')
     expect(eventTypeFrom('Stays')).toBe('Stays')
+  })
+
+  it('carries a stored "Kitty Party" onto the renamed entry', async () => {
+    const { eventTypeFrom } = await import('../models/eventTypes.js')
+    // What every existing booking and lead holds today, so the rename must not orphan them.
+    expect(LEGACY_EVENT_TYPES['Kitty Party']).toBe('Kitty / Private Party')
+    expect(eventTypeFrom('Kitty Party')).toBe('Kitty / Private Party')
+  })
+
+  it('leaves Meta\'s catch-all alone despite the new label', async () => {
+    const { eventTypeFrom } = await import('../models/eventTypes.js')
+    // "Private" is in the label now, but private_celebrations still says only that it is
+    // a celebration — filing those as kitty parties would invent a figure.
+    expect(eventTypeFrom('private_celebrations')).toBe('Other')
   })
 
   it('refuses to guess which kind of party a bare "party" was', async () => {
@@ -64,7 +78,7 @@ describe('eventTypeFrom', () => {
 
   it('reads a qualified party properly', async () => {
     const { eventTypeFrom } = await import('../models/eventTypes.js')
-    expect(eventTypeFrom('kitty party')).toBe('Kitty Party')
+    expect(eventTypeFrom('kitty party')).toBe('Kitty / Private Party')
     expect(eventTypeFrom('Corporate / Office Party')).toBe('Corporate Party')
     expect(eventTypeFrom('office party for 40')).toBe('Corporate Party')
   })

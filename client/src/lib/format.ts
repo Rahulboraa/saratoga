@@ -48,7 +48,7 @@ export function nowHm() {
 export const PURPOSE_COLORS: Record<string, string> = {
   'Birthday/Anniversary': '#F0A500',
   'Corporate Party': '#7B6EF6',
-  'Kitty Party': '#E0609A',
+  'Kitty / Private Party': '#E0609A',
   'Wedding/Pre-wedding': '#D4537E',
   'Shoot': '#1D9E75',
   'Stays': '#2F8FD6',

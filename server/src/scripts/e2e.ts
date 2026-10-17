@@ -13,6 +13,7 @@ import { createApp } from '../app.js'
 import { connectDb } from '../db.js'
 import { User } from '../models/User.js'
 import { Property } from '../models/Property.js'
+import { Booking } from '../models/Booking.js'
 
 const target = process.env.MONGODB_URI ?? ''
 if (!/test|e2e|scratch/i.test(target)) {
@@ -107,6 +108,27 @@ check('November calendar shows the booking', calA.body?.length === 1, JSON.strin
 const sameDay = await call(admin, '/bookings', { property: A, body: { guest: 'Same day', phone: '9', checkinDate: '2026-11-28', breakdown: { venue: 5000 } } })
 const calA2 = await call(mgrA, '/bookings/calendar?month=2026-11')
 check('a same-day booking (blank checkout) shows too', sameDay.status === 201 && calA2.body?.length === 2, JSON.stringify(calA2.body?.length))
+
+console.log('\n3b. The booking list sorts by event date or by when it was booked')
+// A booking taken late for an early date is the case the two sorts disagree on, and the
+// only one that proves the booked-on sort is reading its own field.
+// Straight through the driver: mongoose strips createdAt out of an update, timestamps
+// option or not, so the planted date would silently never land.
+await db.collection('bookings').updateOne(
+  { _id: new mongoose.Types.ObjectId(String(sameDay.body.id)) },
+  { $set: { createdAt: new Date('2026-01-01') } },
+)
+const byEvent = await call(admin, '/bookings?month=2026-11&sort=checkinDate&dir=asc', { property: A })
+const eventOrder = byEvent.body.rows?.map((r: { checkinDate: string }) => r.checkinDate)
+check('event date ascending runs 15th then 28th', String(eventOrder) === '2026-11-15,2026-11-28', JSON.stringify(eventOrder))
+const byBooked = await call(admin, '/bookings?month=2026-11&sort=createdAt&dir=asc', { property: A })
+const bookedOrder = byBooked.body.rows?.map((r: { checkinDate: string }) => r.checkinDate)
+check('booked-on ascending puts the long-booked 28th first', String(bookedOrder) === '2026-11-28,2026-11-15', JSON.stringify(bookedOrder))
+const byBookedDesc = await call(admin, '/bookings?month=2026-11&sort=createdAt&dir=desc', { property: A })
+const descOrder = byBookedDesc.body.rows?.map((r: { checkinDate: string }) => r.checkinDate)
+check('and descending flips it back', String(descOrder) === '2026-11-15,2026-11-28', JSON.stringify(descOrder))
+const badSort = await call(admin, '/bookings?month=2026-11&sort=amount&dir=desc', { property: A })
+check('an unknown sort falls back to the event date rather than erroring', badSort.status === 200 && badSort.body.rows?.length === 2, String(badSort.status))
 
 console.log('\n4. Money stays inside the property')
 await call(admin, `/bookings/${bookA.body.id}/payments`, { property: A, body: { date: '2026-11-01', amount: 20000, dest: 'HDFC' } })

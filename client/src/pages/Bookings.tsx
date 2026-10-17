@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
-import { CalendarDays } from 'lucide-react'
+import { CalendarDays, ArrowDown, ArrowUpDown } from 'lucide-react'
 import toast from 'react-hot-toast'
 import type { ColumnDef } from '@tanstack/react-table'
 import { api } from '@/lib/api'
@@ -35,6 +35,8 @@ export default function Bookings() {
   const [purpose, setPurpose] = useState('all')
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(20)
+  const [sort, setSort] = useState<'checkinDate' | 'createdAt'>('checkinDate')
+  const [dir, setDir] = useState<'asc' | 'desc'>('desc')
   const { actions, panels, openEdit } = useBookingActions()
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -61,6 +63,8 @@ export default function Bookings() {
   if (month !== 'all') params.set('month', month)
   if (canMoney && status !== 'all') params.set('status', status)
   if (purpose !== 'all') params.set('purpose', purpose)
+  params.set('sort', sort)
+  params.set('dir', dir)
 
   const { data, isLoading } = useQuery({
     queryKey: ['bookings', params.toString()],
@@ -74,6 +78,27 @@ export default function Bookings() {
 
   const resetPage = () => setPage(1)
 
+  // Clicking the column already sorted flips it; clicking another starts newest-first,
+  // which is what you want from a date either way.
+  function sortBy(column: 'checkinDate' | 'createdAt') {
+    if (sort === column) setDir(dir === 'desc' ? 'asc' : 'desc')
+    else { setSort(column); setDir('desc') }
+    resetPage()
+  }
+
+  const sortHeader = (column: 'checkinDate' | 'createdAt', label: string) => (
+    <button
+      type="button"
+      onClick={() => sortBy(column)}
+      className="-ml-1 inline-flex items-center gap-1 rounded px-1 py-0.5 hover:text-foreground"
+    >
+      {label}
+      {sort === column
+        ? <ArrowDown className={`size-3.5 transition-transform ${dir === 'asc' ? 'rotate-180' : ''}`} />
+        : <ArrowUpDown className="size-3.5 opacity-40" />}
+    </button>
+  )
+
   const purposePill = (b: Booking) => (
     <span className="whitespace-nowrap rounded-md px-2.5 py-1 text-[12px] font-medium" style={{ background: `${PURPOSE_COLORS[b.purpose]}1c`, color: PURPOSE_COLORS[b.purpose] }}>
       {b.purpose}
@@ -83,7 +108,7 @@ export default function Bookings() {
   const columns: ColumnDef<Booking>[] = [
     {
       id: 'date',
-      header: 'Date',
+      header: () => sortHeader('checkinDate', 'Date'),
       cell: ({ row: { original: b } }) => (
         <div className="whitespace-nowrap">
           {fmtDate(b.checkinDate)}
@@ -94,7 +119,7 @@ export default function Bookings() {
     ...(canEdit
       ? [{
           id: 'booked',
-          header: 'Booked On',
+          header: () => sortHeader('createdAt', 'Booked On'),
           cell: ({ row: { original: b } }: { row: { original: Booking } }) => (
             <span className="whitespace-nowrap text-[12px] text-muted-foreground">{fmtDate(b.createdAt)}</span>
           ),
