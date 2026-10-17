@@ -209,7 +209,9 @@ async function invoicePayload(req: Parameters<typeof scoped>[0], id: string) {
   if (!booking) return null
   const property = await Property.findById(booking.propertyId)
   const sums = await paymentSums([booking._id])
-  const lines = invoiceLines(booking, property?.gstin)
+  // Once issued, the document is fixed to the GSTIN it was raised under; before that it
+  // follows whatever is on file now.
+  const lines = invoiceLines(booking, booking.invoiceNo ? booking.invoiceGstin : property?.gstin)
   const { collected: paid = 0, refunded = 0 } = sums.get(String(booking._id)) ?? {}
   const received = (booking.legacyReceived ?? 0) + paid
   return {
@@ -251,8 +253,10 @@ async function invoicePayload(req: Parameters<typeof scoped>[0], id: string) {
 export async function issueInvoice(booking: InstanceType<typeof Booking>) {
   if (booking.invoiceNo) return booking.invoiceNo
   const date = todayYmd()
+  const property = await Property.findById(booking.propertyId).select('gstin')
   booking.invoiceNo = await nextInvoiceNo(String(booking.propertyId), date)
   booking.invoiceDate = date
+  booking.invoiceGstin = property?.gstin ?? ''
   await booking.save()
   return booking.invoiceNo
 }

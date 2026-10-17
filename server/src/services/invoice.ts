@@ -49,11 +49,10 @@ export function invoiceLines(booking: BookingDoc, sellerGstin?: string) {
     ['Cleaning', b?.cleaning ?? 0],
   ] as [string, number][]).filter(([, amount]) => amount > 0).map(([label, amount]) => ({ label, amount }))
 
-  // GST cannot be charged by someone who is not registered, so an unregistered seller
-  // bills without it whatever the booking says. An invoice already issued keeps what was
-  // sent on it: a reprint has to match the document the guest was given.
-  const registered = !!sellerGstin?.trim()
-  const gstEnabled = booking.gstEnabled !== false && (registered || !!booking.invoiceNo)
+  // GST cannot be charged by someone who is not registered. The caller passes the GSTIN
+  // that applies: the one stamped on the invoice when it was issued, or the one on file
+  // for a document not yet raised.
+  const gstEnabled = booking.gstEnabled !== false && !!sellerGstin?.trim()
   const taxable = items.reduce((sum, i) => sum + i.amount, 0)
   const cgst = gstEnabled ? Math.round(taxable * (GST_RATE / 2)) : 0
   const sgst = gstEnabled ? Math.round(taxable * (GST_RATE / 2)) : 0

@@ -88,12 +88,26 @@ describe('an unregistered seller', () => {
     expect(out.cgst + out.sgst).toBe(3_600)
   })
 
-  it('still reprints an issued invoice exactly as it was sent', () => {
-    // The guest holds a document showing tax. A reprint that quietly dropped it would
-    // not match their copy or the books.
-    const issued = { breakdown: { venue: 20_000 }, gstEnabled: true, invoiceNo: 'INV/2026-27/001' }
-    const out = invoiceLines(issued as never)
+  it('reprints an invoice raised under a GSTIN exactly as it was sent', () => {
+    // The guest holds a document showing tax, so a reprint has to match their copy —
+    // the route passes the GSTIN stamped on it at the time.
+    const out = invoiceLines(
+      { breakdown: { venue: 20_000 }, gstEnabled: true, invoiceNo: 'INV/2026-27/001' } as never,
+      GSTIN,
+    )
     expect(out.gstEnabled).toBe(true)
     expect(out.cgst + out.sgst).toBe(3_600)
+  })
+
+  it('never puts tax on an invoice raised before registration', () => {
+    // A number assigned when a payment landed is not a document anyone sent under a
+    // GSTIN. Registering later must not add tax to it after the fact.
+    const out = invoiceLines(
+      { breakdown: { venue: 20_000 }, gstEnabled: true, invoiceNo: 'INV/2026-27/036' } as never,
+      '',
+    )
+    expect(out.gstEnabled).toBe(false)
+    expect(out.cgst + out.sgst).toBe(0)
+    expect(out.total).toBe(20_000)
   })
 })

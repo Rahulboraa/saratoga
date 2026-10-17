@@ -47,6 +47,10 @@ const bookingSchema = new Schema(
     gstEnabled: { type: Boolean, default: true },
     invoiceNo: { type: String, default: '' },
     invoiceDate: { type: String, default: '' },
+    // The seller's GSTIN as it stood when the invoice was issued. A reprint is faithful
+    // to what the guest holds, and an invoice raised before registration never gains tax
+    // retrospectively just because a number was entered later.
+    invoiceGstin: { type: String, default: '' },
     createdBy: { type: String, default: '' },
     legacyId: { type: String, index: true },
   },

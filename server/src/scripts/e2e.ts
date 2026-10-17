@@ -186,6 +186,20 @@ check('and the document is not called a tax invoice', unregInv.body.kind !== 'Ta
 await Property.updateOne({ _id: b._id }, { gstin: '09AAACH7409R1ZZ' })
 const regInv = await call(admin, `/bookings/${unregBooking.body.id}/invoice`, { property: B })
 check('registering turns GST on without touching the booking', regInv.body.gstEnabled === true && regInv.body.cgst === 1800, JSON.stringify({ g: regInv.body.gstEnabled, c: regInv.body.cgst }))
+// Back to unregistered: an invoice numbered in that state must not gain tax once the
+// GSTIN arrives, since the number was assigned when a payment landed rather than raised
+// under a registration.
+await Property.updateOne({ _id: b._id }, { gstin: '' })
+await call(admin, `/bookings/${unregBooking.body.id}/payments`, { property: B, body: { date: '2026-12-21', amount: 5000, dest: 'ICICI' } })
+const numbered = await call(admin, `/bookings/${unregBooking.body.id}/invoice`, { property: B })
+check('a payment numbers it even while unregistered', !!numbered.body.invoiceNo, String(numbered.body.invoiceNo))
+check('and it carries no tax', numbered.body.gstEnabled === false && numbered.body.cgst === 0, JSON.stringify({ g: numbered.body.gstEnabled, c: numbered.body.cgst }))
+await Property.updateOne({ _id: b._id }, { gstin: '09AAACH7409R1ZZ' })
+const afterReg = await call(admin, `/bookings/${unregBooking.body.id}/invoice`, { property: B })
+check('registering later does not backdate tax onto it', afterReg.body.gstEnabled === false && afterReg.body.cgst === 0, JSON.stringify({ g: afterReg.body.gstEnabled, c: afterReg.body.cgst }))
+const freshAfterReg = await call(admin, '/bookings', { property: B, body: { guest: 'After reg', phone: '96', checkinDate: '2026-12-22', breakdown: { venue: 20000 } } })
+const freshInv = await call(admin, `/bookings/${freshAfterReg.body.id}/invoice`, { property: B })
+check('but a new booking is taxed from then on', freshInv.body.gstEnabled === true && freshInv.body.cgst === 1800, JSON.stringify({ g: freshInv.body.gstEnabled, c: freshInv.body.cgst }))
 await Property.updateOne({ _id: b._id }, { gstin: '' })
 
 console.log('\n5a. The security deposit stays out of the money')
