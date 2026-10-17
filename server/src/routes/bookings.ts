@@ -224,10 +224,19 @@ async function invoicePayload(req: Parameters<typeof scoped>[0], id: string) {
       checkinDate: booking.checkinDate, checkoutDate: booking.checkoutDate,
       checkinTime: booking.checkinTime, checkoutTime: booking.checkoutTime,
       pax: booking.pax, purpose: booking.purpose,
+      // Falls back to the guest, so an invoice raised on a person still bills someone.
+      billingName: booking.billingName || booking.guest,
+      billingGstin: booking.billingGstin ?? '',
+      billingAddress: booking.billingAddress ?? '',
     },
     property: {
-      name: property?.name ?? '', address: property?.address ?? '',
+      // The villa's name is what staff know it by; the invoice has to carry the entity
+      // that is actually raising it.
+      name: property?.legalName || property?.name || '',
+      address: property?.address ?? '',
       location: property?.location ?? '', gstin: property?.gstin ?? '',
+      header: property?.invoiceHeader ?? '',
+      footer: property?.invoiceFooter ?? '',
       terms: (property?.invoiceTerms ?? '').split('\n').map((t) => t.trim()).filter(Boolean),
     },
     ...lines,

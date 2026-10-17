@@ -16,7 +16,10 @@ const BOOKING_COMMON = [
   'guest', 'phone', 'checkinDate', 'checkoutDate', 'checkinTime', 'checkoutTime',
   'pax', 'purpose', 'source', 'notes', 'createdBy', 'overlap',
 ]
-const BOOKING_ADMIN = [...BOOKING_COMMON, 'dest', 'breakdown', 'amount', 'collected', 'due', 'status', 'invoiceNo', 'createdAt']
+const BOOKING_ADMIN = [
+  ...BOOKING_COMMON, 'dest', 'breakdown', 'amount', 'collected', 'due', 'status', 'invoiceNo', 'createdAt',
+  'billingName', 'billingGstin', 'billingAddress',
+]
 
 export function serializeBooking(doc: Doc, role: Role) {
   const out: Doc = { ...base(doc), ...pick(doc, role === 'admin' || role === 'manager' ? BOOKING_ADMIN : BOOKING_COMMON) }

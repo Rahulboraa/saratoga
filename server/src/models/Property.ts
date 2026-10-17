@@ -15,12 +15,17 @@ export const DEFAULT_INVOICE_TERMS = [
   'Booking may be terminated without refund for violation/misrepresentation.',
 ].join('\n')
 
+/** Printed at the very bottom of an invoice, under the terms. Editable per property. */
+export const DEFAULT_INVOICE_FOOTER = 'This is a computer-generated document and needs no signature.'
+
 const propertySchema = new Schema(
   {
     name: { type: String, required: true, trim: true, unique: true },
     location: { type: String, default: '' },
     active: { type: Boolean, default: true },
-    // Printed on sales invoices raised for this property.
+    // Printed on sales invoices raised for this property. The legal entity billing the
+    // guest is not always what the villa is called, so it is held separately.
+    legalName: { type: String, default: '' },
     address: { type: String, default: '' },
     gstin: { type: String, default: '' },
     invoicePrefix: { type: String, default: 'INV' },
@@ -29,6 +34,9 @@ const propertySchema = new Schema(
     color: { type: String, default: '' },
     // One term per line.
     invoiceTerms: { type: String, default: DEFAULT_INVOICE_TERMS },
+    // Free text under the letterhead and at the foot of the invoice.
+    invoiceHeader: { type: String, default: '' },
+    invoiceFooter: { type: String, default: DEFAULT_INVOICE_FOOTER },
     // Defaults for the WhatsApp booking confirmation, one item per line.
     inclusions: { type: String, default: '' },
     exclusions: { type: String, default: '' },

@@ -105,6 +105,9 @@ export default function Invoice() {
             {property.address && <p className="mt-1 max-w-xs text-[12px] text-muted-foreground">{property.address}</p>}
             {property.location && !property.address && <p className="mt-1 text-[12px] text-muted-foreground">{property.location}</p>}
             {property.gstin && <p className="mt-1 text-[12px] text-muted-foreground">GSTIN: {property.gstin}</p>}
+            {property.header && (
+              <p className="mt-1 max-w-xs whitespace-pre-line text-[12px] text-muted-foreground">{property.header}</p>
+            )}
           </div>
           <div className="text-right">
             <div className="text-[13px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -124,7 +127,13 @@ export default function Invoice() {
         <div className="grid gap-4 border-b py-5 sm:grid-cols-2">
           <div>
             <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Billed to</div>
-            <div className="mt-1 text-[15px] font-semibold">{booking.guest}</div>
+            <div className="mt-1 text-[15px] font-semibold">{booking.billingName || booking.guest}</div>
+            {booking.billingAddress && (
+              <div className="mt-0.5 max-w-xs whitespace-pre-line text-[12px] text-muted-foreground">{booking.billingAddress}</div>
+            )}
+            {booking.billingGstin && (
+              <div className="mt-0.5 text-[12px] text-muted-foreground">GSTIN: {booking.billingGstin}</div>
+            )}
             {booking.phone && <div className="text-[12px] text-muted-foreground">{booking.phone}</div>}
           </div>
           <div className="sm:text-right">
@@ -192,12 +201,15 @@ export default function Invoice() {
           </div>
         )}
 
-        <p className="mt-4 border-t pt-4 text-[11px] leading-relaxed text-muted-foreground">
-          {data.gstEnabled
-            ? `GST charged at ${gstPct}% on the taxable value. The licence fee is recovered at actuals and the security deposit is refundable, so neither attracts GST. `
-            : 'Billed without GST. The licence fee is recovered at actuals and the security deposit is refundable. '}
-          This is a computer-generated document.
-        </p>
+        <div className="mt-4 space-y-2 border-t pt-4 text-[11px] leading-relaxed text-muted-foreground">
+          <p>
+            {data.gstEnabled
+              ? `GST charged at ${gstPct}% on the taxable value. The licence fee is recovered at actuals and the security deposit is refundable, so neither attracts GST.`
+              : 'Billed without GST. The licence fee is recovered at actuals and the security deposit is refundable.'}
+          </p>
+          {/* Bank details or a signature block run to several lines, so keep the breaks. */}
+          {property.footer && <p className="whitespace-pre-line">{property.footer}</p>}
+        </div>
       </div>
     </div>
   )

@@ -58,6 +58,9 @@ interface FormValues {
   source: string;
   dest: string;
   notes: string;
+  billingName: string;
+  billingGstin: string;
+  billingAddress: string;
   venue: number;
   catering: number;
   decor: number;
@@ -94,6 +97,9 @@ function toForm(b?: Booking | null): FormValues {
     source: b?.source ?? "none",
     dest: b?.dest ?? "",
     notes: b?.notes ?? "",
+    billingName: b?.billingName ?? "",
+    billingGstin: b?.billingGstin ?? "",
+    billingAddress: b?.billingAddress ?? "",
     venue: b?.breakdown?.venue ?? 0,
     catering: b?.breakdown?.catering ?? 0,
     decor: b?.breakdown?.decor ?? 0,
@@ -216,6 +222,9 @@ export default function BookingSheet({
       purpose: v.purpose,
       source: v.source === "none" ? "" : v.source,
       notes: v.notes,
+      billingName: v.billingName,
+      billingGstin: v.billingGstin,
+      billingAddress: v.billingAddress,
       allowOverlap,
     };
     if (isAdmin) {
@@ -436,6 +445,33 @@ export default function BookingSheet({
             <div className="space-y-2">
               <Label>Notes / inclusions</Label>
               <Textarea rows={3} {...register("notes")} />
+            </div>
+
+            {/* Only a company booking needs these; left blank the invoice bills the
+                guest by name, which is what a private event wants. */}
+            <div className="space-y-3 rounded-lg border p-3">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Billing details — for GST invoice
+              </div>
+              <div className="space-y-2">
+                <Label>Company name</Label>
+                <Input
+                  {...register("billingName")}
+                  placeholder="Leave blank to bill the guest"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>GSTIN</Label>
+                <Input
+                  {...register("billingGstin")}
+                  placeholder="09AAACH7409R1ZZ"
+                  className="uppercase"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Billing address</Label>
+                <Textarea rows={2} {...register("billingAddress")} />
+              </div>
             </div>
 
             {conflicts && (

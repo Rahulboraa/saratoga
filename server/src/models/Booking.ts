@@ -25,6 +25,12 @@ const bookingSchema = new Schema(
     source: { type: String, enum: SOURCES, default: '' },
     dest: { type: String, default: '' },
     notes: { type: String, default: '' },
+    // Who the invoice is actually raised on. A company paying for an event needs its own
+    // name, GSTIN and address on the invoice to claim input credit; left empty the
+    // invoice falls back to the guest's own name and phone.
+    billingName: { type: String, default: '', trim: true },
+    billingGstin: { type: String, default: '', trim: true, uppercase: true },
+    billingAddress: { type: String, default: '', trim: true },
     breakdown: {
       venue: { type: Number, default: 0, min: 0 },
       catering: { type: Number, default: 0, min: 0 },

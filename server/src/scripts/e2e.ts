@@ -154,6 +154,29 @@ check('issuing again keeps the same number', reissued.body.invoiceNo === 'VA/202
 const issuedB = await call(admin, `/bookings/${bookB.body.id}/invoice`, { property: B, method: 'POST' })
 check('B has its own series', issuedB.body.invoiceNo === 'VB/2026-27/001', String(issuedB.body.invoiceNo))
 
+console.log('\n5c. Billing details and invoice branding')
+check('an invoice bills the guest when no company is given', issued.body.booking.billingName === 'Guest A', String(issued.body.booking.billingName))
+check('the villa name is used until a legal name is set', issued.body.property.name === 'Villa A', String(issued.body.property.name))
+
+const b2b = await call(admin, '/bookings', {
+  property: A,
+  body: {
+    guest: 'Ravi', phone: '98', checkinDate: '2026-12-10', breakdown: { venue: 10000 },
+    billingName: 'Acme Pvt Ltd', billingGstin: '09aaach7409r1zz', billingAddress: 'Plot 4\nNoida',
+  },
+})
+await Property.updateOne({ _id: a._id }, {
+  legalName: 'Saratõga INC', invoiceHeader: 'care@saratoga.in', invoiceFooter: 'Bank: HDFC\nA/c 123',
+})
+const b2bInv = await call(admin, `/bookings/${b2b.body.id}/invoice`, { property: A })
+check('the company is billed, not the guest', b2bInv.body.booking.billingName === 'Acme Pvt Ltd', String(b2bInv.body.booking.billingName))
+check("the guest's GSTIN is upper-cased", b2bInv.body.booking.billingGstin === '09AAACH7409R1ZZ', String(b2bInv.body.booking.billingGstin))
+check('the billing address carries its line breaks', b2bInv.body.booking.billingAddress === 'Plot 4\nNoida', JSON.stringify(b2bInv.body.booking.billingAddress))
+check('the legal name replaces the villa name', b2bInv.body.property.name === 'Saratõga INC', String(b2bInv.body.property.name))
+check('header and footer reach the invoice', b2bInv.body.property.header === 'care@saratoga.in' && b2bInv.body.property.footer === 'Bank: HDFC\nA/c 123', JSON.stringify({ h: b2bInv.body.property.header, f: b2bInv.body.property.footer }))
+const b2bEdit = await call(admin, `/bookings/${b2b.body.id}`, { property: A })
+check('billing details come back when editing', b2bEdit.body.billingName === 'Acme Pvt Ltd' && b2bEdit.body.billingGstin === '09AAACH7409R1ZZ', JSON.stringify({ n: b2bEdit.body.billingName, g: b2bEdit.body.billingGstin }))
+
 console.log('\n5a. The security deposit stays out of the money')
 const depBooking = await call(admin, '/bookings', { property: A, body: { guest: 'Deposit', phone: '8', checkinDate: '2026-12-28', breakdown: { venue: 40000, security: 10000 } } })
 const depRow = await call(admin, `/bookings/${depBooking.body.id}`, { property: A })

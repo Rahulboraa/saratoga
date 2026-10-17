@@ -94,11 +94,14 @@ export default function Properties() {
     const fd = new FormData(e.currentTarget)
     const body = {
       name: fd.get('name'),
+      legalName: fd.get('legalName'),
       location: fd.get('location'),
       address: fd.get('address'),
       gstin: fd.get('gstin'),
       invoicePrefix: fd.get('invoicePrefix') || 'INV',
       invoiceTerms: fd.get('invoiceTerms'),
+      invoiceHeader: fd.get('invoiceHeader'),
+      invoiceFooter: fd.get('invoiceFooter'),
       inclusions: fd.get('inclusions'),
       exclusions: fd.get('exclusions'),
       confirmationNotes: fd.get('confirmationNotes'),
@@ -227,6 +230,17 @@ export default function Properties() {
               <Input name="name" required autoFocus defaultValue={editing?.name ?? ''} placeholder="e.g. Saratoga Farms" />
             </div>
             <div className="space-y-1.5">
+              <Label>Company name (on invoice)</Label>
+              <Input
+                name="legalName"
+                defaultValue={editing?.legalName ?? ''}
+                placeholder={editing?.name ? `Leave blank to use "${editing.name}"` : 'e.g. Saratõga INC'}
+              />
+              <p className="text-[11px] text-muted-foreground">
+                The entity that raises the invoice, when that differs from what the villa is called.
+              </p>
+            </div>
+            <div className="space-y-1.5">
               <Label>Location</Label>
               <Input name="location" defaultValue={editing?.location ?? ''} placeholder="Optional" />
             </div>
@@ -267,6 +281,27 @@ export default function Properties() {
                 Changing the prefix only affects invoices issued from now on; ones already issued keep their number.
               </p>
             )}
+            <div className="space-y-1.5">
+              <Label>Invoice header</Label>
+              <Textarea
+                name="invoiceHeader"
+                rows={2}
+                defaultValue={editing?.invoiceHeader ?? ''}
+                placeholder="Phone, email, CIN — anything extra under the address"
+                className="text-[12px]"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Invoice footer</Label>
+              <Textarea
+                name="invoiceFooter"
+                rows={3}
+                defaultValue={editing?.invoiceFooter ?? ''}
+                placeholder="Bank details, signature line, thank-you note"
+                className="text-[12px]"
+              />
+              <p className="text-[11px] text-muted-foreground">Printed at the very bottom, under the terms.</p>
+            </div>
             <div className="space-y-1.5">
               <Label>Invoice terms</Label>
               <Textarea

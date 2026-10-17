@@ -16,12 +16,16 @@ export interface ManagedUser extends AuthUser {
 export interface Property {
   id: string
   name: string
+  /** The entity that raises the invoice, when it differs from the villa's name. */
+  legalName: string
   location: string
   active: boolean
   address: string
   gstin: string
   invoicePrefix: string
   invoiceTerms: string
+  invoiceHeader: string
+  invoiceFooter: string
   imageUrl: string
   color: string
   inclusions: string
@@ -73,6 +77,10 @@ export interface Booking {
   source: string
   notes: string
   createdBy: string
+  /** Who the invoice is raised on, when that is a company rather than the guest. */
+  billingName?: string
+  billingGstin?: string
+  billingAddress?: string
   overlap?: boolean
   dest?: string
   breakdown?: Breakdown
@@ -327,8 +335,12 @@ export interface InvoicePayload {
     checkinDate: string; checkoutDate: string
     checkinTime: string; checkoutTime: string
     pax: string; purpose: string
+    billingName: string; billingGstin: string; billingAddress: string
   }
-  property: { name: string; address: string; location: string; gstin: string; terms: string[] }
+  property: {
+    name: string; address: string; location: string; gstin: string
+    header: string; footer: string; terms: string[]
+  }
   items: { label: string; amount: number }[]
   taxable: number
   cgst: number

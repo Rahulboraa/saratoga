@@ -42,6 +42,11 @@ const bookingCommon = z.object({
   purpose: eventType,
   source: z.enum(SOURCES).default(''),
   notes: str.default(''),
+  billingName: str.max(120).default(''),
+  // Format is checked loosely: an invoice still has to go out if a guest hands over a
+  // GSTIN that does not match the usual pattern.
+  billingGstin: str.max(20).default(''),
+  billingAddress: str.max(300).default(''),
   allowOverlap: z.boolean().default(false),
 })
 

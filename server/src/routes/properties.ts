@@ -13,11 +13,14 @@ const color = z.string().trim().regex(/^(#[0-9a-f]{6})?$/i, 'Use a colour like #
 
 const createSchema = z.object({
   name: z.string().trim().min(1).max(80),
+  legalName: z.string().trim().max(120).default(''),
   location: z.string().trim().max(120).default(''),
   address: z.string().trim().max(300).default(''),
   gstin: z.string().trim().max(20).default(''),
   invoicePrefix: z.string().trim().max(10).default('INV'),
   invoiceTerms: z.string().max(4000).optional(),
+  invoiceHeader: z.string().max(1000).optional(),
+  invoiceFooter: z.string().max(1000).optional(),
   imageUrl: imageUrl.default(''),
   color: color.default(''),
   inclusions: z.string().max(2000).optional(),
@@ -27,12 +30,15 @@ const createSchema = z.object({
 
 const updateSchema = z.object({
   name: z.string().trim().min(1).max(80).optional(),
+  legalName: z.string().trim().max(120).optional(),
   location: z.string().trim().max(120).optional(),
   active: z.boolean().optional(),
   address: z.string().trim().max(300).optional(),
   gstin: z.string().trim().max(20).optional(),
   invoicePrefix: z.string().trim().max(10).optional(),
   invoiceTerms: z.string().max(4000).optional(),
+  invoiceHeader: z.string().max(1000).optional(),
+  invoiceFooter: z.string().max(1000).optional(),
   imageUrl: imageUrl.optional(),
   color: color.optional(),
   inclusions: z.string().max(2000).optional(),
@@ -41,14 +47,16 @@ const updateSchema = z.object({
 })
 
 const shape = (p: {
-  id: string; name: string; location: string; active: boolean
+  id: string; name: string; legalName: string; location: string; active: boolean
   address: string; gstin: string; invoicePrefix: string; invoiceTerms: string
+  invoiceHeader: string; invoiceFooter: string
   imageUrl: string; color: string
   inclusions: string; exclusions: string; confirmationNotes: string
 }) => ({
-  id: p.id, name: p.name, location: p.location, active: p.active,
+  id: p.id, name: p.name, legalName: p.legalName, location: p.location, active: p.active,
   address: p.address, gstin: p.gstin, invoicePrefix: p.invoicePrefix,
-  invoiceTerms: p.invoiceTerms, imageUrl: p.imageUrl, color: p.color,
+  invoiceTerms: p.invoiceTerms, invoiceHeader: p.invoiceHeader, invoiceFooter: p.invoiceFooter,
+  imageUrl: p.imageUrl, color: p.color,
   inclusions: p.inclusions, exclusions: p.exclusions, confirmationNotes: p.confirmationNotes,
 })
 
