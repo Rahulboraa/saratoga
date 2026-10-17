@@ -96,7 +96,7 @@ function Brand() {
 function UserFooter() {
   const { user, logout } = useAuth()
   const { active, canSwitch } = useProperty()
-  const propertyLabel = canSwitch ? (active?.name ?? 'All properties') : active?.name ?? ''
+  const propertyLabel = canSwitch ? (active?.name ?? 'All projects') : active?.name ?? ''
   const initials = user?.name?.split(' ').map((p) => p[0]).join('').slice(0, 2).toUpperCase() ?? '?'
   return (
     <div className="border-t border-border bg-background p-3">

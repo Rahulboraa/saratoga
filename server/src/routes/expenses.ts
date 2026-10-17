@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { onlySent } from '../lib/patch.js'
 import { Expense } from '../models/Expense.js'
 import { Booking } from '../models/Booking.js'
 import { ExpensePayment } from '../models/ExpensePayment.js'
@@ -68,7 +69,7 @@ expensesRouter.post('/', async (req, res) => {
 })
 
 expensesRouter.patch('/:id', async (req, res) => {
-  const body = expenseSchema.partial().parse(req.body)
+  const body = onlySent(expenseSchema.partial().parse(req.body), req.body)
   await assertCategory(body.cat)
   const update: Record<string, unknown> = { ...body }
   if (body.bookingId !== undefined) update.bookingId = await resolveBooking(req, body.bookingId)
@@ -103,7 +104,7 @@ export const expensePaymentsRouter = Router()
 expensePaymentsRouter.use(requireRole('admin'))
 
 expensePaymentsRouter.patch('/:id', async (req, res) => {
-  const body = expensePaymentSchema.partial().parse(req.body)
+  const body = onlySent(expensePaymentSchema.partial().parse(req.body), req.body)
   const payment = await ExpensePayment.findOneAndUpdate(scoped(req, { _id: req.params.id }), body, { new: true, runValidators: true })
   if (!payment) return res.status(404).json({ error: 'Payment not found' })
   res.json(serializeExpensePayment(payment.toObject()))

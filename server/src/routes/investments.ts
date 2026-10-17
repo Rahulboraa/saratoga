@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { onlySent } from '../lib/patch.js'
 import { Investment } from '../models/Investment.js'
 import { requireRole } from '../middleware/auth.js'
 import { investmentSchema } from '../validation/schemas.js'
@@ -32,7 +33,7 @@ investmentsRouter.post('/', async (req, res) => {
 })
 
 investmentsRouter.patch('/:id', async (req, res) => {
-  const body = investmentSchema.partial().parse(req.body)
+  const body = onlySent(investmentSchema.partial().parse(req.body), req.body)
   const entry = await Investment.findOneAndUpdate(scoped(req, { _id: req.params.id }), body, { new: true, runValidators: true })
   if (!entry) return res.status(404).json({ error: 'Entry not found' })
   res.json(shape(entry))

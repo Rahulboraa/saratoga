@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { onlySent } from '../lib/patch.js'
 import { Visitor, VISITOR_TYPES } from '../models/Visitor.js'
 import { requireRole } from '../middleware/auth.js'
 import { visitorSchema, visitorCaretakerSchema, visitorCaretakerPatchSchema } from '../validation/schemas.js'
@@ -46,7 +47,7 @@ visitorsRouter.post('/', async (req, res) => {
 visitorsRouter.patch('/:id', async (req, res) => {
   const body = req.user.role === 'caretaker'
     ? visitorCaretakerPatchSchema.parse(req.body)
-    : visitorSchema.partial().parse(req.body)
+    : onlySent(visitorSchema.partial().parse(req.body), req.body)
   const visitor = await Visitor.findOneAndUpdate(scoped(req, { _id: req.params.id }), body, { new: true, runValidators: true })
   if (!visitor) return res.status(404).json({ error: 'Visitor not found' })
   res.json(serializeVisitor(visitor.toObject({ virtuals: true }), req.user.role))

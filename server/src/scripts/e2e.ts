@@ -297,6 +297,29 @@ const badWindow = await call(admin, '/leads/wanted', { property: A })
 check('asking with no window at all is refused', badWindow.status === 400, String(badWindow.status))
 const salesWanted = await call(await login('salesa'), '/leads/wanted?month=2026-10', { property: A })
 check('a sales exec sees only their own in that list', (salesWanted.body.rows ?? []).length === 0, JSON.stringify(salesWanted.body.rows?.length))
+await call(admin, `/leads/${oct23.body.id}`, { property: A, method: 'PATCH', body: { outcome: 'Converted' } })
+const afterBooked = await call(admin, '/leads/wanted?month=2026-10', { property: A })
+check('someone who already booked drops off the pitch list', !(afterBooked.body.rows ?? []).some((l: Json) => l.name === 'Wants 23 Oct'), JSON.stringify((afterBooked.body.rows ?? []).map((l: Json) => l.name)))
+await call(admin, `/leads/${oct23.body.id}`, { property: A, method: 'PATCH', body: { outcome: '' } })
+
+console.log('\n6g. Editing one field leaves the rest alone')
+const rich = await call(admin, '/leads', { property: A, body: {
+  date: '2026-09-05', name: 'Full record', phone: '9305', exec: 'mgra', flag: 'good',
+  followup: '2026-10-10', notes: 'Wants lawn side, budget 2L', adminComment: 'VIP',
+  wantedFrom: '2026-11-05', wantedTo: '2026-11-06',
+} })
+check('a lead can be written with everything filled in', rich.status === 201, JSON.stringify(rich.body))
+// Exactly what the Converted tick in the CRM sends.
+const ticked = await call(admin, `/leads/${rich.body.id}`, { property: A, method: 'PATCH', body: { outcome: 'Converted' } })
+check('the tick sets the outcome', ticked.body.outcome === 'Converted', String(ticked.body.outcome))
+check('and keeps the remarks', ticked.body.notes === 'Wants lawn side, budget 2L', JSON.stringify(ticked.body.notes))
+check('and keeps the executive', ticked.body.exec === 'mgra' && ticked.body.execLabel === 'Mgr A', JSON.stringify({ e: ticked.body.exec, l: ticked.body.execLabel }))
+check('and keeps the follow-up date', ticked.body.followup === '2026-10-10', String(ticked.body.followup))
+check('and keeps the flag and admin note', ticked.body.flag === 'good' && ticked.body.adminComment === 'VIP', JSON.stringify({ f: ticked.body.flag, a: ticked.body.adminComment }))
+check('and keeps the dates they wanted', ticked.body.wantedFrom === '2026-11-05' && ticked.body.wantedTo === '2026-11-06', JSON.stringify({ f: ticked.body.wantedFrom, t: ticked.body.wantedTo }))
+// Clearing a field on purpose must still work.
+const cleared = await call(admin, `/leads/${rich.body.id}`, { property: A, method: 'PATCH', body: { followup: '' } })
+check('a field sent blank is still cleared', cleared.body.followup === '' && cleared.body.notes === 'Wants lawn side, budget 2L', JSON.stringify({ f: cleared.body.followup, n: cleared.body.notes }))
 
 console.log('\n6f. Conversations that went quiet')
 // These were written seconds ago, so nothing is quiet yet. Age them through the driver,
@@ -309,9 +332,10 @@ const quiet = await call(admin, '/leads/quiet?days=1', { property: A })
 const quietNames = (quiet.body ?? []).map((l: Json) => l.name)
 check('leads nobody has touched show up', quietNames.length > 0, JSON.stringify(quietNames.slice(0, 4)))
 const dated = quietNames.filter((n: string) => String(n).startsWith('Wants'))
-// Soonest first by the start of what they asked for: the whole-October lead opens on the
-// 1st, so it is nearer than the one wanting the 23rd.
-check('the nearest date leads the list', String(dated) === 'Wants Oct,Wants 23 Oct,Wants Dec', JSON.stringify(dated))
+// Soonest first by the start of what they asked for. The 23 Oct lead is absent on
+// purpose: it was worked on a moment ago in 6e, so it is not a quiet conversation.
+check('the nearest date leads the list', String(dated) === 'Wants Oct,Wants Dec', JSON.stringify(dated))
+check('a lead worked on just now is not quiet', !quietNames.includes('Wants 23 Oct'), JSON.stringify(quietNames.slice(0, 5)))
 await call(admin, `/leads/${oct23.body.id}`, { property: A, method: 'PATCH', body: { date: '2026-09-01', name: 'Wants 23 Oct', phone: '9301', outcome: 'Converted' } })
 const afterClose = await call(admin, '/leads/quiet?days=1', { property: A })
 check('a closed lead drops out of it', !(afterClose.body ?? []).some((l: Json) => l.name === 'Wants 23 Oct'), JSON.stringify((afterClose.body ?? []).map((l: Json) => l.name).slice(0, 4)))
@@ -394,6 +418,20 @@ const vAll = await call(mgrA, '/visitors')
 check('both visitors listed', vAll.body.rows?.length === 2, String(vAll.body.rows?.length))
 const vDel = await call(mgrA, '/visitors?type=Delivery')
 check('type filter works on the stored field', vDel.body.rows?.length === 1 && vDel.body.rows[0].name === 'Courier', JSON.stringify(vDel.body.rows?.map((r: Json) => r.name)))
+
+// Exactly what the Mark out button sends. Before updates were narrowed to what was
+// actually sent, this one field wiped the purpose, remarks and follow-up alongside it.
+const vendor = await call(admin, '/visitors', { property: A, body: {
+  date: '2026-11-12', name: 'Prakash tent house', phone: '9810855731', type: 'Vendor',
+  purpose: '04/10/26 catering', inTime: '16:33', remarks: 'Lawn side setup',
+  fuStatus: 'Hold', fuRemark: 'Quote pending',
+} })
+const out = await call(admin, `/visitors/${vendor.body.id}`, { property: A, method: 'PATCH', body: { outTime: '19:20' } })
+check('marking out records the time', out.body.outTime === '19:20', String(out.body.outTime))
+check('and keeps the purpose', out.body.purpose === '04/10/26 catering', JSON.stringify(out.body.purpose))
+check('and keeps the in time', out.body.inTime === '16:33', String(out.body.inTime))
+check('and keeps the remarks and follow-up', out.body.remarks === 'Lawn side setup' && out.body.fuRemark === 'Quote pending', JSON.stringify({ r: out.body.remarks, f: out.body.fuRemark }))
+check('and does not reset the visitor type to Guest', out.body.type === 'Vendor', String(out.body.type))
 
 console.log(`\n${pass} passed, ${fail} failed`)
 server.close()

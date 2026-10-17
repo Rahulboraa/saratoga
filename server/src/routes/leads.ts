@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { onlySent } from '../lib/patch.js'
 import { z } from 'zod'
 import { Lead, CLOSED_OUTCOMES } from '../models/Lead.js'
 import { User } from '../models/User.js'
@@ -110,7 +111,12 @@ leadsRouter.get('/wanted', async (req, res) => {
   if (!YMD.test(window.from) || !YMD.test(window.to)) {
     return res.status(400).json({ error: 'Give a month, or a from and to date' })
   }
-  const filter: Record<string, unknown> = scoped(req, wantedWithin(window.from, window.to))
+  // Everyone who wanted it and did not get it. A converted lead already holds a booking,
+  // so offering them the date back is the one pitch that cannot land.
+  const filter: Record<string, unknown> = scoped(req, {
+    ...wantedWithin(window.from, window.to),
+    outcome: { $ne: 'Converted' },
+  })
   if (req.user.role === 'sales') filter.exec = req.user.username
   const leads = await Lead.find(filter).sort({ wantedFrom: 1 }).limit(200)
   res.json({ ...window, total: leads.length, rows: leads.map((l) => serializeLead(l.toObject(), req.user.role)) })
@@ -159,9 +165,9 @@ leadsRouter.patch('/:id', async (req, res) => {
   if (!lead) return res.status(404).json({ error: 'Lead not found' })
   if (req.user.role === 'sales') {
     if (lead.exec !== req.user.username) return res.status(403).json({ error: 'Forbidden' })
-    lead.set(withWantedRange(leadCommonSchema.partial()).parse(req.body))
+    lead.set(onlySent(withWantedRange(leadCommonSchema.partial()).parse(req.body), req.body))
   } else {
-    const body = withWantedRange(leadManagerSchema.partial()).parse(req.body)
+    const body = onlySent(withWantedRange(leadManagerSchema.partial()).parse(req.body), req.body)
     lead.set(body)
     if (body.exec !== undefined) lead.execLabel = await execLabelFor(body.exec)
   }

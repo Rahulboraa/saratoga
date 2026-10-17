@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { onlySent } from '../lib/patch.js'
 import { Booking } from '../models/Booking.js'
 import { Payment } from '../models/Payment.js'
 import { requireRole } from '../middleware/auth.js'
@@ -175,7 +176,8 @@ bookingsRouter.post('/', requireRole('admin', 'manager'), async (req, res) => {
 
 bookingsRouter.patch('/:id', requireRole('admin', 'manager'), async (req, res) => {
   const schema = bookingAdminSchema
-  const { allowOverlap, ...body } = schema.partial().parse(req.body)
+  const { allowOverlap, ...parsed } = schema.partial().parse(req.body)
+  const body = onlySent(parsed, req.body)
   const booking = await Booking.findOne(scoped(req, { _id: req.params.id }))
   if (!booking) return res.status(404).json({ error: 'Booking not found' })
 
