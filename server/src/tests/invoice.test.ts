@@ -4,8 +4,7 @@ import { financialYear, invoiceLines, GST_RATE } from '../services/invoice.js'
 const bookingWith = (breakdown: Record<string, number>, gstEnabled = true) =>
   ({ breakdown, gstEnabled } as unknown as Parameters<typeof invoiceLines>[0])
 
-/** A registered seller, which is what the tax cases below are about. */
-const GSTIN = '09AAACH7409R1ZZ'
+
 
 describe('financialYear', () => {
   it('runs April to March', () => {
@@ -22,7 +21,7 @@ describe('financialYear', () => {
 
 describe('invoiceLines', () => {
   it('charges GST on the service lines only', () => {
-    const out = invoiceLines(bookingWith({ venue: 20_000, catering: 10_000, license: 5_000, security: 20_000 }), GSTIN)
+    const out = invoiceLines(bookingWith({ venue: 20_000, catering: 10_000, license: 5_000, security: 20_000 }))
     expect(out.taxable).toBe(30_000)
     expect(out.cgst).toBe(2_700)
     expect(out.sgst).toBe(2_700)
@@ -33,20 +32,20 @@ describe('invoiceLines', () => {
   })
 
   it('taxes valet like any other service line', () => {
-    const out = invoiceLines(bookingWith({ venue: 20_000, valet: 5_000 }), GSTIN)
+    const out = invoiceLines(bookingWith({ venue: 20_000, valet: 5_000 }))
     expect(out.items.map((i) => i.label)).toContain('Valet')
     expect(out.taxable).toBe(25_000)
     expect(out.total).toBe(25_000 + 4_500)
   })
 
   it('drops zero lines', () => {
-    const out = invoiceLines(bookingWith({ venue: 27_000, catering: 0, decor: 0 }), GSTIN)
+    const out = invoiceLines(bookingWith({ venue: 27_000, catering: 0, decor: 0 }))
     expect(out.items).toEqual([{ label: 'Venue rental', amount: 27_000 }])
     expect(out.total).toBe(27_000 + 4_860)
   })
 
   it('bills without tax when GST is switched off', () => {
-    const out = invoiceLines(bookingWith({ venue: 27_000, security: 10_000 }, false), GSTIN)
+    const out = invoiceLines(bookingWith({ venue: 27_000, security: 10_000 }, false))
     expect(out.gstEnabled).toBe(false)
     expect(out.taxable).toBe(27_000)
     expect(out.cgst).toBe(0)
@@ -55,59 +54,29 @@ describe('invoiceLines', () => {
   })
 
   it('treats a booking with no flag as taxed, which is the default', () => {
-    const out = invoiceLines({ breakdown: { venue: 10_000 } } as never, GSTIN)
+    const out = invoiceLines({ breakdown: { venue: 10_000 } } as never)
     expect(out.gstEnabled).toBe(true)
     expect(out.total).toBe(11_800)
   })
 
   it('is empty for a booking with no charges', () => {
-    const out = invoiceLines(bookingWith({}), GSTIN)
+    const out = invoiceLines(bookingWith({}))
     expect(out.items).toEqual([])
     expect(out.total).toBe(0)
   })
 })
 
-describe('an unregistered seller', () => {
-  it('bills without GST even though the booking is flagged for it', () => {
-    // Registration is still in process: charging tax before it exists is not an option,
-    // whatever the booking was created with.
-    const out = invoiceLines(bookingWith({ venue: 20_000 }))
-    expect(out.gstEnabled).toBe(false)
-    expect(out.cgst).toBe(0)
-    expect(out.sgst).toBe(0)
-    expect(out.total).toBe(20_000)
+describe('the GST toggle', () => {
+  it('is what decides, so an invoice can be raised either way', () => {
+    // The default comes from whether the project has a GSTIN, but whoever raises the
+    // invoice overrides it from the invoice itself.
+    expect(invoiceLines(bookingWith({ venue: 20_000 }, true)).gstEnabled).toBe(true)
+    expect(invoiceLines(bookingWith({ venue: 20_000 }, false)).gstEnabled).toBe(false)
   })
 
-  it('treats a blank GSTIN the same as none at all', () => {
-    expect(invoiceLines(bookingWith({ venue: 20_000 }), '   ').gstEnabled).toBe(false)
-  })
-
-  it('charges GST the moment a GSTIN is on file', () => {
-    const out = invoiceLines(bookingWith({ venue: 20_000 }), GSTIN)
-    expect(out.gstEnabled).toBe(true)
-    expect(out.cgst + out.sgst).toBe(3_600)
-  })
-
-  it('reprints an invoice raised under a GSTIN exactly as it was sent', () => {
-    // The guest holds a document showing tax, so a reprint has to match their copy —
-    // the route passes the GSTIN stamped on it at the time.
-    const out = invoiceLines(
-      { breakdown: { venue: 20_000 }, gstEnabled: true, invoiceNo: 'INV/2026-27/001' } as never,
-      GSTIN,
-    )
-    expect(out.gstEnabled).toBe(true)
-    expect(out.cgst + out.sgst).toBe(3_600)
-  })
-
-  it('never puts tax on an invoice raised before registration', () => {
-    // A number assigned when a payment landed is not a document anyone sent under a
-    // GSTIN. Registering later must not add tax to it after the fact.
-    const out = invoiceLines(
-      { breakdown: { venue: 20_000 }, gstEnabled: true, invoiceNo: 'INV/2026-27/036' } as never,
-      '',
-    )
-    expect(out.gstEnabled).toBe(false)
+  it('leaves the total untaxed when it is switched off', () => {
+    const out = invoiceLines(bookingWith({ venue: 20_000, license: 5_000 }, false))
     expect(out.cgst + out.sgst).toBe(0)
-    expect(out.total).toBe(20_000)
+    expect(out.total).toBe(25_000)
   })
 })

@@ -38,7 +38,7 @@ type BookingDoc = InstanceType<typeof Booking>
  * is a pass-through at actuals and the security deposit is refundable, so neither is
  * taxed. A booking billed without GST carries the same lines at zero tax.
  */
-export function invoiceLines(booking: BookingDoc, sellerGstin?: string) {
+export function invoiceLines(booking: BookingDoc) {
   const b = booking.breakdown
   const items = ([
     ['Venue rental', b?.venue ?? 0],
@@ -49,10 +49,10 @@ export function invoiceLines(booking: BookingDoc, sellerGstin?: string) {
     ['Cleaning', b?.cleaning ?? 0],
   ] as [string, number][]).filter(([, amount]) => amount > 0).map(([label, amount]) => ({ label, amount }))
 
-  // GST cannot be charged by someone who is not registered. The caller passes the GSTIN
-  // that applies: the one stamped on the invoice when it was issued, or the one on file
-  // for a document not yet raised.
-  const gstEnabled = booking.gstEnabled !== false && !!sellerGstin?.trim()
+  // Whoever raises the invoice decides. The default is set from whether the project has
+  // a GSTIN on file, so an unregistered one does not charge tax without being told to,
+  // but the toggle on the invoice overrides it either way.
+  const gstEnabled = booking.gstEnabled !== false
   const taxable = items.reduce((sum, i) => sum + i.amount, 0)
   const cgst = gstEnabled ? Math.round(taxable * (GST_RATE / 2)) : 0
   const sgst = gstEnabled ? Math.round(taxable * (GST_RATE / 2)) : 0

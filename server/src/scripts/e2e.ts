@@ -178,29 +178,22 @@ check('header and footer reach the invoice', b2bInv.body.property.header === 'ca
 const b2bEdit = await call(admin, `/bookings/${b2b.body.id}`, { property: A })
 check('billing details come back when editing', b2bEdit.body.billingName === 'Acme Pvt Ltd' && b2bEdit.body.billingGstin === '09AAACH7409R1ZZ', JSON.stringify({ n: b2bEdit.body.billingName, g: b2bEdit.body.billingGstin }))
 
-console.log('\n5d. GST waits for the registration')
+console.log('\n5d. GST follows the project, and the toggle overrides it')
+// B has no GSTIN, so its bookings start untaxed rather than charging tax nobody can remit.
 const unregBooking = await call(admin, '/bookings', { property: B, body: { guest: 'Unreg', phone: '97', checkinDate: '2026-12-20', breakdown: { venue: 20000 } } })
 const unregInv = await call(admin, `/bookings/${unregBooking.body.id}/invoice`, { property: B })
-check('a seller with no GSTIN bills without GST', unregInv.body.gstEnabled === false && unregInv.body.cgst === 0, JSON.stringify({ g: unregInv.body.gstEnabled, c: unregInv.body.cgst }))
+check('an unregistered project bills without GST by default', unregInv.body.gstEnabled === false && unregInv.body.cgst === 0, JSON.stringify({ g: unregInv.body.gstEnabled, c: unregInv.body.cgst }))
 check('and the document is not called a tax invoice', unregInv.body.kind !== 'Tax Invoice', String(unregInv.body.kind))
-await Property.updateOne({ _id: b._id }, { gstin: '09AAACH7409R1ZZ' })
-const regInv = await call(admin, `/bookings/${unregBooking.body.id}/invoice`, { property: B })
-check('registering turns GST on without touching the booking', regInv.body.gstEnabled === true && regInv.body.cgst === 1800, JSON.stringify({ g: regInv.body.gstEnabled, c: regInv.body.cgst }))
-// Back to unregistered: an invoice numbered in that state must not gain tax once the
-// GSTIN arrives, since the number was assigned when a payment landed rather than raised
-// under a registration.
-await Property.updateOne({ _id: b._id }, { gstin: '' })
-await call(admin, `/bookings/${unregBooking.body.id}/payments`, { property: B, body: { date: '2026-12-21', amount: 5000, dest: 'ICICI' } })
-const numbered = await call(admin, `/bookings/${unregBooking.body.id}/invoice`, { property: B })
-check('a payment numbers it even while unregistered', !!numbered.body.invoiceNo, String(numbered.body.invoiceNo))
-check('and it carries no tax', numbered.body.gstEnabled === false && numbered.body.cgst === 0, JSON.stringify({ g: numbered.body.gstEnabled, c: numbered.body.cgst }))
-await Property.updateOne({ _id: b._id }, { gstin: '09AAACH7409R1ZZ' })
-const afterReg = await call(admin, `/bookings/${unregBooking.body.id}/invoice`, { property: B })
-check('registering later does not backdate tax onto it', afterReg.body.gstEnabled === false && afterReg.body.cgst === 0, JSON.stringify({ g: afterReg.body.gstEnabled, c: afterReg.body.cgst }))
-const freshAfterReg = await call(admin, '/bookings', { property: B, body: { guest: 'After reg', phone: '96', checkinDate: '2026-12-22', breakdown: { venue: 20000 } } })
-const freshInv = await call(admin, `/bookings/${freshAfterReg.body.id}/invoice`, { property: B })
-check('but a new booking is taxed from then on', freshInv.body.gstEnabled === true && freshInv.body.cgst === 1800, JSON.stringify({ g: freshInv.body.gstEnabled, c: freshInv.body.cgst }))
-await Property.updateOne({ _id: b._id }, { gstin: '' })
+
+const forcedOn = await call(admin, `/bookings/${unregBooking.body.id}/invoice`, { property: B, method: 'PATCH', body: { gstEnabled: true } })
+check('but it can still be switched on by hand', forcedOn.body.gstEnabled === true && forcedOn.body.cgst === 1800, JSON.stringify({ g: forcedOn.body.gstEnabled, c: forcedOn.body.cgst }))
+const forcedOff = await call(admin, `/bookings/${unregBooking.body.id}/invoice`, { property: B, method: 'PATCH', body: { gstEnabled: false } })
+check('and off again', forcedOff.body.gstEnabled === false && forcedOff.body.total === 20000, JSON.stringify({ g: forcedOff.body.gstEnabled, t: forcedOff.body.total }))
+
+// A is registered, so its bookings are taxed from the start.
+const regBooking = await call(admin, '/bookings', { property: A, body: { guest: 'Reg', phone: '96', checkinDate: '2026-12-21', breakdown: { venue: 20000 } } })
+const regInv = await call(admin, `/bookings/${regBooking.body.id}/invoice`, { property: A })
+check('a registered project charges GST by default', regInv.body.gstEnabled === true && regInv.body.cgst === 1800, JSON.stringify({ g: regInv.body.gstEnabled, c: regInv.body.cgst }))
 
 console.log('\n5a. The security deposit stays out of the money')
 const depBooking = await call(admin, '/bookings', { property: A, body: { guest: 'Deposit', phone: '8', checkinDate: '2026-12-28', breakdown: { venue: 40000, security: 10000 } } })

@@ -164,7 +164,12 @@ bookingsRouter.post('/', requireRole('admin', 'manager'), async (req, res) => {
       })
     }
   }
-  const booking = await Booking.create({ ...body, propertyId, createdBy: req.user.username })
+  // An unregistered project starts its bookings untaxed; whoever raises the invoice can
+  // still turn GST on from the invoice itself.
+  const project = await Property.findById(propertyId).select('gstin')
+  const booking = await Booking.create({
+    ...body, propertyId, createdBy: req.user.username, gstEnabled: !!project?.gstin?.trim(),
+  })
   res.status(201).json(serializeBooking({ ...booking.toObject(), id: booking.id }, req.user.role))
 })
 
@@ -209,9 +214,7 @@ async function invoicePayload(req: Parameters<typeof scoped>[0], id: string) {
   if (!booking) return null
   const property = await Property.findById(booking.propertyId)
   const sums = await paymentSums([booking._id])
-  // Once issued, the document is fixed to the GSTIN it was raised under; before that it
-  // follows whatever is on file now.
-  const lines = invoiceLines(booking, booking.invoiceNo ? booking.invoiceGstin : property?.gstin)
+  const lines = invoiceLines(booking)
   const { collected: paid = 0, refunded = 0 } = sums.get(String(booking._id)) ?? {}
   const received = (booking.legacyReceived ?? 0) + paid
   return {
