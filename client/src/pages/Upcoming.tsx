@@ -288,7 +288,13 @@ export default function Upcoming() {
             <CardContent className="space-y-1.5 px-4">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <div className="text-[13px] font-semibold">{b.guest}</div>
+                  {canOpen ? (
+                    <button type="button" onClick={() => navigate(`/bookings?focus=${b.id}`)} className="text-left text-[13px] font-semibold underline-offset-2 hover:text-primary hover:underline">
+                      {b.guest}
+                    </button>
+                  ) : (
+                    <div className="text-[13px] font-semibold">{b.guest}</div>
+                  )}
                   <div className="text-[11px] text-muted-foreground">
                     {fmtDate(b.checkinDate)}{b.checkoutDate !== b.checkinDate && ` → ${fmtDate(b.checkoutDate)}`} · {b.checkinTime}
                   </div>

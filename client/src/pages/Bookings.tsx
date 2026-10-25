@@ -133,9 +133,21 @@ export default function Bookings() {
     {
       id: 'guest',
       header: 'Client',
+      // The name is the obvious thing to reach for to open a booking, and Upcoming
+      // already behaves this way — here it did nothing at all.
       cell: ({ row: { original: b } }) => (
         <div>
-          <div className="font-medium">{b.guest}</div>
+          {canEdit ? (
+            <button
+              type="button"
+              onClick={() => openEdit(b)}
+              className="text-left font-medium underline-offset-2 hover:text-primary hover:underline"
+            >
+              {b.guest}
+            </button>
+          ) : (
+            <div className="font-medium">{b.guest}</div>
+          )}
           {b.phone && <div className="text-[11px] text-muted-foreground">{b.phone}</div>}
         </div>
       ),
@@ -263,7 +275,13 @@ export default function Bookings() {
             <CardContent className="space-y-2 px-4">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <div className="text-[13px] font-semibold">{b.guest}</div>
+                  {canEdit ? (
+                    <button type="button" onClick={() => openEdit(b)} className="text-left text-[13px] font-semibold underline-offset-2 hover:text-primary hover:underline">
+                      {b.guest}
+                    </button>
+                  ) : (
+                    <div className="text-[13px] font-semibold">{b.guest}</div>
+                  )}
                   <div className="text-[11px] text-muted-foreground">
                     {fmtDate(b.checkinDate)}{b.checkoutDate !== b.checkinDate && ` → ${fmtDate(b.checkoutDate)}`}
                     {b.pax && ` · ${b.pax}`}
