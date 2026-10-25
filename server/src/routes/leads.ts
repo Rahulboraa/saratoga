@@ -8,6 +8,7 @@ import { leadCommonSchema, leadManagerSchema, withWantedRange } from '../validat
 import { serializeLead } from '../lib/sanitize.js'
 import { callActivity } from '../services/callActivity.js'
 import { quietLeads, wantedWithin, monthWindow } from '../services/leadDates.js'
+import { freeDates } from '../services/availability.js'
 import { YMD } from '../lib/dates.js'
 import { scoped, writeProperty } from '../middleware/scope.js'
 
@@ -119,7 +120,28 @@ leadsRouter.get('/wanted', async (req, res) => {
   })
   if (req.user.role === 'sales') filter.exec = req.user.username
   const leads = await Lead.find(filter).sort({ wantedFrom: 1 }).limit(200)
-  res.json({ ...window, total: leads.length, rows: leads.map((l) => serializeLead(l.toObject(), req.user.role)) })
+
+  // What is actually sellable in that window. Listing who asked is only half the job —
+  // without this the manager still has to cross-check every name against the calendar,
+  // which is the work this was meant to remove.
+  const open = await freeDates(scoped(req), req.scope.propertyId, window.from, window.to)
+  const openByDate = new Map(open.map((f) => [f.date, f.units]))
+
+  const rows = leads.map((l) => {
+    const lead = serializeLead(l.toObject(), req.user.role)
+    // The free days this particular lead could actually take.
+    const matches = open.filter((f) => f.date >= (l.wantedFrom || '') && f.date <= (l.wantedTo || l.wantedFrom || ''))
+    return { ...lead, freeDates: matches.map((f) => f.date), freeUnits: [...new Set(matches.flatMap((f) => f.units))] }
+  })
+
+  res.json({
+    ...window,
+    freeDates: open,
+    total: rows.length,
+    // Someone whose dates are all gone cannot be pitched, so they are easy to pass over.
+    pitchable: rows.filter((r) => r.freeDates.length).length,
+    rows,
+  })
 })
 
 leadsRouter.get('/activity', requireRole('admin', 'manager'), async (req, res) => {

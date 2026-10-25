@@ -248,6 +248,22 @@ export interface ExecReportRow {
   conversionRate: number
 }
 
+export interface FreeDate {
+  date: string
+  /** Parts still open that day. Empty where the project is booked whole. */
+  units: string[]
+}
+
+export interface WantedLeads {
+  from: string
+  to: string
+  freeDates: FreeDate[]
+  total: number
+  /** How many of them want a date that is actually still sellable. */
+  pitchable: number
+  rows: (Lead & { freeDates: string[]; freeUnits: string[] })[]
+}
+
 export interface CallActivity {
   from: string
   to: string

@@ -7,7 +7,7 @@ import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { useProperty } from '@/lib/property'
 import { fmtDate, todayYmd } from '@/lib/format'
-import { EVENT_TYPES, OUTCOMES, LEAD_FLAGS, type Lead, type ExecReportRow, type CallActivity, type ExecCallStats } from '@/types'
+import { EVENT_TYPES, OUTCOMES, LEAD_FLAGS, type Lead, type ExecReportRow, type CallActivity, type ExecCallStats, type WantedLeads } from '@/types'
 import { CallingChart } from '@/components/charts'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -153,7 +153,7 @@ export default function Leads() {
 
   const { data: wanted } = useQuery({
     queryKey: ['leads', 'wanted', wantedMonth],
-    queryFn: () => api<{ from: string; to: string; total: number; rows: Lead[] }>(`/leads/wanted?month=${wantedMonth}`),
+    queryFn: () => api<WantedLeads>(`/leads/wanted?month=${wantedMonth}`),
     enabled: !!wantedMonth,
   })
 
@@ -534,33 +534,70 @@ export default function Leads() {
             )}
           </div>
           {wantedMonth && wanted && (
-            wanted.total === 0 ? (
-              <p className="mt-3 text-[13px] text-muted-foreground">Nobody on record asked for that month.</p>
-            ) : (
-              <div className="mt-3 space-y-1">
-                <p className="text-[12px] text-muted-foreground">
-                  {wanted.total} lead{wanted.total > 1 ? 's' : ''} asked for these dates.
-                </p>
-                {wanted.rows.map((l) => (
-                  <div key={l.id} className="flex flex-wrap items-center justify-between gap-2 py-1 text-[13px]">
-                    <span>
-                      <span className="font-medium">{l.name}</span>
-                      <span className="text-muted-foreground">
-                        {' · '}{l.phone} · {wantedLabel(l)}
-                        {l.outcome ? ` · ${l.outcome}` : ''}
+            <div className="mt-3 space-y-3">
+              {/* What can actually be sold that month. Listing who asked without this
+                  leaves the manager checking every name against the calendar by hand. */}
+              {wanted.freeDates.length === 0 ? (
+                <p className="text-[13px] text-muted-foreground">Nothing free that month — every date is booked.</p>
+              ) : (
+                <div>
+                  <p className="text-[12px] font-medium text-foreground/80">
+                    {wanted.freeDates.length} date{wanted.freeDates.length > 1 ? 's' : ''} still open
+                  </p>
+                  <div className="mt-1.5 flex flex-wrap gap-1.5">
+                    {wanted.freeDates.map((f) => (
+                      <span key={f.date} className="rounded-md bg-success/10 px-2 py-1 text-[12px] font-medium text-success">
+                        {new Date(`${f.date}T00:00:00`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                        {f.units.length > 0 && <span className="font-normal opacity-80"> · {f.units.join(', ')}</span>}
                       </span>
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="xs"
-                      onClick={() => waTo(l.phone, `Hi ${l.name}, ${wantedLabel(l)} has opened up at ${active?.name ?? 'our property'} — would you like to look at it?`)}
-                    >
-                      Pitch
-                    </Button>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )
+                </div>
+              )}
+
+              {wanted.total === 0 ? (
+                <p className="text-[13px] text-muted-foreground">Nobody on record asked for that month.</p>
+              ) : (
+                <div className="space-y-1">
+                  <p className="text-[12px] text-muted-foreground">
+                    {wanted.pitchable} of {wanted.total} can be pitched a date that is still open.
+                  </p>
+                  {wanted.rows.map((l) => {
+                    const canPitch = l.freeDates.length > 0
+                    const first = canPitch
+                      ? new Date(`${l.freeDates[0]}T00:00:00`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+                      : ''
+                    return (
+                      <div key={l.id} className="flex flex-wrap items-center justify-between gap-2 py-1 text-[13px]">
+                        <span className={canPitch ? '' : 'opacity-50'}>
+                          <span className="font-medium">{l.name}</span>
+                          <span className="text-muted-foreground">
+                            {' · '}{l.phone} · wanted {wantedLabel(l)}
+                            {l.outcome ? ` · ${l.outcome}` : ''}
+                          </span>
+                          {canPitch && (
+                            <span className="ml-1.5 text-success">
+                              {l.freeDates.length} open{l.freeUnits.length ? ` (${l.freeUnits.join(', ')})` : ''}
+                            </span>
+                          )}
+                        </span>
+                        {canPitch ? (
+                          <Button
+                            variant="outline"
+                            size="xs"
+                            onClick={() => waTo(l.phone, `Hi ${l.name}, ${first} has opened up at ${active?.name ?? 'our property'} — would you like to look at it?`)}
+                          >
+                            Pitch {first}
+                          </Button>
+                        ) : (
+                          <span className="text-[12px] text-muted-foreground">dates gone</span>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
           )}
         </CardContent>
       </Card>
