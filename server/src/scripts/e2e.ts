@@ -333,6 +333,21 @@ const afterBooked = await call(admin, '/leads/wanted?month=2026-10', { property:
 check('someone who already booked drops off the pitch list', !(afterBooked.body.rows ?? []).some((l: Json) => l.name === 'Wants 23 Oct'), JSON.stringify((afterBooked.body.rows ?? []).map((l: Json) => l.name)))
 await call(admin, `/leads/${oct23.body.id}`, { property: A, method: 'PATCH', body: { outcome: '' } })
 
+console.log('\n6h. The pitch list knows what is actually free')
+// A is booked on 15 and 28 November, so the rest of that month is sellable.
+await call(admin, '/leads', { property: A, body: { date: '2026-09-10', name: 'Wants Nov', phone: '9401', exec: 'mgra', wantedFrom: '2026-11-01', wantedTo: '2026-11-30' } })
+await call(admin, '/leads', { property: A, body: { date: '2026-09-11', name: 'Wants the 15th only', phone: '9402', exec: 'mgra', wantedFrom: '2026-11-15' } })
+const nov = await call(admin, '/leads/wanted?month=2026-11', { property: A })
+const open = (nov.body.freeDates ?? []).map((f: Json) => f.date)
+check('free dates come back with the list', open.length > 0, JSON.stringify(open.slice(0, 5)))
+check('a booked night is not offered', !open.includes('2026-11-15'), JSON.stringify(open.slice(0, 8)))
+check('an unbooked night is', open.includes('2026-11-02'), JSON.stringify(open.slice(0, 8)))
+const flexible = (nov.body.rows ?? []).find((r: Json) => r.name === 'Wants Nov')
+const onlyThe15th = (nov.body.rows ?? []).find((r: Json) => r.name === 'Wants the 15th only')
+check('a flexible lead is matched to real free nights', (flexible?.freeDates ?? []).length > 0, JSON.stringify(flexible?.freeDates?.slice(0, 4)))
+check('a lead wanting only a taken night has none', (onlyThe15th?.freeDates ?? []).length === 0, JSON.stringify(onlyThe15th?.freeDates))
+check('and the count of who can be pitched reflects that', nov.body.pitchable === 1, JSON.stringify({ p: nov.body.pitchable, t: nov.body.total }))
+
 console.log('\n6g. Editing one field leaves the rest alone')
 const rich = await call(admin, '/leads', { property: A, body: {
   date: '2026-09-05', name: 'Full record', phone: '9305', exec: 'mgra', flag: 'good',
