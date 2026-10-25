@@ -40,7 +40,6 @@ export default function Bookings() {
   const [dir, setDir] = useState<'asc' | 'desc'>('desc')
   const { actions, panels, openEdit } = useBookingActions()
   const { active } = useProperty()
-  const hasUnits = !!active?.units?.length
   const [searchParams, setSearchParams] = useSearchParams()
 
   useEffect(() => {
@@ -80,6 +79,9 @@ export default function Bookings() {
   const monthOptions = [...new Set([currentMonth(), ...(data?.months ?? [])])].sort().reverse()
 
   const resetPage = () => setPage(1)
+
+  const showParts =
+    !!active?.units?.length || (data?.rows ?? []).some((b) => b.units?.length)
 
   // Clicking the column already sorted flips it; clicking another starts newest-first,
   // which is what you want from a date either way.
@@ -162,15 +164,19 @@ export default function Bookings() {
           },
         ] satisfies ColumnDef<Booking>[])
       : []),
-    {
-      id: 'part',
-      header: 'Part',
-      // Blank for a project that is not split, so the column costs nothing there.
-      cell: ({ row: { original: b } }) =>
-        b.units?.length
-          ? <span className="whitespace-nowrap text-[12px]">{b.units.join(' + ')}</span>
-          : <span className="text-[12px] text-muted-foreground">{hasUnits ? 'Entire' : '—'}</span>,
-    },
+    // Only worth a column where something can actually be split. At a project booked
+    // whole it would be a column of dashes, and in the all-projects view it still earns
+    // its place as soon as one booking on screen names a part.
+    ...(showParts
+      ? ([{
+          id: 'part',
+          header: 'Part',
+          cell: ({ row: { original: b } }) =>
+            b.units?.length
+              ? <span className="whitespace-nowrap text-[12px]">{b.units.join(' + ')}</span>
+              : <span className="text-[12px] text-muted-foreground">Entire</span>,
+        }] satisfies ColumnDef<Booking>[])
+      : []),
     { id: 'type', header: 'Type', cell: ({ row: { original: b } }) => purposePill(b) },
     {
       id: 'pax',

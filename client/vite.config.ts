@@ -46,6 +46,8 @@ export default defineConfig({
     alias: { '@': path.resolve(__dirname, './src') },
   },
   server: {
-    proxy: { '/api': 'http://localhost:5000' },
+    // macOS AirPlay Receiver listens on 5000, so the API often has to move. Set
+    // API_PROXY to match whatever PORT the server was started with.
+    proxy: { '/api': process.env.API_PROXY ?? 'http://localhost:5000' },
   },
 })
