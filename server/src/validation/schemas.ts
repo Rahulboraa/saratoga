@@ -42,6 +42,9 @@ const bookingCommon = z.object({
   pax: str.default(''),
   purpose: eventType,
   source: z.enum(SOURCES).default(''),
+  // Which parts of the project are taken. Empty is the whole place, which is what a
+  // project that was never split always sends.
+  units: z.array(str.min(1)).max(20).default([]),
   notes: str.default(''),
   billingName: str.max(120).default(''),
   // Format is checked loosely: an invoice still has to go out if a guest hands over a

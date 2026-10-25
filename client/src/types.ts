@@ -26,6 +26,8 @@ export interface Property {
   invoiceTerms: string
   invoiceHeader: string
   invoiceFooter: string
+  /** Separately bookable parts. Empty means the project is booked whole. */
+  units: string[]
   imageUrl: string
   color: string
   inclusions: string
@@ -76,6 +78,8 @@ export interface Booking {
   purpose: Purpose
   source: string
   notes: string
+  /** Which parts of the project this booking takes. Empty means all of it. */
+  units?: string[]
   createdBy: string
   /** Who the invoice is raised on, when that is a company rather than the guest. */
   billingName?: string
@@ -100,6 +104,8 @@ export interface CalendarBooking {
   pax: string
   purpose: Purpose
   overlap?: boolean
+  /** Which parts of the project are held. Empty means all of them. */
+  units?: string[]
 }
 
 export interface Payment {

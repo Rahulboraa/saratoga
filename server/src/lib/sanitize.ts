@@ -14,7 +14,7 @@ function base(doc: Doc) {
 
 const BOOKING_COMMON = [
   'guest', 'phone', 'checkinDate', 'checkoutDate', 'checkinTime', 'checkoutTime',
-  'pax', 'purpose', 'source', 'notes', 'createdBy', 'overlap',
+  'pax', 'purpose', 'source', 'notes', 'createdBy', 'overlap', 'units',
 ]
 const BOOKING_ADMIN = [
   ...BOOKING_COMMON, 'dest', 'breakdown', 'amount', 'collected', 'due', 'status', 'invoiceNo', 'createdAt',
@@ -29,7 +29,7 @@ export function serializeBooking(doc: Doc, role: Role) {
   return out
 }
 
-const CALENDAR_KEYS = ['guest', 'checkinDate', 'checkoutDate', 'checkinTime', 'checkoutTime', 'pax', 'purpose', 'overlap']
+const CALENDAR_KEYS = ['guest', 'checkinDate', 'checkoutDate', 'checkinTime', 'checkoutTime', 'pax', 'purpose', 'overlap', 'units']
 
 export function serializeCalendarBooking(doc: Doc) {
   return { ...base(doc), ...pick(doc, CALENDAR_KEYS) }

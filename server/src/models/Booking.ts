@@ -23,6 +23,9 @@ const bookingSchema = new Schema(
     // several kinds of event with nothing to tell them apart — can be revisited.
     legacyPurpose: { type: String, default: '' },
     source: { type: String, enum: SOURCES, default: '' },
+    // Which parts of the project this booking takes. Empty means all of it — both the
+    // whole-place booking and every booking at a project that was never split.
+    units: { type: [String], default: [] },
     dest: { type: String, default: '' },
     notes: { type: String, default: '' },
     // Who the invoice is actually raised on. A company paying for an event needs its own

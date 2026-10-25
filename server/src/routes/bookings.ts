@@ -5,7 +5,7 @@ import { Payment } from '../models/Payment.js'
 import { requireRole } from '../middleware/auth.js'
 import { bookingAdminSchema, paymentSchema } from '../validation/schemas.js'
 import { serializeBooking, serializeCalendarBooking, serializePayment } from '../lib/sanitize.js'
-import { overlaps, overlapIdSet } from '../lib/overlap.js'
+import { conflicts, conflictIdSet } from '../lib/overlap.js'
 import { paymentSums, withFinance, type PaymentTotals } from '../services/finance.js'
 import { scoped, writeProperty } from '../middleware/scope.js'
 import { Property } from '../models/Property.js'
@@ -19,6 +19,19 @@ function escapeRegex(s: string) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
+/**
+ * Rejects villas the project does not have. A typo would otherwise create a booking
+ * nothing can ever clash with, which reads as free and sells the same night twice.
+ */
+async function unknownUnits(propertyId: string, units?: string[]) {
+  if (!units?.length) return null
+  const project = await Property.findById(propertyId).select('units')
+  const known = project?.units ?? []
+  if (!known.length) return 'This project is not split into parts'
+  const strays = units.filter((u) => !known.includes(u))
+  return strays.length ? `Not part of this project: ${strays.join(', ')}` : null
+}
+
 async function findConflicts(
   candidate: { checkinDate: string; checkoutDate?: string; checkinTime?: string; checkoutTime?: string },
   propertyId: string,
@@ -27,8 +40,8 @@ async function findConflicts(
   const all = await Booking.find({
     ...(excludeId ? { _id: { $ne: excludeId } } : {}),
     propertyId,
-  }).select('guest checkinDate checkoutDate checkinTime checkoutTime')
-  return all.filter((b) => overlaps(candidate, b))
+  }).select('guest checkinDate checkoutDate checkinTime checkoutTime units')
+  return all.filter((b) => conflicts(candidate, b))
 }
 
 /**
@@ -66,8 +79,8 @@ bookingsRouter.get('/', requireRole('admin', 'manager', 'sales'), async (req, re
   if (!isAdmin) query.select('-breakdown -amount -legacyReceived -dest')
   const bookings = await query
 
-  const allSpans = await Booking.find(scoped(req)).select('checkinDate checkoutDate checkinTime checkoutTime')
-  const overlapIds = overlapIdSet(allSpans.map((b) => ({ ...b.toObject(), id: b.id })))
+  const allSpans = await Booking.find(scoped(req)).select('checkinDate checkoutDate checkinTime checkoutTime units')
+  const overlapIds = conflictIdSet(allSpans.map((b) => ({ ...b.toObject(), id: b.id })))
   const months = [...new Set(allSpans.map((b) => b.checkinDate.slice(0, 7)))].sort().reverse()
 
   let rows = bookings.map((b) => ({ ...b.toObject(), id: b.id, overlap: overlapIds.has(b.id) }))
@@ -98,8 +111,8 @@ bookingsRouter.get('/upcoming', requireRole('admin', 'manager', 'sales'), async 
   if (!isAdmin) query.select('-breakdown -amount -legacyReceived -dest')
   const bookings = await query
 
-  const allSpans = await Booking.find(scoped(req)).select('checkinDate checkoutDate checkinTime checkoutTime')
-  const overlapIds = overlapIdSet(allSpans.map((b) => ({ ...b.toObject(), id: b.id })))
+  const allSpans = await Booking.find(scoped(req)).select('checkinDate checkoutDate checkinTime checkoutTime units')
+  const overlapIds = conflictIdSet(allSpans.map((b) => ({ ...b.toObject(), id: b.id })))
 
   let rows = bookings.map((b) => ({ ...b.toObject(), id: b.id, overlap: overlapIds.has(b.id) }))
   if (isAdmin) {
@@ -131,9 +144,9 @@ bookingsRouter.get('/calendar', async (req, res) => {
       { checkoutDate: '', checkinDate: { $gte: start, $lte: end } },
     ],
   }))
-    .select('guest checkinDate checkoutDate checkinTime checkoutTime pax purpose')
+    .select('guest checkinDate checkoutDate checkinTime checkoutTime pax purpose units')
     .sort({ checkinDate: 1 })
-  const overlapIds = overlapIdSet(bookings.map((b) => ({ ...b.toObject(), id: b.id })))
+  const overlapIds = conflictIdSet(bookings.map((b) => ({ ...b.toObject(), id: b.id })))
   res.json(bookings.map((b) => serializeCalendarBooking({ ...b.toObject(), id: b.id, overlap: overlapIds.has(b.id) })))
 })
 
@@ -156,6 +169,8 @@ bookingsRouter.post('/', requireRole('admin', 'manager'), async (req, res) => {
   const { allowOverlap, ...body } = schema.parse(req.body)
   const propertyId = writeProperty(req, res)
   if (!propertyId) return
+  const strayUnits = await unknownUnits(propertyId, body.units)
+  if (strayUnits) return res.status(400).json({ error: strayUnits })
   if (!allowOverlap) {
     const conflicts = await findConflicts(body, propertyId)
     if (conflicts.length) {
@@ -181,11 +196,17 @@ bookingsRouter.patch('/:id', requireRole('admin', 'manager'), async (req, res) =
   const booking = await Booking.findOne(scoped(req, { _id: req.params.id }))
   if (!booking) return res.status(404).json({ error: 'Booking not found' })
 
+  const strayUnits = await unknownUnits(String(booking.propertyId), body.units)
+  if (strayUnits) return res.status(400).json({ error: strayUnits })
+
   const merged = {
     checkinDate: body.checkinDate ?? booking.checkinDate,
     checkoutDate: body.checkoutDate ?? booking.checkoutDate,
     checkinTime: body.checkinTime ?? booking.checkinTime,
     checkoutTime: body.checkoutTime ?? booking.checkoutTime,
+    // Without this an edit is checked as though it took the whole place, and moving one
+    // villa's dates would collide with the other villa for no reason.
+    units: body.units ?? booking.units,
   }
   if (!allowOverlap) {
     const conflicts = await findConflicts(merged, String(booking.propertyId), booking.id)

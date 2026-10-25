@@ -2,7 +2,7 @@ import { Booking } from '../models/Booking.js'
 import { Payment } from '../models/Payment.js'
 import { Expense } from '../models/Expense.js'
 import { ExpensePayment } from '../models/ExpensePayment.js'
-import { overlapIdSet } from '../lib/overlap.js'
+import { conflictIdSet } from '../lib/overlap.js'
 import { todayYmd, monthOf, monthsBetween } from '../lib/dates.js'
 import { serializeBooking } from '../lib/sanitize.js'
 import { paymentSums, withFinance } from './finance.js'
@@ -44,7 +44,7 @@ export async function dashboardStats(role: Role, scope: Scope = {}) {
   const today = todayYmd()
   const bookings = await Booking.find(scope).sort({ checkinDate: 1 })
   const rows = bookings.map((b) => ({ ...b.toObject(), id: b.id }))
-  const overlapIds = overlapIdSet(rows)
+  const overlapIds = conflictIdSet(rows)
 
   const purposeBreakdown = new Map<string, { purpose: string; count: number; booked: number; collected: number }>()
   const bookingsPerMonth = new Map<string, number>()

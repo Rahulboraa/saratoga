@@ -6,6 +6,7 @@ import toast from 'react-hot-toast'
 import type { ColumnDef } from '@tanstack/react-table'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
+import { useProperty } from '@/lib/property'
 import { fmtMoney, fmtDate, fmtMonth, currentMonth, PURPOSE_COLORS, STATUS_VARIANT } from '@/lib/format'
 import { PURPOSES, type Booking } from '@/types'
 import { Button } from '@/components/ui/button'
@@ -38,6 +39,8 @@ export default function Bookings() {
   const [sort, setSort] = useState<'checkinDate' | 'createdAt'>('checkinDate')
   const [dir, setDir] = useState<'asc' | 'desc'>('desc')
   const { actions, panels, openEdit } = useBookingActions()
+  const { active } = useProperty()
+  const hasUnits = !!active?.units?.length
   const [searchParams, setSearchParams] = useSearchParams()
 
   useEffect(() => {
@@ -159,6 +162,15 @@ export default function Bookings() {
           },
         ] satisfies ColumnDef<Booking>[])
       : []),
+    {
+      id: 'part',
+      header: 'Part',
+      // Blank for a project that is not split, so the column costs nothing there.
+      cell: ({ row: { original: b } }) =>
+        b.units?.length
+          ? <span className="whitespace-nowrap text-[12px]">{b.units.join(' + ')}</span>
+          : <span className="text-[12px] text-muted-foreground">{hasUnits ? 'Entire' : '—'}</span>,
+    },
     { id: 'type', header: 'Type', cell: ({ row: { original: b } }) => purposePill(b) },
     {
       id: 'pax',
@@ -249,6 +261,7 @@ export default function Bookings() {
                   <div className="text-[11px] text-muted-foreground">
                     {fmtDate(b.checkinDate)}{b.checkoutDate !== b.checkinDate && ` → ${fmtDate(b.checkoutDate)}`}
                     {b.pax && ` · ${b.pax}`}
+                    {b.units?.length ? ` · ${b.units.join(' + ')}` : ''}
                   </div>
                 </div>
                 {purposePill(b)}

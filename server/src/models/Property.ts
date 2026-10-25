@@ -41,6 +41,10 @@ const propertySchema = new Schema(
     inclusions: { type: String, default: '' },
     exclusions: { type: String, default: '' },
     confirmationNotes: { type: String, default: '' },
+    // The separately bookable parts of this project, named as the team calls them. A
+    // project with none is one place that is booked whole, which is every project until
+    // one of them is split.
+    units: { type: [String], default: [] },
     // Invoice serials restart each financial year, per property.
     invoiceFy: { type: String, default: '' },
     invoiceSeq: { type: Number, default: 0 },

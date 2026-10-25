@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { useProperty } from "@/lib/property";
 import { fmtMoney, fmtDate, todayYmd } from "@/lib/format";
 import { PURPOSES, SOURCES, type Booking } from "@/types";
 
@@ -58,6 +59,7 @@ interface FormValues {
   source: string;
   dest: string;
   notes: string;
+  units: string[];
   billingName: string;
   billingGstin: string;
   billingAddress: string;
@@ -97,6 +99,7 @@ function toForm(b?: Booking | null): FormValues {
     source: b?.source ?? "none",
     dest: b?.dest ?? "",
     notes: b?.notes ?? "",
+    units: b?.units ?? [],
     billingName: b?.billingName ?? "",
     billingGstin: b?.billingGstin ?? "",
     billingAddress: b?.billingAddress ?? "",
@@ -166,6 +169,10 @@ export default function BookingSheet({
     watch("checkoutTime"),
   ];
 
+  const { active } = useProperty();
+  const units = active?.units ?? [];
+  const chosenUnits = watch("units") ?? [];
+
   const save = useMutation({
     mutationFn: async ({
       payload,
@@ -222,6 +229,7 @@ export default function BookingSheet({
       purpose: v.purpose,
       source: v.source === "none" ? "" : v.source,
       notes: v.notes,
+      units: v.units,
       billingName: v.billingName,
       billingGstin: v.billingGstin,
       billingAddress: v.billingAddress,
@@ -440,6 +448,47 @@ export default function BookingSheet({
                   </>
                 )}
               </>
+            )}
+
+            {/* Only a project that is actually split needs this; everywhere else the
+                booking takes the whole place and the question is meaningless. */}
+            {units.length > 0 && (
+              <div className="space-y-2">
+                <Label>Which part?</Label>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant={chosenUnits.length === 0 ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setValue("units", [])}
+                  >
+                    Entire property
+                  </Button>
+                  {units.map((unit) => (
+                    <Button
+                      key={unit}
+                      type="button"
+                      variant={chosenUnits.includes(unit) ? "default" : "outline"}
+                      size="sm"
+                      onClick={() =>
+                        setValue(
+                          "units",
+                          chosenUnits.includes(unit)
+                            ? chosenUnits.filter((u) => u !== unit)
+                            : [...chosenUnits, unit],
+                        )
+                      }
+                    >
+                      {unit}
+                    </Button>
+                  ))}
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  {chosenUnits.length === 0
+                    ? "The whole place is held, so nothing else can be booked on these dates."
+                    : `Only ${chosenUnits.join(" and ")} held. The rest stays available.`}
+                </p>
+              </div>
             )}
 
             <div className="space-y-2">

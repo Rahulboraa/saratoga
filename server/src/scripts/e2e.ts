@@ -131,6 +131,37 @@ check('and descending flips it back', String(descOrder) === '2026-11-15,2026-11-
 const badSort = await call(admin, '/bookings?month=2026-11&sort=amount&dir=desc', { property: A })
 check('an unknown sort falls back to the event date rather than erroring', badSort.status === 200 && badSort.body.rows?.length === 2, String(badSort.status))
 
+console.log('\n3c. A project split into two villas')
+await Property.updateOne({ _id: b._id }, { units: ['Villa 1', 'Villa 2'] })
+const v1 = await call(admin, '/bookings', { property: B, body: { guest: 'Villa 1 guest', phone: '81', checkinDate: '2027-02-14', checkoutDate: '2027-02-15', units: ['Villa 1'], breakdown: { venue: 50000 } } })
+check('one villa can be booked', v1.status === 201, JSON.stringify(v1.body))
+const v2 = await call(admin, '/bookings', { property: B, body: { guest: 'Villa 2 guest', phone: '82', checkinDate: '2027-02-14', checkoutDate: '2027-02-15', units: ['Villa 2'], breakdown: { venue: 50000 } } })
+check('the other villa sells the same night to someone else', v2.status === 201, JSON.stringify(v2.body))
+const sameVilla = await call(admin, '/bookings', { property: B, body: { guest: 'Villa 1 again', phone: '83', checkinDate: '2027-02-14', checkoutDate: '2027-02-15', units: ['Villa 1'], breakdown: { venue: 50000 } } })
+check('but the same villa cannot be sold twice', sameVilla.status === 409, String(sameVilla.status))
+const whole = await call(admin, '/bookings', { property: B, body: { guest: 'Whole place', phone: '84', checkinDate: '2027-02-14', checkoutDate: '2027-02-15', units: [], breakdown: { venue: 90000 } } })
+check('and the whole place is refused while either villa is taken', whole.status === 409, String(whole.status))
+
+const freeNight = await call(admin, '/bookings', { property: B, body: { guest: 'Whole place', phone: '84', checkinDate: '2027-03-10', checkoutDate: '2027-03-11', units: [], breakdown: { venue: 90000 } } })
+check('the whole place books on a free night', freeNight.status === 201, JSON.stringify(freeNight.body))
+const underWhole = await call(admin, '/bookings', { property: B, body: { guest: 'Squeeze in', phone: '85', checkinDate: '2027-03-10', checkoutDate: '2027-03-11', units: ['Villa 1'], breakdown: { venue: 40000 } } })
+check('and then no single villa can be sold under it', underWhole.status === 409, String(underWhole.status))
+
+const typo = await call(admin, '/bookings', { property: B, body: { guest: 'Typo', phone: '86', checkinDate: '2027-04-01', units: ['Villa 3'], breakdown: { venue: 10000 } } })
+check('a villa the project does not have is refused', typo.status === 400, JSON.stringify(typo.body))
+const notSplit = await call(admin, '/bookings', { property: A, body: { guest: 'Wrong project', phone: '87', checkinDate: '2027-04-01', units: ['Villa 1'], breakdown: { venue: 10000 } } })
+check('and so is naming a villa at a project that is not split', notSplit.status === 400, JSON.stringify(notSplit.body))
+
+const moved = await call(admin, `/bookings/${v1.body.id}`, { property: B, method: 'PATCH', body: { checkinDate: '2027-02-20', checkoutDate: '2027-02-21' } })
+check('moving one villa\'s dates does not collide with the other', moved.status === 200, JSON.stringify(moved.body))
+
+// These were only ever about who can book what. Leaving them in would move every money
+// figure the later sections check.
+for (const id of [v1.body.id, v2.body.id, freeNight.body.id]) {
+  await call(admin, `/bookings/${id}`, { property: B, method: 'DELETE' })
+}
+await Property.updateOne({ _id: b._id }, { units: [] })
+
 console.log('\n4. Money stays inside the property')
 await call(admin, `/bookings/${bookA.body.id}/payments`, { property: A, body: { date: '2026-11-01', amount: 20000, dest: 'HDFC' } })
 await call(admin, `/bookings/${bookA.body.id}/payments`, { property: A, body: { date: '2026-11-05', amount: -5000, dest: 'HDFC', notes: 'Refund' } })

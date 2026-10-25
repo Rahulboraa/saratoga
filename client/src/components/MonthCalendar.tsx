@@ -39,6 +39,11 @@ export function DayBookingCard({ b, date, onOpen }: { b: CalendarBooking; date: 
           {b.purpose}
         </span>
       </div>
+      {/* Which part is held. Without it, a day with one villa booked looks exactly like
+          a day with the whole place gone. */}
+      {!!b.units?.length && (
+        <div className="mt-1 text-[12px] font-medium text-foreground/80">{b.units.join(' + ')}</div>
+      )}
       {multiDay && (
         <div className="mt-1 text-[12px] text-muted-foreground">
           {fmtDate(b.checkinDate)} → {fmtDate(b.checkoutDate)}

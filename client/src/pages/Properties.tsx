@@ -102,6 +102,8 @@ export default function Properties() {
       invoiceTerms: fd.get('invoiceTerms'),
       invoiceHeader: fd.get('invoiceHeader'),
       invoiceFooter: fd.get('invoiceFooter'),
+      // One per line, so a project is split simply by naming its parts.
+      units: String(fd.get('units') ?? '').split('\n').map((u) => u.trim()).filter(Boolean),
       inclusions: fd.get('inclusions'),
       exclusions: fd.get('exclusions'),
       confirmationNotes: fd.get('confirmationNotes'),
@@ -281,6 +283,19 @@ export default function Properties() {
                 Changing the prefix only affects invoices issued from now on; ones already issued keep their number.
               </p>
             )}
+            <div className="space-y-1.5">
+              <Label>Bookable parts</Label>
+              <Textarea
+                name="units"
+                rows={2}
+                defaultValue={(editing?.units ?? []).join('\n')}
+                placeholder={'Leave blank if the whole place is booked together\ne.g. Villa 1\nVilla 2'}
+                className="text-[12px]"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                One per line. Name them only if they can be booked by different guests on the same date.
+              </p>
+            </div>
             <div className="space-y-1.5">
               <Label>Invoice header</Label>
               <Textarea
