@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import ConfirmDelete from '@/components/ConfirmDelete'
 import { propertyColor } from '@/lib/propertyLook'
 import EmptyState from '@/components/EmptyState'
@@ -227,9 +227,6 @@ export default function Properties() {
         <SheetContent side="right" size="md" className="flex w-full flex-col gap-0 p-0">
           <SheetHeader className="border-b px-6 py-5">
             <SheetTitle>{editing ? `Edit ${editing.name}` : 'Add project'}</SheetTitle>
-            <SheetDescription>
-              {editing ? 'Everything printed on this project\u2019s invoices' : 'A project keeps its own bookings, expenses, leads and staff'}
-            </SheetDescription>
           </SheetHeader>
           {/* Keyed on the property so the fields reload when switching between rows. */}
           <form key={editing?.id ?? 'new'} onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
@@ -253,9 +250,6 @@ export default function Properties() {
                 defaultValue={editing?.legalName ?? ''}
                 placeholder={editing?.name ? `Leave blank to use "${editing.name}"` : 'e.g. Saratõga INC'}
               />
-              <p className="text-[11px] text-muted-foreground">
-                The entity that raises the invoice, when that differs from what the villa is called.
-              </p>
             </div>
             <div className="space-y-1.5">
               <Label>Photo URL</Label>
@@ -270,9 +264,6 @@ export default function Properties() {
                   defaultValue={propertyColor(editing)}
                   className="h-9 w-16 p-1"
                 />
-                <span className="text-[11px] text-muted-foreground">
-                  Used on the banner and the switcher, so each property is told apart at a glance.
-                </span>
               </div>
             </div>
             <div className="space-y-1.5">
@@ -291,7 +282,7 @@ export default function Properties() {
             </div>
             {editing && (
               <p className="text-[11px] text-muted-foreground">
-                Changing the prefix only affects invoices issued from now on; ones already issued keep their number.
+                Invoices already issued keep their number.
               </p>
             )}
             <div className="space-y-1.5">
@@ -303,9 +294,6 @@ export default function Properties() {
                 placeholder={'Leave blank if the whole place is booked together\ne.g. Villa 1\nVilla 2'}
                 className="text-[12px]"
               />
-              <p className="text-[11px] text-muted-foreground">
-                One per line. Name them only if they can be booked by different guests on the same date.
-              </p>
             </div>
             <div className="space-y-1.5">
               <Label>Invoice header</Label>
@@ -326,7 +314,6 @@ export default function Properties() {
                 placeholder="Bank details, signature line, thank-you note"
                 className="text-[12px]"
               />
-              <p className="text-[11px] text-muted-foreground">Printed at the very bottom, under the terms.</p>
             </div>
             <div className="space-y-1.5">
               <Label>GST note</Label>
@@ -337,9 +324,6 @@ export default function Properties() {
                 placeholder="Shown only on invoices that charge GST"
                 className="text-[12px]"
               />
-              <p className="text-[11px] text-muted-foreground">
-                Printed under the terms, and only when GST is charged. Leave blank to print nothing.
-              </p>
             </div>
             <div className="space-y-1.5">
               <Label>Invoice terms</Label>
@@ -350,7 +334,6 @@ export default function Properties() {
                 placeholder="One term per line"
                 className="text-[12px]"
               />
-              <p className="text-[11px] text-muted-foreground">One per line — printed under the totals on every invoice.</p>
             </div>
             <div className="space-y-1.5">
               <Label>Confirmation inclusions</Label>
@@ -363,9 +346,6 @@ export default function Properties() {
             <div className="space-y-1.5">
               <Label>Confirmation notes</Label>
               <Textarea name="confirmationNotes" rows={3} defaultValue={editing?.confirmationNotes ?? ''} placeholder="One per line" className="text-[12px]" />
-              <p className="text-[11px] text-muted-foreground">
-                These three fill the WhatsApp confirmation sent from a booking. It stays editable before sending.
-              </p>
             </div>
             </div>
             <SheetFooter className="flex-row justify-end gap-2 border-t px-6 py-4">
