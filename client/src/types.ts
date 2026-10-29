@@ -394,6 +394,8 @@ export interface InvoicePayload {
   property: {
     name: string; address: string; location: string; gstin: string
     header: string; footer: string; terms: string[]
+    /** The project's accent, and its id so one can be derived when none is set. */
+    color: string; id: string
   }
   items: { label: string; amount: number }[]
   taxable: number

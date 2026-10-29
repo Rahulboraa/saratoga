@@ -266,6 +266,10 @@ async function invoicePayload(req: Parameters<typeof scoped>[0], id: string) {
       location: property?.location ?? '', gstin: property?.gstin ?? '',
       header: property?.invoiceHeader ?? '',
       footer: property?.invoiceFooter ?? '',
+      // The project's own colour, so an invoice from one is told apart from another at
+      // a glance without reading the name.
+      color: property?.color ?? '',
+      id: String(property?._id ?? ''),
       terms: (property?.invoiceTerms ?? '').split('\n').map((t) => t.trim()).filter(Boolean),
     },
     ...lines,

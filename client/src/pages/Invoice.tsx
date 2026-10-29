@@ -5,6 +5,7 @@ import toast from 'react-hot-toast'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { fmtMoney, fmtDate } from '@/lib/format'
+import { propertyColor } from '@/lib/propertyLook'
 import type { InvoicePayload } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -53,6 +54,9 @@ export default function Invoice() {
   }
 
   const { booking, property } = data
+  // The project's own colour, used sparingly: a financial document should be read, not
+  // decorated, so it marks the edge, the labels and the line that carries the total.
+  const accent = propertyColor({ id: property.id, color: property.color })
   const issued = !!data.invoiceNo
   const gstPct = Math.round(data.gstRate * 100)
   const balance = data.total - data.received
@@ -97,11 +101,13 @@ export default function Invoice() {
 
       <div
         data-invoice
-        className="mx-auto max-w-3xl rounded-xl border border-border/60 bg-card p-8 shadow-sm print:border-0 print:p-0 print:shadow-none"
+        className="mx-auto max-w-3xl overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm print:border-0 print:shadow-none"
       >
+        <div data-invoice-rule className="h-1.5 w-full" style={{ background: accent }} />
+        <div className="p-8 print:p-0 print:pt-5">
         <div className="flex flex-wrap items-start justify-between gap-4 border-b pb-5">
           <div>
-            <h1 className="text-[20px] font-bold tracking-tight">{property.name}</h1>
+            <h1 className="text-[20px] font-bold tracking-tight" style={{ color: accent }}>{property.name}</h1>
             {property.address && <p className="mt-1 max-w-xs text-[12px] text-muted-foreground">{property.address}</p>}
             {property.location && !property.address && <p className="mt-1 text-[12px] text-muted-foreground">{property.location}</p>}
             {property.gstin && <p className="mt-1 text-[12px] text-muted-foreground">GSTIN: {property.gstin}</p>}
@@ -110,7 +116,7 @@ export default function Invoice() {
             )}
           </div>
           <div className="text-right">
-            <div className="text-[13px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="text-[13px] font-semibold uppercase tracking-wider" style={{ color: accent }}>
               {data.kind}
             </div>
             {issued ? (
@@ -126,7 +132,7 @@ export default function Invoice() {
 
         <div className="grid gap-4 border-b py-5 sm:grid-cols-2">
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Billed to</div>
+            <div data-invoice-label className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: accent }}>Billed to</div>
             <div className="mt-1 text-[15px] font-semibold">{booking.billingName || booking.guest}</div>
             {booking.billingAddress && (
               <div className="mt-0.5 max-w-xs whitespace-pre-line text-[12px] text-muted-foreground">{booking.billingAddress}</div>
@@ -137,7 +143,7 @@ export default function Invoice() {
             {booking.phone && <div className="text-[12px] text-muted-foreground">{booking.phone}</div>}
           </div>
           <div className="sm:text-right">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Event</div>
+            <div data-invoice-label className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: accent }}>Event</div>
             <div className="mt-1 text-[13px]">{booking.purpose}</div>
             <div className="text-[12px] text-muted-foreground">
               {fmtDate(booking.checkinDate)}
@@ -148,16 +154,20 @@ export default function Invoice() {
 
         <table className="w-full border-collapse py-5 text-[13px]">
           <thead>
-            <tr className="border-b text-[11px] uppercase tracking-wider text-muted-foreground">
-              <th className="py-2 text-left font-semibold">Description</th>
-              <th className="py-2 text-right font-semibold">Amount</th>
+            <tr
+              data-invoice-head
+              className="text-[11px] uppercase tracking-wider"
+              style={{ background: `color-mix(in oklch, ${accent}, white 90%)`, color: accent }}
+            >
+              <th className="rounded-l-md px-3 py-2 text-left font-semibold">Description</th>
+              <th className="rounded-r-md px-3 py-2 text-right font-semibold">Amount</th>
             </tr>
           </thead>
           <tbody>
             {data.items.map((i) => (
               <tr key={i.label} className="border-b border-border/40">
-                <td className="py-2">{i.label}</td>
-                <td className="py-2 text-right tabular-nums">{fmtMoney(i.amount)}</td>
+                <td className="px-3 py-2">{i.label}</td>
+                <td className="px-3 py-2 text-right tabular-nums">{fmtMoney(i.amount)}</td>
               </tr>
             ))}
           </tbody>
@@ -174,7 +184,11 @@ export default function Invoice() {
           {data.licence > 0 && <Row label="Licence fee (no GST)" value={fmtMoney(data.licence)} />}
           {data.security > 0 && <Row label="Security deposit (refundable)" value={fmtMoney(data.security)} />}
           {data.refunded > 0 && <Row label="Less: refunded" value={`− ${fmtMoney(data.refunded)}`} />}
-          <div className="mt-1.5 border-t pt-1.5">
+          <div
+            data-invoice-total
+            className="mt-2 rounded-md px-3 py-1.5"
+            style={{ background: `color-mix(in oklch, ${accent}, white 90%)`, color: accent }}
+          >
             <Row label="Total" value={fmtMoney(data.total)} strong />
           </div>
           {data.received > 0 && (
@@ -189,7 +203,7 @@ export default function Invoice() {
 
         {property.terms.length > 0 && (
           <div className="mt-8 border-t pt-4">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Terms</div>
+            <div data-invoice-label className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: accent }}>Terms</div>
             <ul data-invoice-terms className="mt-2 space-y-1">
               {property.terms.map((t) => (
                 <li key={t} className="flex gap-2 text-[11px] leading-relaxed text-muted-foreground">
@@ -214,6 +228,7 @@ export default function Invoice() {
             {property.footer && <p className="whitespace-pre-line">{property.footer}</p>}
           </div>
         )}
+        </div>
       </div>
     </div>
   )

@@ -204,14 +204,31 @@
   [data-invoice] {
     font-size: 11px;
     line-height: 1.35;
+    /* Browsers drop backgrounds when printing unless told otherwise, which would leave
+       the accent bar, the table head and the total as bare text. */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* The bar runs to the paper edge; the page margin is what keeps it off it. */
+  [data-invoice] [data-invoice-rule] {
+    height: 5px;
+  }
+
+  /* On screen the secondary text is a soft grey, which reads as faint once it is ink on
+     paper — and worse again after a photocopy or a photo of the sheet. Printed, it goes
+     dark enough to read while staying below the figures in weight. */
+  [data-invoice] .text-muted-foreground {
+    color: #3f3f46 !important;
   }
 
   [data-invoice] [data-invoice-terms] {
     /* Two columns turn eleven lines into six, which is what buys back the page. */
     columns: 2;
     column-gap: 18px;
-    font-size: 9.5px;
-    line-height: 1.3;
+    font-size: 10.5px;
+    line-height: 1.4;
+    color: #3f3f46 !important;
   }
 
   [data-invoice] [data-invoice-terms] li {
