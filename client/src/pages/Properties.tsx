@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import ConfirmDelete from '@/components/ConfirmDelete'
 import { propertyColor } from '@/lib/propertyLook'
 import EmptyState from '@/components/EmptyState'
@@ -223,14 +223,28 @@ export default function Properties() {
         </div>
       )}
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-md">
-          <DialogHeader><DialogTitle>{editing ? `Edit ${editing.name}` : 'Add project'}</DialogTitle></DialogHeader>
+      <Sheet open={dialogOpen} onOpenChange={setDialogOpen}>
+        <SheetContent side="right" size="md" className="flex w-full flex-col gap-0 p-0">
+          <SheetHeader className="border-b px-6 py-5">
+            <SheetTitle>{editing ? `Edit ${editing.name}` : 'Add project'}</SheetTitle>
+            <SheetDescription>
+              {editing ? 'Everything printed on this project\u2019s invoices' : 'A project keeps its own bookings, expenses, leads and staff'}
+            </SheetDescription>
+          </SheetHeader>
           {/* Keyed on the property so the fields reload when switching between rows. */}
-          <form key={editing?.id ?? 'new'} onSubmit={onSubmit} className="mt-2 space-y-3">
-            <div className="space-y-1.5">
-              <Label>Name</Label>
-              <Input name="name" required autoFocus defaultValue={editing?.name ?? ''} placeholder="e.g. Saratoga Farms" />
+          <form key={editing?.id ?? 'new'} onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
+            <div className="flex-1 space-y-5 overflow-y-auto px-6 py-6">
+            {/* The drawer is wide enough to sit the short fields in pairs, which takes
+                a third of the scrolling out of the form. */}
+            <div className="grid gap-x-4 gap-y-5 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>Name</Label>
+                <Input name="name" required autoFocus defaultValue={editing?.name ?? ''} placeholder="e.g. Saratoga Farms" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Location</Label>
+                <Input name="location" defaultValue={editing?.location ?? ''} placeholder="Optional" />
+              </div>
             </div>
             <div className="space-y-1.5">
               <Label>Company name (on invoice)</Label>
@@ -242,10 +256,6 @@ export default function Properties() {
               <p className="text-[11px] text-muted-foreground">
                 The entity that raises the invoice, when that differs from what the villa is called.
               </p>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Location</Label>
-              <Input name="location" defaultValue={editing?.location ?? ''} placeholder="Optional" />
             </div>
             <div className="space-y-1.5">
               <Label>Photo URL</Label>
@@ -357,15 +367,16 @@ export default function Properties() {
                 These three fill the WhatsApp confirmation sent from a booking. It stays editable before sending.
               </p>
             </div>
-            <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            </div>
+            <SheetFooter className="flex-row justify-end gap-2 border-t px-6 py-4">
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
               <Button type="submit" disabled={createProperty.isPending || saveEdits.isPending}>
                 {editing ? 'Save' : 'Create'}
               </Button>
-            </DialogFooter>
+            </SheetFooter>
           </form>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }
