@@ -202,6 +202,9 @@
   }
 
   [data-invoice] {
+    /* Shrunk only when the content would otherwise run onto a second sheet; the value
+       is 1 for almost every invoice. */
+    zoom: var(--invoice-fit, 1);
     font-size: 12px;
     line-height: 1.35;
     /* Browsers drop backgrounds when printing unless told otherwise, which would leave

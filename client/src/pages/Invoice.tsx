@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Printer } from 'lucide-react'
@@ -22,11 +23,49 @@ function Row({ label, value, strong }: { label: string; value: string; strong?: 
   )
 }
 
+/** A4 less a 14mm margin top and bottom, in CSS pixels at 96dpi. */
+const PRINTABLE_HEIGHT = 1017
+/**
+ * What the printed sheet measures against the same content on screen — the print styles
+ * set a smaller base size and drop the app around it. Calibrated against a one-line
+ * invoice, which has to print unscaled, and a booking with every charge filled in, which
+ * has to come down far enough to land on one sheet.
+ */
+const PRINT_RATIO = 0.88
+
+/**
+ * Keeps an invoice to a single sheet.
+ *
+ * A booking with every charge filled in, a three-line billing address and a long GST
+ * note runs past the page, and the tail of it arriving on a second sheet looks like a
+ * mistake to whoever receives it. The sheet is measured once it has rendered and shrunk
+ * only as far as it has to be — most invoices are nowhere near the limit and print at
+ * full size.
+ */
+function useFitToPage(ref: React.RefObject<HTMLDivElement | null>, deps: unknown[]) {
+  const [fit, setFit] = useState(1)
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const measure = () => {
+      const height = el.scrollHeight * PRINT_RATIO
+      setFit(height > PRINTABLE_HEIGHT ? Math.max(PRINTABLE_HEIGHT / height, 0.62) : 1)
+    }
+    measure()
+    // Fonts land after the first paint and change every measurement with them.
+    document.fonts?.ready.then(measure).catch(() => {})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps)
+  return fit
+}
+
 export default function Invoice() {
   const { id } = useParams()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { user } = useAuth()
+
+  const sheetRef = useRef<HTMLDivElement>(null)
 
   const { data, isLoading } = useQuery({
     queryKey: ['invoice', id],
@@ -49,6 +88,10 @@ export default function Invoice() {
     onSuccess: (fresh) => queryClient.setQueryData(['invoice', id], fresh),
     onError: (e) => toast.error(e instanceof Error ? e.message : 'Could not change GST'),
   })
+
+  // Hooks cannot sit behind the early return below, so the measurement runs on whatever
+  // is in the ref and settles once the invoice is actually there.
+  const fit = useFitToPage(sheetRef, [data])
 
   if (isLoading || !data) {
     return <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-28" />)}</div>
@@ -101,8 +144,10 @@ export default function Invoice() {
       )}
 
       <div
+        ref={sheetRef}
         data-invoice
         className="mx-auto max-w-3xl overflow-hidden bg-card shadow-sm print:shadow-none"
+        style={{ ['--invoice-fit' as string]: String(fit) }}
       >
         <div
           data-invoice-masthead
