@@ -206,6 +206,15 @@ check("the guest's GSTIN is upper-cased", b2bInv.body.booking.billingGstin === '
 check('the billing address carries its line breaks', b2bInv.body.booking.billingAddress === 'Plot 4\nNoida', JSON.stringify(b2bInv.body.booking.billingAddress))
 check('the legal name replaces the villa name', b2bInv.body.property.name === 'Saratõga INC', String(b2bInv.body.property.name))
 check('header and footer reach the invoice', b2bInv.body.property.header === 'care@saratoga.in' && b2bInv.body.property.footer === 'Bank: HDFC\nA/c 123', JSON.stringify({ h: b2bInv.body.property.header, f: b2bInv.body.property.footer }))
+
+// The GST note is the project's words, not ours.
+check('the tax note has a sensible default', String(b2bInv.body.property.taxNote).includes('GST charged'), JSON.stringify(b2bInv.body.property.taxNote))
+await call(admin, `/properties/${A}`, { method: 'PATCH', body: { invoiceTaxNote: 'Tax as advised by our CA.' } })
+const edited = await call(admin, `/bookings/${b2b.body.id}/invoice`, { property: A })
+check('and it can be rewritten', edited.body.property.taxNote === 'Tax as advised by our CA.', JSON.stringify(edited.body.property.taxNote))
+await call(admin, `/properties/${A}`, { method: 'PATCH', body: { invoiceTaxNote: '' } })
+const blankNote = await call(admin, `/bookings/${b2b.body.id}/invoice`, { property: A })
+check('or cleared, so nothing prints', blankNote.body.property.taxNote === '', JSON.stringify(blankNote.body.property.taxNote))
 const b2bEdit = await call(admin, `/bookings/${b2b.body.id}`, { property: A })
 check('billing details come back when editing', b2bEdit.body.billingName === 'Acme Pvt Ltd' && b2bEdit.body.billingGstin === '09AAACH7409R1ZZ', JSON.stringify({ n: b2bEdit.body.billingName, g: b2bEdit.body.billingGstin }))
 

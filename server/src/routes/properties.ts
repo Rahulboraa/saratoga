@@ -21,6 +21,7 @@ const createSchema = z.object({
   invoiceTerms: z.string().max(4000).optional(),
   invoiceHeader: z.string().max(1000).optional(),
   invoiceFooter: z.string().max(1000).optional(),
+  invoiceTaxNote: z.string().max(1000).optional(),
   units: z.array(z.string().trim().min(1).max(60)).max(20).optional(),
   imageUrl: imageUrl.default(''),
   color: color.default(''),
@@ -40,6 +41,7 @@ const updateSchema = z.object({
   invoiceTerms: z.string().max(4000).optional(),
   invoiceHeader: z.string().max(1000).optional(),
   invoiceFooter: z.string().max(1000).optional(),
+  invoiceTaxNote: z.string().max(1000).optional(),
   units: z.array(z.string().trim().min(1).max(60)).max(20).optional(),
   imageUrl: imageUrl.optional(),
   color: color.optional(),
@@ -51,7 +53,7 @@ const updateSchema = z.object({
 const shape = (p: {
   id: string; name: string; legalName: string; location: string; active: boolean
   address: string; gstin: string; invoicePrefix: string; invoiceTerms: string
-  invoiceHeader: string; invoiceFooter: string
+  invoiceHeader: string; invoiceFooter: string; invoiceTaxNote: string
   units: string[]
   imageUrl: string; color: string
   inclusions: string; exclusions: string; confirmationNotes: string
@@ -59,7 +61,7 @@ const shape = (p: {
   id: p.id, name: p.name, legalName: p.legalName, location: p.location, active: p.active,
   address: p.address, gstin: p.gstin, invoicePrefix: p.invoicePrefix,
   invoiceTerms: p.invoiceTerms, invoiceHeader: p.invoiceHeader, invoiceFooter: p.invoiceFooter,
-  units: p.units ?? [],
+  invoiceTaxNote: p.invoiceTaxNote, units: p.units ?? [],
   imageUrl: p.imageUrl, color: p.color,
   inclusions: p.inclusions, exclusions: p.exclusions, confirmationNotes: p.confirmationNotes,
 })

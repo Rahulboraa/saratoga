@@ -18,6 +18,14 @@ export const DEFAULT_INVOICE_TERMS = [
 /** Printed at the very bottom of an invoice, under the terms. Editable per property. */
 export const DEFAULT_INVOICE_FOOTER = 'This is a computer-generated document and needs no signature.'
 
+/**
+ * The note explaining what was taxed, shown only on an invoice that charges GST. Worded
+ * for how this business bills, and editable because an accountant will want it to read
+ * the way they file.
+ */
+export const DEFAULT_TAX_NOTE =
+  'GST charged at 18% on the taxable value. The licence fee is recovered at actuals and the security deposit is refundable, so neither attracts GST.'
+
 const propertySchema = new Schema(
   {
     name: { type: String, required: true, trim: true, unique: true },
@@ -37,6 +45,7 @@ const propertySchema = new Schema(
     // Free text under the letterhead and at the foot of the invoice.
     invoiceHeader: { type: String, default: '' },
     invoiceFooter: { type: String, default: DEFAULT_INVOICE_FOOTER },
+    invoiceTaxNote: { type: String, default: DEFAULT_TAX_NOTE },
     // Defaults for the WhatsApp booking confirmation, one item per line.
     inclusions: { type: String, default: '' },
     exclusions: { type: String, default: '' },

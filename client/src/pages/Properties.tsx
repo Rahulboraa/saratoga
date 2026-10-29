@@ -102,6 +102,7 @@ export default function Properties() {
       invoiceTerms: fd.get('invoiceTerms'),
       invoiceHeader: fd.get('invoiceHeader'),
       invoiceFooter: fd.get('invoiceFooter'),
+      invoiceTaxNote: fd.get('invoiceTaxNote'),
       // One per line, so a project is split simply by naming its parts.
       units: String(fd.get('units') ?? '').split('\n').map((u) => u.trim()).filter(Boolean),
       inclusions: fd.get('inclusions'),
@@ -316,6 +317,19 @@ export default function Properties() {
                 className="text-[12px]"
               />
               <p className="text-[11px] text-muted-foreground">Printed at the very bottom, under the terms.</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label>GST note</Label>
+              <Textarea
+                name="invoiceTaxNote"
+                rows={3}
+                defaultValue={editing?.invoiceTaxNote ?? ''}
+                placeholder="Shown only on invoices that charge GST"
+                className="text-[12px]"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Printed under the terms, and only when GST is charged. Leave blank to print nothing.
+              </p>
             </div>
             <div className="space-y-1.5">
               <Label>Invoice terms</Label>

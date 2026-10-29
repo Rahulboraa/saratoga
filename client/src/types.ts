@@ -26,6 +26,8 @@ export interface Property {
   invoiceTerms: string
   invoiceHeader: string
   invoiceFooter: string
+  /** Shown under the terms on an invoice that charges GST. */
+  invoiceTaxNote: string
   /** Separately bookable parts. Empty means the project is booked whole. */
   units: string[]
   imageUrl: string
@@ -393,7 +395,7 @@ export interface InvoicePayload {
   }
   property: {
     name: string; address: string; location: string; gstin: string
-    header: string; footer: string; terms: string[]
+    header: string; footer: string; taxNote: string; terms: string[]
     /** The project's accent, and its id so one can be derived when none is set. */
     color: string; id: string
   }

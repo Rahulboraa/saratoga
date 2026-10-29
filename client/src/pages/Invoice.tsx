@@ -233,13 +233,12 @@ export default function Invoice() {
             </div>
           )}
 
-          {(data.gstEnabled || property.footer) && (
+          {((data.gstEnabled && property.taxNote) || property.footer) && (
             <div className="mt-4 space-y-2 border-t border-border/60 pt-4 text-[12px] leading-relaxed text-muted-foreground">
-              {data.gstEnabled && (
-                <p className="max-w-[72ch]">
-                  GST charged at {gstPct}% on the taxable value. The licence fee is recovered at actuals
-                  and the security deposit is refundable, so neither attracts GST.
-                </p>
+              {/* Only shown where tax was actually charged, and worded by whoever files
+                  the return rather than by us. */}
+              {data.gstEnabled && property.taxNote && (
+                <p className="max-w-[72ch] whitespace-pre-line">{property.taxNote}</p>
               )}
               {property.footer && <p className="whitespace-pre-line">{property.footer}</p>}
             </div>
