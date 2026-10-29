@@ -12,6 +12,7 @@ import { Property } from '../models/Property.js'
 import { invoiceLines, nextInvoiceNo, GST_RATE } from '../services/invoice.js'
 import { buildConfirmation } from '../services/confirmation.js'
 import { todayYmd } from '../lib/dates.js'
+import { countsForInvoice } from '../lib/paymentMethod.js'
 
 export const bookingsRouter = Router()
 
@@ -345,8 +346,10 @@ bookingsRouter.post('/:id/payments', requireRole('admin', 'manager'), async (req
   if (!booking) return res.status(404).json({ error: 'Booking not found' })
   const body = paymentSchema.parse(req.body)
   const payment = await Payment.create({ ...body, bookingId: booking._id, propertyId: booking.propertyId })
-  // Money in means the booking is real, so the proforma becomes the sales invoice.
-  // A refund (negative) is not a first payment, so it never triggers this.
-  if (body.amount > 0) await issueInvoice(booking)
+  // Bank money means the booking is real and on the books, so the proforma becomes the
+  // sales invoice. Cash — and a payment whose method nobody recorded — leaves the
+  // booking off the numbered series, because every serial raised has to be answered for
+  // in a return. A refund (negative) is not a first payment either.
+  if (body.amount > 0 && countsForInvoice(body.method)) await issueInvoice(booking)
   res.status(201).json(serializePayment(payment.toObject()))
 })

@@ -140,8 +140,11 @@ const PAGE_LABELS: Record<string, string> = {
 function TopBar() {
   const { pathname } = useLocation()
   const key = pathname.split('/').filter(Boolean)[0] ?? ''
+  // A header element, not a div: the print styles hide the app chrome by tag, and as a
+  // div this bar printed its breadcrumb, project switcher and search box across the top
+  // of every invoice sent to a client.
   return (
-    <div className="sticky top-0 z-30 hidden h-16 items-center gap-2 border-b border-border/60 bg-background px-6 md:flex">
+    <header className="sticky top-0 z-30 hidden h-16 items-center gap-2 border-b border-border/60 bg-background px-6 md:flex">
       <nav className="flex items-center gap-2 text-[13px]">
         <NavLink to="/" className="text-muted-foreground transition-colors hover:text-foreground">Saratoga Villa</NavLink>
         <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40" />
@@ -161,7 +164,7 @@ function TopBar() {
           </kbd>
         </button>
       </div>
-    </div>
+    </header>
   )
 }
 

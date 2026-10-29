@@ -6,7 +6,7 @@ import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { useProperty } from "@/lib/property";
 import { fmtMoney, fmtDate, todayYmd } from "@/lib/format";
-import { PURPOSES, SOURCES, type Booking } from "@/types";
+import { PAYMENT_METHODS, PURPOSES, SOURCES, type Booking } from "@/types";
 
 function addDays(ymd: string, n: number) {
   const [y, m, d] = ymd.split("-").map(Number);
@@ -437,9 +437,9 @@ export default function BookingSheet({
                             <SelectTrigger className="w-full"><SelectValue placeholder="—" /></SelectTrigger>
                             <SelectContent>
                               <SelectItem value="none">—</SelectItem>
-                              <SelectItem value="UPI">UPI</SelectItem>
-                              <SelectItem value="Cash">Cash</SelectItem>
-                              <SelectItem value="Bank transfer">Bank transfer</SelectItem>
+                              {PAYMENT_METHODS.map((m) => (
+                                <SelectItem key={m} value={m}>{m}</SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                         </div>

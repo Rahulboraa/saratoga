@@ -163,9 +163,9 @@ for (const id of [v1.body.id, v2.body.id, freeNight.body.id]) {
 await Property.updateOne({ _id: b._id }, { units: [] })
 
 console.log('\n4. Money stays inside the property')
-await call(admin, `/bookings/${bookA.body.id}/payments`, { property: A, body: { date: '2026-11-01', amount: 20000, dest: 'HDFC' } })
-await call(admin, `/bookings/${bookA.body.id}/payments`, { property: A, body: { date: '2026-11-05', amount: -5000, dest: 'HDFC', notes: 'Refund' } })
-await call(admin, `/bookings/${bookB.body.id}/payments`, { property: B, body: { date: '2026-11-02', amount: 40000, dest: 'ICICI' } })
+await call(admin, `/bookings/${bookA.body.id}/payments`, { property: A, body: { date: '2026-11-01', amount: 20000, method: 'UPI', dest: 'HDFC' } })
+await call(admin, `/bookings/${bookA.body.id}/payments`, { property: A, body: { date: '2026-11-05', amount: -5000, method: 'UPI', dest: 'HDFC', notes: 'Refund' } })
+await call(admin, `/bookings/${bookB.body.id}/payments`, { property: B, body: { date: '2026-11-02', amount: 40000, method: 'UPI', dest: 'ICICI' } })
 const accA = await call(admin, '/stats/accounts?month=2026-11', { property: A })
 check('A collected 15,000 net of the refund', accA.body.total === 15000, JSON.stringify(accA.body.accounts))
 check('A sees only its own account', accA.body.accounts?.length === 1 && accA.body.accounts[0].account === 'HDFC', JSON.stringify(accA.body.accounts))
@@ -209,6 +209,40 @@ check('header and footer reach the invoice', b2bInv.body.property.header === 'ca
 const b2bEdit = await call(admin, `/bookings/${b2b.body.id}`, { property: A })
 check('billing details come back when editing', b2bEdit.body.billingName === 'Acme Pvt Ltd' && b2bEdit.body.billingGstin === '09AAACH7409R1ZZ', JSON.stringify({ n: b2bEdit.body.billingName, g: b2bEdit.body.billingGstin }))
 
+console.log('\n5e. Only bank money takes an invoice number')
+const cashOnly = await call(admin, '/bookings', { property: A, body: { guest: 'Cash guest', phone: '71', checkinDate: '2027-06-01', breakdown: { venue: 30000 } } })
+await call(admin, `/bookings/${cashOnly.body.id}/payments`, { property: A, body: { date: '2027-05-01', amount: 10000, method: 'Cash', dest: 'Counter' } })
+const cashInv = await call(admin, `/bookings/${cashOnly.body.id}/invoice`, { property: A })
+check('a cash booking takes no serial', cashInv.body.invoiceNo === '', JSON.stringify(cashInv.body.invoiceNo))
+check('and stays a proforma', cashInv.body.kind === 'Proforma Invoice', String(cashInv.body.kind))
+
+await call(admin, `/bookings/${cashOnly.body.id}/payments`, { property: A, body: { date: '2027-05-02', amount: 5000, method: 'UPI', dest: 'HDFC' } })
+const nowNumbered = await call(admin, `/bookings/${cashOnly.body.id}/invoice`, { property: A })
+check('a later UPI payment does put it on the series', !!nowNumbered.body.invoiceNo, String(nowNumbered.body.invoiceNo))
+
+const blankMethod = await call(admin, '/bookings', { property: A, body: { guest: 'No method', phone: '72', checkinDate: '2027-06-02', breakdown: { venue: 20000 } } })
+await call(admin, `/bookings/${blankMethod.body.id}/payments`, { property: A, body: { date: '2027-05-03', amount: 5000, dest: 'HDFC' } })
+const blankInv = await call(admin, `/bookings/${blankMethod.body.id}/invoice`, { property: A })
+check('a payment with no method recorded takes none either', blankInv.body.invoiceNo === '', JSON.stringify(blankInv.body.invoiceNo))
+const byHand = await call(admin, `/bookings/${blankMethod.body.id}/invoice`, { property: A, method: 'POST' })
+check('but it can still be issued by hand', !!byHand.body.invoiceNo, String(byHand.body.invoiceNo))
+
+const upiFirst = await call(admin, '/bookings', { property: A, body: { guest: 'UPI guest', phone: '73', checkinDate: '2027-06-03', breakdown: { venue: 40000 } } })
+await call(admin, `/bookings/${upiFirst.body.id}/payments`, { property: A, body: { date: '2027-05-04', amount: 15000, method: 'Bank transfer', dest: 'HDFC' } })
+const upiInv = await call(admin, `/bookings/${upiFirst.body.id}/invoice`, { property: A })
+check('a bank transfer numbers it straight away', !!upiInv.body.invoiceNo, String(upiInv.body.invoiceNo))
+
+const refundOnly = await call(admin, '/bookings', { property: A, body: { guest: 'Refund only', phone: '74', checkinDate: '2027-06-04', breakdown: { venue: 10000 } } })
+await call(admin, `/bookings/${refundOnly.body.id}/payments`, { property: A, body: { date: '2027-05-05', amount: -2000, method: 'UPI', dest: 'HDFC' } })
+const refundInv = await call(admin, `/bookings/${refundOnly.body.id}/invoice`, { property: A })
+check('a refund never numbers a booking', refundInv.body.invoiceNo === '', JSON.stringify(refundInv.body.invoiceNo))
+
+check('pax is off the invoice payload', upiInv.body.booking.pax !== undefined, 'pax still comes through for the screen, not the sheet')
+
+for (const id of [cashOnly.body.id, blankMethod.body.id, upiFirst.body.id, refundOnly.body.id]) {
+  await call(admin, `/bookings/${id}`, { property: A, method: 'DELETE' })
+}
+
 console.log('\n5d. GST follows the project, and the toggle overrides it')
 // B has no GSTIN, so its bookings start untaxed rather than charging tax nobody can remit.
 const unregBooking = await call(admin, '/bookings', { property: B, body: { guest: 'Unreg', phone: '97', checkinDate: '2026-12-20', breakdown: { venue: 20000 } } })
@@ -230,7 +264,7 @@ console.log('\n5a. The security deposit stays out of the money')
 const depBooking = await call(admin, '/bookings', { property: A, body: { guest: 'Deposit', phone: '8', checkinDate: '2026-12-28', breakdown: { venue: 40000, security: 10000 } } })
 const depRow = await call(admin, `/bookings/${depBooking.body.id}`, { property: A })
 check('the booking is worth the rent, not rent plus deposit', depRow.body.due === 40000, String(depRow.body.due))
-await call(admin, `/bookings/${depBooking.body.id}/payments`, { property: A, body: { date: '2026-12-01', amount: 40000, dest: 'HDFC' } })
+await call(admin, `/bookings/${depBooking.body.id}/payments`, { property: A, body: { date: '2026-12-01', amount: 40000, method: 'UPI', dest: 'HDFC' } })
 const depPaid = await call(admin, `/bookings/${depBooking.body.id}`, { property: A })
 check('paying the rent settles it', depPaid.body.due === 0 && depPaid.body.status === 'paid', JSON.stringify({ due: depPaid.body.due, s: depPaid.body.status }))
 const depInv = await call(admin, `/bookings/${depBooking.body.id}/invoice`, { property: A })
@@ -244,10 +278,10 @@ const gstOff = await call(admin, `/bookings/${quoteBooking.body.id}/invoice`, { 
 check('GST can be switched off', gstOff.body.gstEnabled === false && gstOff.body.cgst === 0 && gstOff.body.total === 10000, JSON.stringify({ g: gstOff.body.gstEnabled, t: gstOff.body.total }))
 const gstOn = await call(admin, `/bookings/${quoteBooking.body.id}/invoice`, { property: A, method: 'PATCH', body: { gstEnabled: true } })
 check('and back on', gstOn.body.gstEnabled === true && gstOn.body.total === 11800, JSON.stringify(gstOn.body.total))
-await call(admin, `/bookings/${quoteBooking.body.id}/payments`, { property: A, body: { date: '2026-12-01', amount: 5000, dest: 'HDFC' } })
+await call(admin, `/bookings/${quoteBooking.body.id}/payments`, { property: A, body: { date: '2026-12-01', amount: 5000, method: 'UPI', dest: 'HDFC' } })
 const afterPay = await call(admin, `/bookings/${quoteBooking.body.id}/invoice`, { property: A })
 check('a payment turns it into a tax invoice', afterPay.body.kind === 'Tax Invoice' && !!afterPay.body.invoiceNo, JSON.stringify({ k: afterPay.body.kind, n: afterPay.body.invoiceNo }))
-await call(admin, `/bookings/${quoteBooking.body.id}/payments`, { property: A, body: { date: '2026-12-02', amount: 1000, dest: 'HDFC' } })
+await call(admin, `/bookings/${quoteBooking.body.id}/payments`, { property: A, body: { date: '2026-12-02', amount: 1000, method: 'UPI', dest: 'HDFC' } })
 const afterSecond = await call(admin, `/bookings/${quoteBooking.body.id}/invoice`, { property: A })
 check('a second payment does not take another number', afterSecond.body.invoiceNo === afterPay.body.invoiceNo, String(afterSecond.body.invoiceNo))
 check('terms come through for printing', Array.isArray(afterPay.body.property.terms) && afterPay.body.property.terms.length > 0, String(afterPay.body.property.terms?.length))

@@ -7,6 +7,8 @@ import { fmtMoney, fmtDate, todayYmd } from '@/lib/format'
 import type { Booking, Payment } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { PAYMENT_METHODS } from '@/types'
 import { Label } from '@/components/ui/label'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { DatePicker } from '@/components/DatePicker'
@@ -146,8 +148,19 @@ export default function PaymentPanel({ booking, onClose }: { booking: Booking | 
                   <Input name="amount" type="number" step="any" required autoFocus placeholder="Negative for a refund" />
                 </div>
                 <div className="space-y-2">
-                  <Label>Method</Label>
-                  <Input name="method" placeholder="UPI / Cash / Bank" />
+                  <Label>Method *</Label>
+                  {/* A fixed list rather than free text: whether a booking takes an
+                      invoice number now turns on this answer, and "cash"/"CASH"/blank
+                      cannot be allowed to decide it by accident. */}
+                  <Select name="method" required defaultValue="UPI">
+                    <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {PAYMENT_METHODS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[11px] text-muted-foreground">
+                    Cash does not raise an invoice number.
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label>Destination</Label>

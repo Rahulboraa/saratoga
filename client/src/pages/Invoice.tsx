@@ -143,7 +143,6 @@ export default function Invoice() {
               {fmtDate(booking.checkinDate)}
               {booking.checkoutDate && booking.checkoutDate !== booking.checkinDate && ` → ${fmtDate(booking.checkoutDate)}`}
             </div>
-            {booking.pax && <div className="text-[12px] text-muted-foreground">{booking.pax}</div>}
           </div>
         </div>
 
@@ -201,15 +200,20 @@ export default function Invoice() {
           </div>
         )}
 
-        <div className="mt-4 space-y-2 border-t pt-4 text-[11px] leading-relaxed text-muted-foreground">
-          <p>
-            {data.gstEnabled
-              ? `GST charged at ${gstPct}% on the taxable value. The licence fee is recovered at actuals and the security deposit is refundable, so neither attracts GST.`
-              : 'Billed without GST. The licence fee is recovered at actuals and the security deposit is refundable.'}
-          </p>
-          {/* Bank details or a signature block run to several lines, so keep the breaks. */}
-          {property.footer && <p className="whitespace-pre-line">{property.footer}</p>}
-        </div>
+        {(data.gstEnabled || property.footer) && (
+          <div className="mt-4 space-y-2 border-t pt-4 text-[11px] leading-relaxed text-muted-foreground">
+            {/* Only said where tax was actually charged. An invoice that carries none is
+                simply not a tax invoice, and does not need to announce it. */}
+            {data.gstEnabled && (
+              <p>
+                GST charged at {gstPct}% on the taxable value. The licence fee is recovered at actuals
+                and the security deposit is refundable, so neither attracts GST.
+              </p>
+            )}
+            {/* Bank details or a signature block run to several lines, so keep the breaks. */}
+            {property.footer && <p className="whitespace-pre-line">{property.footer}</p>}
+          </div>
+        )}
       </div>
     </div>
   )

@@ -153,6 +153,9 @@ export interface ExpensePayment {
   notes: string
 }
 
+/** How a payment arrived. Cash alone keeps a booking off the invoice series. */
+export const PAYMENT_METHODS = ['UPI', 'Bank transfer', 'Card', 'Cheque', 'Cash'] as const
+
 export const FU_STATUSES = ['Hold', 'Closed', 'Cancelled'] as const
 export const VISITOR_TYPES = ['Guest', 'Vendor', 'Delivery', 'Staff', 'Other'] as const
 export type VisitorType = (typeof VISITOR_TYPES)[number]
