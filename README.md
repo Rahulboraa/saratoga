@@ -2,6 +2,8 @@
 
 An app that runs the villa's whole event business (bookings, payments, invoices, P&L, leads and visitors), with each role seeing only what it needs.
 
+**Live:** https://saratoga-villa.vercel.app/
+
 - **What it is:** a web and mobile (PWA) app for running Saratoga Villa's event-booking business.
 - **Core features:** bookings with clash detection, payment tracking, expenses and P&L, GST invoices, staff incentives, a lead CRM and a visitor log.
 - **Owner:** sees every money figure (bookings, collections, dues, profit).
