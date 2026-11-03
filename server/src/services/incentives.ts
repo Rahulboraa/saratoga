@@ -1,6 +1,8 @@
 export const INCENTIVE_START = '2026-04'
 // Deepak's slabs were revised with effect from July 2026.
 export const DEEPAK_V2_START = '2026-07'
+// Deepak's last working day was 30 Sep 2026; no incentive after that month.
+export const DEEPAK_LAST_MONTH = '2026-09'
 
 const L5 = 500_000
 const L7_5 = 750_000
@@ -50,7 +52,7 @@ export function calcAkhil(sales: number) {
 export function monthIncentive(month: string, sales: number, expenses: number) {
   const profit = sales - expenses
   if (month < INCENTIVE_START) return { month, sales, expenses, profit, deepak: 0, akhil: 0, total: 0 }
-  const deepak = calcDeepak(sales, month).total
+  const deepak = month > DEEPAK_LAST_MONTH ? 0 : calcDeepak(sales, month).total
   const akhil = calcAkhil(sales)
   return { month, sales, expenses, profit, deepak, akhil, total: deepak + akhil }
 }

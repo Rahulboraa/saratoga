@@ -96,4 +96,12 @@ describe('monthIncentive', () => {
     expect(out.akhil).toBe(20_250)
     expect(out.total).toBe(43_750)
   })
+
+  it('pays deepak through 2026-09 and stops after the last working month', () => {
+    expect(monthIncentive('2026-09', 1_200_000, 100_000).deepak).toBe(23_500)
+    const out = monthIncentive('2026-10', 1_200_000, 100_000)
+    expect(out.deepak).toBe(0)
+    expect(out.akhil).toBe(20_250)
+    expect(out.total).toBe(20_250)
+  })
 })
